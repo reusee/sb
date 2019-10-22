@@ -1,8 +1,6 @@
 package sb
 
-func Compare(a, b any) int {
-	tokenizer1 := NewValue(a)
-	tokenizer2 := NewValue(b)
+func Compare(tokenizer1, tokenizer2 Tokenizer) int {
 	for {
 		t1 := tokenizer1.Next()
 		t2 := tokenizer2.Next()
