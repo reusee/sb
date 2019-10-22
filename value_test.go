@@ -12,6 +12,8 @@ func TestValue(t *testing.T) {
 		expected []Token
 	}
 
+	type foo int
+
 	cases := []Case{
 
 		{
@@ -222,6 +224,13 @@ func TestValue(t *testing.T) {
 				},
 			}
 		}(),
+
+		{
+			foo(42),
+			[]Token{
+				{KindInt, int(42)},
+			},
+		},
 	}
 
 	for i, c := range cases {
