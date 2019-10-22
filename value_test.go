@@ -225,6 +225,7 @@ func TestValue(t *testing.T) {
 	}
 
 	for i, c := range cases {
+
 		tokens := Tokens(c.value)
 		if len(tokens) != len(c.expected) {
 			t.Fatalf("%d fail %+v", i, c)
@@ -257,6 +258,15 @@ func TestValue(t *testing.T) {
 		l := List(c.expected)
 		if Compare(decoder, l) != 0 {
 			t.Fatalf("%d fail %+v", i, c)
+		}
+
+		tokens = Tokens(c.value)
+		var obj any
+		if err := Unmarshal(List(tokens), &obj); err != nil {
+			t.Fatal(err)
+		}
+		if Compare(NewValue(obj), NewValue(c.value)) != 0 {
+			t.Fatalf("not equal, got %#v, expected %#v", obj, c.value)
 		}
 
 	}

@@ -25,6 +25,12 @@ func (t *Value) Tokenize(value reflect.Value, cont func()) func() {
 	return func() {
 		switch value.Kind() {
 
+		case reflect.Invalid:
+			t.tokens = append(t.tokens, Token{
+				Kind: KindNil,
+			})
+			t.proc = cont
+
 		case reflect.Ptr, reflect.Interface:
 			if value.IsNil() {
 				t.tokens = append(t.tokens, Token{
