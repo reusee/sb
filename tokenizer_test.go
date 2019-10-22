@@ -1,6 +1,8 @@
 package sb
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestTokenizer(t *testing.T) {
 	type Case struct {
@@ -23,6 +25,7 @@ func TestTokenizer(t *testing.T) {
 				return &i
 			}(),
 			[]Token{
+				{KindIndirect, KindInt},
 				{KindInt, int64(42)},
 			},
 		},
@@ -51,7 +54,7 @@ func TestTokenizer(t *testing.T) {
 		{
 			[]int{42, 4, 2},
 			[]Token{
-				{Kind: KindArrayStart},
+				{Kind: KindArray},
 				{KindInt, int64(42)},
 				{KindInt, int64(4)},
 				{KindInt, int64(2)},
@@ -65,13 +68,13 @@ func TestTokenizer(t *testing.T) {
 				{2, 4, 42},
 			},
 			[]Token{
-				{Kind: KindArrayStart},
-				{Kind: KindArrayStart},
+				{Kind: KindArray},
+				{Kind: KindArray},
 				{KindInt, int64(42)},
 				{KindInt, int64(4)},
 				{KindInt, int64(2)},
 				{Kind: KindArrayEnd},
-				{Kind: KindArrayStart},
+				{Kind: KindArray},
 				{KindInt, int64(2)},
 				{KindInt, int64(4)},
 				{KindInt, int64(42)},
@@ -98,7 +101,7 @@ func TestTokenizer(t *testing.T) {
 				"42",
 			},
 			[]Token{
-				{Kind: KindObjectStart},
+				{Kind: KindObject},
 				{KindString, "Foo"},
 				{KindInt, int64(42)},
 				{KindString, "Bar"},
@@ -110,10 +113,10 @@ func TestTokenizer(t *testing.T) {
 		},
 	}
 
-	for _, c := range cases {
+	for i, c := range cases {
 		tokens := Tokens(c.value)
 		if len(tokens) != len(c.expected) {
-			t.Fatalf("fail %+v", c)
+			t.Fatalf("%d fail %+v", i, c)
 		}
 		for i, token := range tokens {
 			if token != c.expected[i] {

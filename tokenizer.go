@@ -24,7 +24,18 @@ func (t *Tokenizer) Tokenize(value reflect.Value, cont func()) func() {
 		switch value.Kind() {
 
 		case reflect.Interface, reflect.Ptr:
-			t.proc = t.Tokenize(value.Elem(), cont)
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindIndirect,
+				Value: KindOf(value.Type().Elem().Kind()),
+			})
+			if value.IsNil() {
+				t.tokens = append(t.tokens, Token{
+					Kind: KindNil,
+				})
+				t.proc = cont
+			} else {
+				t.proc = t.Tokenize(value.Elem(), cont)
+			}
 
 		case reflect.Bool:
 			t.tokens = append(t.tokens, Token{
@@ -56,7 +67,7 @@ func (t *Tokenizer) Tokenize(value reflect.Value, cont func()) func() {
 
 		case reflect.Array, reflect.Slice:
 			t.tokens = append(t.tokens, Token{
-				Kind: KindArrayStart,
+				Kind: KindArray,
 			})
 			t.proc = t.TokenizeArray(value, 0, cont)
 
@@ -69,12 +80,12 @@ func (t *Tokenizer) Tokenize(value reflect.Value, cont func()) func() {
 
 		case reflect.Struct:
 			t.tokens = append(t.tokens, Token{
-				Kind: KindObjectStart,
+				Kind: KindObject,
 			})
 			t.proc = t.TokenizeStruct(value, 0, cont)
 
 		default:
-			panic(fmt.Errorf("invalid type %v", value.Type()))
+			panic(fmt.Errorf("invalid value or type: %s", value.String()))
 
 		}
 	}
