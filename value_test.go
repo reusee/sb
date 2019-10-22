@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestTokenizer(t *testing.T) {
+func TestValue(t *testing.T) {
 	type Case struct {
 		value    any
 		expected []Token
@@ -220,7 +220,7 @@ func TestTokenizer(t *testing.T) {
 		}
 
 		tokens = tokens[:0]
-		tokenizer := NewTokenizer(c.value)
+		tokenizer := NewValue(c.value)
 		for token := tokenizer.Next(); token != nil; token = tokenizer.Next() {
 			tokens = append(tokens, *token)
 		}

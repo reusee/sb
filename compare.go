@@ -1,8 +1,8 @@
 package sb
 
 func Compare(a, b any) int {
-	tokenizer1 := NewTokenizer(a)
-	tokenizer2 := NewTokenizer(b)
+	tokenizer1 := NewValue(a)
+	tokenizer2 := NewValue(b)
 	for {
 		t1 := tokenizer1.Next()
 		t2 := tokenizer2.Next()
