@@ -23,11 +23,22 @@ func (t *Tokenizer) Tokenize(value reflect.Value, cont func()) func() {
 	return func() {
 		switch value.Kind() {
 
-		case reflect.Interface, reflect.Ptr:
+		case reflect.Ptr:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindIndirect,
 				Value: KindOf(value.Type().Elem().Kind()),
 			})
+			if value.IsNil() {
+				t.tokens = append(t.tokens, Token{
+					Kind: KindNil,
+				})
+				t.proc = cont
+			} else {
+				t.proc = t.Tokenize(value.Elem(), cont)
+			}
+
+		case reflect.Interface:
+			// KindIndirect is for concrete types, do not emit KindIndirect
 			if value.IsNil() {
 				t.tokens = append(t.tokens, Token{
 					Kind: KindNil,

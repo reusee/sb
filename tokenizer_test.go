@@ -111,6 +111,117 @@ func TestTokenizer(t *testing.T) {
 				{Kind: KindObjectEnd},
 			},
 		},
+
+		{
+			[]interface{}{
+				func() **int {
+					i := 42
+					j := &i
+					return &j
+				}(),
+				func() *int {
+					return nil
+				}(),
+				(interface{})(nil),
+			},
+			[]Token{
+				{Kind: KindArray},
+
+				{KindIndirect, KindIndirect}, // **int
+				{KindIndirect, KindInt},      // *int
+				{KindInt, int64(42)},
+
+				{KindIndirect, KindInt}, // *int
+				{Kind: KindNil},
+
+				{Kind: KindNil}, // interface{}
+
+				{Kind: KindArrayEnd},
+			},
+		},
+
+		{
+			func() *int {
+				return nil
+			}(),
+			[]Token{
+				{KindIndirect, KindInt},
+				{Kind: KindNil},
+			},
+		},
+
+		{
+			func() *bool {
+				return nil
+			}(),
+			[]Token{
+				{KindIndirect, KindBool},
+				{Kind: KindNil},
+			},
+		},
+
+		{
+			func() *uint8 {
+				return nil
+			}(),
+			[]Token{
+				{KindIndirect, KindUint},
+				{Kind: KindNil},
+			},
+		},
+
+		{
+			func() *float32 {
+				return nil
+			}(),
+			[]Token{
+				{KindIndirect, KindFloat},
+				{Kind: KindNil},
+			},
+		},
+
+		{
+			func() *[]int32 {
+				return nil
+			}(),
+			[]Token{
+				{KindIndirect, KindArray},
+				{Kind: KindNil},
+			},
+		},
+
+		{
+			func() *[]int32 {
+				array := []int32{42}
+				return &array
+			}(),
+			[]Token{
+				{KindIndirect, KindArray},
+				{Kind: KindArray},
+				{KindInt, int64(42)},
+				{Kind: KindArrayEnd},
+			},
+		},
+
+		{
+			func() *string {
+				return nil
+			}(),
+			[]Token{
+				{KindIndirect, KindString},
+				{Kind: KindNil},
+			},
+		},
+
+		{
+			func() *struct{} {
+				return nil
+			}(),
+			[]Token{
+				{KindIndirect, KindObject},
+				{Kind: KindNil},
+			},
+		},
 	}
 
 	for i, c := range cases {
@@ -136,5 +247,17 @@ func TestBadType(t *testing.T) {
 			}
 		}()
 		Tokens(func() {})
+	}()
+}
+
+func TestBadKindOf(t *testing.T) {
+	func() {
+		defer func() {
+			p := recover()
+			if p == nil {
+				t.Fatal()
+			}
+		}()
+		Tokens((*func())(nil))
 	}()
 }
