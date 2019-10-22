@@ -11,7 +11,7 @@ func Compare(tokenizer1, tokenizer2 Tokenizer) int {
 			break
 		} else if t1 == nil && t2 != nil {
 			return -1
-		} else if t1 != nil && t1 == nil {
+		} else if t1 != nil && t2 == nil {
 			return 1
 		}
 
