@@ -1,6 +1,8 @@
 package sb
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -94,10 +96,12 @@ func TestValue(t *testing.T) {
 				Foo int
 				Bar float32
 				Baz string
+				Boo bool
 			}{
 				42,
 				42,
 				"42",
+				false,
 			},
 			[]Token{
 				{Kind: KindObject},
@@ -107,6 +111,8 @@ func TestValue(t *testing.T) {
 				{KindFloat, float64(42)},
 				{KindString, "Baz"},
 				{KindString, "42"},
+				{KindString, "Boo"},
+				{KindBool, false},
 				{Kind: KindObjectEnd},
 			},
 		},
@@ -206,6 +212,16 @@ func TestValue(t *testing.T) {
 				{Kind: KindNil},
 			},
 		},
+
+		func() Case {
+			str := strings.Repeat("foo", 1024)
+			return Case{
+				str,
+				[]Token{
+					{KindString, str},
+				},
+			}
+		}(),
 	}
 
 	for i, c := range cases {
@@ -231,6 +247,16 @@ func TestValue(t *testing.T) {
 			if token != c.expected[i] {
 				t.Fatalf("expected %#v, got %#v\nfail %+v", c.expected[i], token, c)
 			}
+		}
+
+		buf := new(bytes.Buffer)
+		if err := Encode(NewValue(c.value), buf); err != nil {
+			t.Fatal(err)
+		}
+		decoder := NewDecoder(buf)
+		l := List(c.expected)
+		if Compare(decoder, l) != 0 {
+			t.Fatalf("%d fail %+v", i, c)
 		}
 
 	}
