@@ -12,12 +12,24 @@ const (
 	KindArrayEnd
 	KindObjectEnd
 
-	KindBool
-	KindInt
-	KindUint
-	KindFloat
-	KindString
 	KindNil
+	KindBool
+	KindString
+
+	KindInt
+	KindInt8
+	KindInt16
+	KindInt32
+	KindInt64
+
+	KindUint
+	KindUint8
+	KindUint16
+	KindUint32
+	KindUint64
+
+	KindFloat32
+	KindFloat64
 
 	KindArray
 	KindObject

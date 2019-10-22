@@ -48,6 +48,34 @@ func (d *Decoder) Next() *Token {
 		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
 			panic(DecodeError(err))
 		}
+		value = int(i)
+
+	case KindInt8:
+		var i int8
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
+		value = i
+
+	case KindInt16:
+		var i int16
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
+		value = i
+
+	case KindInt32:
+		var i int32
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
+		value = i
+
+	case KindInt64:
+		var i int64
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
 		value = i
 
 	case KindUint:
@@ -55,9 +83,44 @@ func (d *Decoder) Next() *Token {
 		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
 			panic(DecodeError(err))
 		}
+		value = uint(i)
+
+	case KindUint8:
+		var i uint8
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
 		value = i
 
-	case KindFloat:
+	case KindUint16:
+		var i uint16
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
+		value = i
+
+	case KindUint32:
+		var i uint32
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
+		value = i
+
+	case KindUint64:
+		var i uint64
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
+		value = i
+
+	case KindFloat32:
+		var i float32
+		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+			panic(DecodeError(err))
+		}
+		value = i
+
+	case KindFloat64:
 		var i float64
 		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
 			panic(DecodeError(err))

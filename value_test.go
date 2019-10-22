@@ -17,7 +17,7 @@ func TestValue(t *testing.T) {
 		{
 			int(42),
 			[]Token{
-				{KindInt, int64(42)},
+				{KindInt, int(42)},
 			},
 		},
 
@@ -27,7 +27,7 @@ func TestValue(t *testing.T) {
 				return &i
 			}(),
 			[]Token{
-				{KindInt, int64(42)},
+				{KindInt32, int32(42)},
 			},
 		},
 
@@ -41,14 +41,14 @@ func TestValue(t *testing.T) {
 		{
 			uint32(42),
 			[]Token{
-				{KindUint, uint64(42)},
+				{KindUint32, uint32(42)},
 			},
 		},
 
 		{
 			float32(42),
 			[]Token{
-				{KindFloat, float64(42)},
+				{KindFloat32, float32(42)},
 			},
 		},
 
@@ -56,9 +56,9 @@ func TestValue(t *testing.T) {
 			[]int{42, 4, 2},
 			[]Token{
 				{Kind: KindArray},
-				{KindInt, int64(42)},
-				{KindInt, int64(4)},
-				{KindInt, int64(2)},
+				{KindInt, int(42)},
+				{KindInt, int(4)},
+				{KindInt, int(2)},
 				{Kind: KindArrayEnd},
 			},
 		},
@@ -71,14 +71,14 @@ func TestValue(t *testing.T) {
 			[]Token{
 				{Kind: KindArray},
 				{Kind: KindArray},
-				{KindInt, int64(42)},
-				{KindInt, int64(4)},
-				{KindInt, int64(2)},
+				{KindInt, int(42)},
+				{KindInt, int(4)},
+				{KindInt, int(2)},
 				{Kind: KindArrayEnd},
 				{Kind: KindArray},
-				{KindInt, int64(2)},
-				{KindInt, int64(4)},
-				{KindInt, int64(42)},
+				{KindInt, int(2)},
+				{KindInt, int(4)},
+				{KindInt, int(42)},
 				{Kind: KindArrayEnd},
 				{Kind: KindArrayEnd},
 			},
@@ -106,9 +106,9 @@ func TestValue(t *testing.T) {
 			[]Token{
 				{Kind: KindObject},
 				{KindString, "Foo"},
-				{KindInt, int64(42)},
+				{KindInt, int(42)},
 				{KindString, "Bar"},
-				{KindFloat, float64(42)},
+				{KindFloat32, float32(42)},
 				{KindString, "Baz"},
 				{KindString, "42"},
 				{KindString, "Boo"},
@@ -131,7 +131,7 @@ func TestValue(t *testing.T) {
 			},
 			[]Token{
 				{Kind: KindArray},
-				{KindInt, int64(42)},
+				{KindInt, int(42)},
 				{Kind: KindNil},
 				{Kind: KindNil},
 				{Kind: KindArrayEnd},
@@ -190,7 +190,7 @@ func TestValue(t *testing.T) {
 			}(),
 			[]Token{
 				{Kind: KindArray},
-				{KindInt, int64(42)},
+				{KindInt32, int32(42)},
 				{Kind: KindArrayEnd},
 			},
 		},
@@ -232,7 +232,9 @@ func TestValue(t *testing.T) {
 		}
 		for i, token := range tokens {
 			if token != c.expected[i] {
-				t.Fatalf("expected %#v, got %#v\nfail %+v", c.expected[i], token, c)
+				pt("expected %T\n", c.expected[i].Value)
+				pt("token %T\n", token.Value)
+				t.Fatalf("%d expected %#v, got %#v\nfail %+v", i, c.expected[i], token, c)
 			}
 		}
 

@@ -2,6 +2,7 @@ package sb
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -25,7 +26,19 @@ func Encode(w io.Writer, tokenizer Tokenizer) error {
 					}
 				}
 
-			case int64, uint64, float64:
+			case int:
+				if err := binary.Write(w, binary.LittleEndian, int64(value)); err != nil {
+					return err
+				}
+
+			case uint:
+				if err := binary.Write(w, binary.LittleEndian, uint64(value)); err != nil {
+					return err
+				}
+
+			case int8, int16, int32, int64,
+				uint8, uint16, uint32, uint64,
+				float32, float64:
 				if err := binary.Write(w, binary.LittleEndian, value); err != nil {
 					return err
 				}
@@ -50,7 +63,7 @@ func Encode(w io.Writer, tokenizer Tokenizer) error {
 				}
 
 			default:
-				panic("bad value type")
+				panic(DecodeError(fmt.Errorf("bad type %#v %T", value, value)))
 
 			}
 		}

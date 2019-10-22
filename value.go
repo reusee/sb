@@ -48,24 +48,87 @@ func (t *Value) Tokenize(value reflect.Value, cont func()) func() {
 			})
 			t.proc = cont
 
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		case reflect.Int:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindInt,
-				Value: value.Int(),
+				Value: value.Interface().(int),
 			})
 			t.proc = cont
 
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		case reflect.Int8:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindInt8,
+				Value: value.Interface().(int8),
+			})
+			t.proc = cont
+
+		case reflect.Int16:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindInt16,
+				Value: value.Interface().(int16),
+			})
+			t.proc = cont
+
+		case reflect.Int32:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindInt32,
+				Value: value.Interface().(int32),
+			})
+			t.proc = cont
+
+		case reflect.Int64:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindInt64,
+				Value: value.Interface().(int64),
+			})
+			t.proc = cont
+
+		case reflect.Uint:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindUint,
-				Value: value.Uint(),
+				Value: value.Interface().(uint),
 			})
 			t.proc = cont
 
-		case reflect.Float32, reflect.Float64:
+		case reflect.Uint8:
 			t.tokens = append(t.tokens, Token{
-				Kind:  KindFloat,
-				Value: value.Float(),
+				Kind:  KindUint8,
+				Value: value.Interface().(uint8),
+			})
+			t.proc = cont
+
+		case reflect.Uint16:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindUint16,
+				Value: value.Interface().(uint16),
+			})
+			t.proc = cont
+
+		case reflect.Uint32:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindUint32,
+				Value: value.Interface().(uint32),
+			})
+			t.proc = cont
+
+		case reflect.Uint64:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindUint64,
+				Value: value.Interface().(uint64),
+			})
+			t.proc = cont
+
+		case reflect.Float32:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindFloat32,
+				Value: value.Interface().(float32),
+			})
+			t.proc = cont
+
+		case reflect.Float64:
+			t.tokens = append(t.tokens, Token{
+				Kind:  KindFloat64,
+				Value: value.Interface().(float64),
 			})
 			t.proc = cont
 

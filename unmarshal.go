@@ -19,12 +19,39 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 		ptr.Elem().Set(reflect.ValueOf(token.Value.(bool)))
 
 	case KindInt:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(int)))
+
+	case KindInt8:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(int8)))
+
+	case KindInt16:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(int16)))
+
+	case KindInt32:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(int32)))
+
+	case KindInt64:
 		ptr.Elem().Set(reflect.ValueOf(token.Value.(int64)))
 
 	case KindUint:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint)))
+
+	case KindUint8:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint8)))
+
+	case KindUint16:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint16)))
+
+	case KindUint32:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint32)))
+
+	case KindUint64:
 		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint64)))
 
-	case KindFloat:
+	case KindFloat32:
+		ptr.Elem().Set(reflect.ValueOf(token.Value.(float32)))
+
+	case KindFloat64:
 		ptr.Elem().Set(reflect.ValueOf(token.Value.(float64)))
 
 	case KindString:

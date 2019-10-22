@@ -13,7 +13,7 @@ func TestCompare(t *testing.T) {
 	cases := []Case{
 		{true, true},
 		{42, 42},
-		{uint32(42), uint8(42)},
+		{uint32(42), uint32(42)},
 		{42.0, 42.0},
 		{"foo", "foo"},
 		{[]int{1, 2, 3}, []int{1, 2, 3}},
@@ -28,7 +28,7 @@ func TestCompare(t *testing.T) {
 	cases = []Case{
 		{false, true},
 		{41, 42},
-		{uint32(41), uint8(42)},
+		{uint8(41), uint32(42)},
 		{41.0, 42.0},
 		{"fo", "foo"},
 		{[]int{1, 2}, []int{1, 2, 3}},
