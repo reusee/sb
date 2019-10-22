@@ -218,6 +218,21 @@ func TestTokenizer(t *testing.T) {
 				t.Fatalf("expected %#v, got %#v\nfail %+v", c.expected[i], token, c)
 			}
 		}
+
+		tokens = tokens[:0]
+		tokenizer := NewTokenizer(c.value)
+		for token := tokenizer.Next(); token != nil; token = tokenizer.Next() {
+			tokens = append(tokens, *token)
+		}
+		if len(tokens) != len(c.expected) {
+			t.Fatalf("%d fail %+v", i, c)
+		}
+		for i, token := range tokens {
+			if token != c.expected[i] {
+				t.Fatalf("expected %#v, got %#v\nfail %+v", c.expected[i], token, c)
+			}
+		}
+
 	}
 
 }

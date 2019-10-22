@@ -134,3 +134,20 @@ func Tokens(obj any) []Token {
 	}
 	return tokenizer.tokens
 }
+
+func (t *Tokenizer) Next() (ret *Token) {
+check:
+	if len(t.tokens) > 0 {
+		token := t.tokens[0]
+		ret = &token
+		t.tokens = append(t.tokens[:0], t.tokens[1:]...)
+		return
+	}
+	if t.proc == nil {
+		return nil
+	}
+	for len(t.tokens) == 0 && t.proc != nil {
+		t.proc()
+	}
+	goto check
+}
