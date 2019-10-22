@@ -250,7 +250,7 @@ func TestValue(t *testing.T) {
 		}
 
 		buf := new(bytes.Buffer)
-		if err := Encode(NewValue(c.value), buf); err != nil {
+		if err := Encode(buf, NewValue(c.value)); err != nil {
 			t.Fatal(err)
 		}
 		decoder := NewDecoder(buf)
