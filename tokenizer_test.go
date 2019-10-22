@@ -25,7 +25,6 @@ func TestTokenizer(t *testing.T) {
 				return &i
 			}(),
 			[]Token{
-				{KindIndirect, KindInt},
 				{KindInt, int64(42)},
 			},
 		},
@@ -126,16 +125,9 @@ func TestTokenizer(t *testing.T) {
 			},
 			[]Token{
 				{Kind: KindArray},
-
-				{KindIndirect, KindIndirect}, // **int
-				{KindIndirect, KindInt},      // *int
 				{KindInt, int64(42)},
-
-				{KindIndirect, KindInt}, // *int
 				{Kind: KindNil},
-
-				{Kind: KindNil}, // interface{}
-
+				{Kind: KindNil},
 				{Kind: KindArrayEnd},
 			},
 		},
@@ -145,7 +137,6 @@ func TestTokenizer(t *testing.T) {
 				return nil
 			}(),
 			[]Token{
-				{KindIndirect, KindInt},
 				{Kind: KindNil},
 			},
 		},
@@ -155,7 +146,6 @@ func TestTokenizer(t *testing.T) {
 				return nil
 			}(),
 			[]Token{
-				{KindIndirect, KindBool},
 				{Kind: KindNil},
 			},
 		},
@@ -165,7 +155,6 @@ func TestTokenizer(t *testing.T) {
 				return nil
 			}(),
 			[]Token{
-				{KindIndirect, KindUint},
 				{Kind: KindNil},
 			},
 		},
@@ -175,7 +164,6 @@ func TestTokenizer(t *testing.T) {
 				return nil
 			}(),
 			[]Token{
-				{KindIndirect, KindFloat},
 				{Kind: KindNil},
 			},
 		},
@@ -185,7 +173,6 @@ func TestTokenizer(t *testing.T) {
 				return nil
 			}(),
 			[]Token{
-				{KindIndirect, KindArray},
 				{Kind: KindNil},
 			},
 		},
@@ -196,7 +183,6 @@ func TestTokenizer(t *testing.T) {
 				return &array
 			}(),
 			[]Token{
-				{KindIndirect, KindArray},
 				{Kind: KindArray},
 				{KindInt, int64(42)},
 				{Kind: KindArrayEnd},
@@ -208,7 +194,6 @@ func TestTokenizer(t *testing.T) {
 				return nil
 			}(),
 			[]Token{
-				{KindIndirect, KindString},
 				{Kind: KindNil},
 			},
 		},
@@ -218,7 +203,6 @@ func TestTokenizer(t *testing.T) {
 				return nil
 			}(),
 			[]Token{
-				{KindIndirect, KindObject},
 				{Kind: KindNil},
 			},
 		},
@@ -247,17 +231,5 @@ func TestBadType(t *testing.T) {
 			}
 		}()
 		Tokens(func() {})
-	}()
-}
-
-func TestBadKindOf(t *testing.T) {
-	func() {
-		defer func() {
-			p := recover()
-			if p == nil {
-				t.Fatal()
-			}
-		}()
-		Tokens((*func())(nil))
 	}()
 }
