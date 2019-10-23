@@ -5,15 +5,15 @@ import (
 	"reflect"
 )
 
-type Value struct {
+type Marshaler struct {
 	proc   func()
 	tokens []Token
 }
 
-var _ Tokenizer = new(Value)
+var _ Tokenizer = new(Marshaler)
 
-func NewValue(obj any) *Value {
-	tokenizer := new(Value)
+func NewMarshaler(obj any) *Marshaler {
+	tokenizer := new(Marshaler)
 	tokenizer.proc = tokenizer.Tokenize(
 		reflect.ValueOf(obj),
 		tokenizer.End,
@@ -21,7 +21,7 @@ func NewValue(obj any) *Value {
 	return tokenizer
 }
 
-func (t *Value) Tokenize(value reflect.Value, cont func()) func() {
+func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 	return func() {
 		switch value.Kind() {
 
@@ -158,11 +158,11 @@ func (t *Value) Tokenize(value reflect.Value, cont func()) func() {
 	}
 }
 
-func (t *Value) End() {
+func (t *Marshaler) End() {
 	t.proc = nil
 }
 
-func (t *Value) TokenizeArray(value reflect.Value, index int, cont func()) func() {
+func (t *Marshaler) TokenizeArray(value reflect.Value, index int, cont func()) func() {
 	return func() {
 		if index >= value.Len() {
 			t.tokens = append(t.tokens, Token{
@@ -178,7 +178,7 @@ func (t *Value) TokenizeArray(value reflect.Value, index int, cont func()) func(
 	}
 }
 
-func (t *Value) TokenizeStruct(value reflect.Value, index int, cont func()) func() {
+func (t *Marshaler) TokenizeStruct(value reflect.Value, index int, cont func()) func() {
 	return func() {
 		if index >= value.NumField() {
 			t.tokens = append(t.tokens, Token{
@@ -199,14 +199,14 @@ func (t *Value) TokenizeStruct(value reflect.Value, index int, cont func()) func
 }
 
 func Tokens(obj any) []Token {
-	tokenizer := NewValue(obj)
+	tokenizer := NewMarshaler(obj)
 	for tokenizer.proc != nil {
 		tokenizer.proc()
 	}
 	return tokenizer.tokens
 }
 
-func (t *Value) Next() (ret *Token) {
+func (t *Marshaler) Next() (ret *Token) {
 check:
 	if len(t.tokens) > 0 {
 		token := t.tokens[0]

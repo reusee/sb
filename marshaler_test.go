@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestValue(t *testing.T) {
+func TestMarshaler(t *testing.T) {
 	type Case struct {
 		value    any
 		expected []Token
@@ -291,7 +291,7 @@ func TestValue(t *testing.T) {
 		}
 
 		tokens = tokens[:0]
-		tokenizer := NewValue(c.value)
+		tokenizer := NewMarshaler(c.value)
 		for token := tokenizer.Next(); token != nil; token = tokenizer.Next() {
 			tokens = append(tokens, *token)
 		}
@@ -305,7 +305,7 @@ func TestValue(t *testing.T) {
 		}
 
 		buf := new(bytes.Buffer)
-		if err := Encode(buf, NewValue(c.value)); err != nil {
+		if err := Encode(buf, NewMarshaler(c.value)); err != nil {
 			t.Fatal(err)
 		}
 		decoder := NewDecoder(buf)
@@ -319,7 +319,7 @@ func TestValue(t *testing.T) {
 		if err := Unmarshal(List(tokens), &obj); err != nil {
 			t.Fatal(err)
 		}
-		if Compare(NewValue(obj), NewValue(c.value)) != 0 {
+		if Compare(NewMarshaler(obj), NewMarshaler(c.value)) != 0 {
 			t.Fatalf("not equal, got %#v, expected %#v", obj, c.value)
 		}
 
