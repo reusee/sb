@@ -2,6 +2,7 @@ package sb
 
 import (
 	"encoding"
+	gotoken "go/token"
 	"reflect"
 )
 
@@ -357,6 +358,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			// construct new type
 			var values []any
 			var fields []reflect.StructField
+			names := make(map[string]struct{})
 			for {
 				p, err := stream.Peek()
 				if err != nil {
@@ -376,12 +378,22 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				if err != nil {
 					return err
 				}
+				if !gotoken.IsIdentifier(name) || !gotoken.IsExported(name) {
+					return UnmarshalError{BadFieldName}
+				}
+				if _, ok := names[name]; ok {
+					return UnmarshalError{DuplicatedFieldName}
+				}
+				names[name] = struct{}{}
 
 				// value
 				var value any
 				err = UnmarshalValue(stream, reflect.ValueOf(&value))
 				if err != nil {
 					return err
+				}
+				if value == nil {
+					return UnmarshalError{ExpectingValue}
 				}
 				values = append(values, value)
 				fields = append(fields, reflect.StructField{
