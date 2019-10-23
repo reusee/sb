@@ -15,8 +15,12 @@ var detokenizerType = reflect.TypeOf((*Detokenizer)(nil)).Elem()
 
 func UnmarshalValue(stream Stream, ptr reflect.Value) (token Token, err error) {
 
-	if ptr.IsValid() && ptr.Type().Implements(detokenizerType) {
-		return ptr.Interface().(Detokenizer).DetokenizeSB(stream)
+	if ptr.IsValid() {
+		if ptr.Type().Implements(detokenizerType) {
+			return ptr.Interface().(Detokenizer).DetokenizeSB(stream)
+		} else if fn, ok := commonDetokenizers[ptr.Type()]; ok {
+			return fn(stream, ptr.Interface())
+		}
 	}
 
 	p := stream.Next()

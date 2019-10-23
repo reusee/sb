@@ -30,10 +30,16 @@ var tokenizerType = reflect.TypeOf((*Tokenizer)(nil)).Elem()
 func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 	return func() {
 
-		if value.IsValid() && value.Type().Implements(tokenizerType) {
-			t.tokens = append(t.tokens, value.Interface().(Tokenizer).TokenizeSB()...)
-			t.proc = cont
-			return
+		if value.IsValid() {
+			if value.Type().Implements(tokenizerType) {
+				t.tokens = append(t.tokens, value.Interface().(Tokenizer).TokenizeSB()...)
+				t.proc = cont
+				return
+			} else if fn, ok := commonTokenizers[value.Type()]; ok {
+				t.tokens = append(t.tokens, fn(value.Interface())...)
+				t.proc = cont
+				return
+			}
 		}
 
 		switch value.Kind() {
