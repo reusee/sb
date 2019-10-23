@@ -233,7 +233,13 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 
 			} else {
 				field, ok := ptr.Type().Elem().FieldByName(name)
-				if !ok {
+				if !ok || field.Anonymous {
+					// skip next value
+					var value any
+					_, err = UnmarshalValue(tokenizer, reflect.ValueOf(&value))
+					if err != nil {
+						return
+					}
 					continue
 				}
 				valuePtr := reflect.New(field.Type)

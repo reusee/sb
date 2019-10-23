@@ -36,3 +36,22 @@ func TestUnmarshalNamedUint(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestUnmarshalStructWithPrivateField(t *testing.T) {
+	type Foo struct {
+		Bar int
+		Foo int
+	}
+	buf := new(bytes.Buffer)
+	if err := Encode(buf, NewValue(Foo{42, 42})); err != nil {
+		t.Fatal(err)
+	}
+	type Bar struct {
+		bar int
+		Foo int
+	}
+	var bar Bar
+	if err := Unmarshal(NewDecoder(buf), &bar); err != nil {
+		t.Fatal(err)
+	}
+}
