@@ -14,7 +14,7 @@ func Fuzz(data []byte) int {
 	buf := new(bytes.Buffer)
 	err = Encode(buf, NewMarshaler(v))
 	if err != nil {
-		return 0
+		panic(err)
 	}
 	bs := buf.Bytes()
 
