@@ -7,7 +7,18 @@ func Unmarshal(stream Stream, target any) error {
 	return err
 }
 
+type Detokenizer interface {
+	DetokenizeSB(stream Stream) (Token, error)
+}
+
+var detokenizerType = reflect.TypeOf((*Detokenizer)(nil)).Elem()
+
 func UnmarshalValue(stream Stream, ptr reflect.Value) (token Token, err error) {
+
+	if ptr.IsValid() && ptr.Type().Implements(detokenizerType) {
+		return ptr.Interface().(Detokenizer).DetokenizeSB(stream)
+	}
+
 	p := stream.Next()
 	if p == nil {
 		return

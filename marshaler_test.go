@@ -338,3 +338,44 @@ func TestBadType(t *testing.T) {
 		Tokens(func() {})
 	}()
 }
+
+type Custom struct {
+	Foo int
+}
+
+var _ Tokenizer = Custom{}
+
+var _ Detokenizer = new(Custom)
+
+func (c Custom) TokenizeSB() []Token {
+	return []Token{
+		{KindInt, c.Foo},
+	}
+}
+
+func (c *Custom) DetokenizeSB(stream Stream) (token Token, err error) {
+	p := stream.Next()
+	if p == nil {
+		return
+	}
+	token = *p
+	if token.Kind != KindInt {
+		return
+	}
+	c.Foo = token.Value.(int)
+	return
+}
+
+func TestCustomType(t *testing.T) {
+	buf := new(bytes.Buffer)
+	if err := Encode(buf, NewMarshaler(Custom{42})); err != nil {
+		t.Fatal(err)
+	}
+	var c Custom
+	if err := Unmarshal(NewDecoder(buf), &c); err != nil {
+		t.Fatal(err)
+	}
+	if c.Foo != 42 {
+		t.Fatal()
+	}
+}

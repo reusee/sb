@@ -21,8 +21,21 @@ func NewMarshaler(obj any) *Marshaler {
 	return m
 }
 
+type Tokenizer interface {
+	TokenizeSB() []Token
+}
+
+var tokenizerType = reflect.TypeOf((*Tokenizer)(nil)).Elem()
+
 func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 	return func() {
+
+		if value.IsValid() && value.Type().Implements(tokenizerType) {
+			t.tokens = append(t.tokens, value.Interface().(Tokenizer).TokenizeSB()...)
+			t.proc = cont
+			return
+		}
+
 		switch value.Kind() {
 
 		case reflect.Invalid:
