@@ -16,46 +16,144 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 	switch token.Kind {
 
 	case KindBool:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(bool)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetBool(token.Value.(bool))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(bool)))
+		}
 
 	case KindInt:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(int)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetInt(int64(token.Value.(int)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(int)))
+		}
 
 	case KindInt8:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(int8)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetInt(int64(token.Value.(int8)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(int8)))
+		}
 
 	case KindInt16:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(int16)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetInt(int64(token.Value.(int16)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(int16)))
+		}
 
 	case KindInt32:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(int32)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetInt(int64(token.Value.(int32)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(int32)))
+		}
 
 	case KindInt64:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(int64)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetInt(int64(token.Value.(int64)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(int64)))
+		}
 
 	case KindUint:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetUint(uint64(token.Value.(uint)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint)))
+		}
 
 	case KindUint8:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint8)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetUint(uint64(token.Value.(uint8)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint8)))
+		}
 
 	case KindUint16:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint16)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetUint(uint64(token.Value.(uint16)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint16)))
+		}
 
 	case KindUint32:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint32)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetUint(uint64(token.Value.(uint32)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint32)))
+		}
 
 	case KindUint64:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(uint64)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetUint(uint64(token.Value.(uint64)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint64)))
+		}
 
 	case KindFloat32:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(float32)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetFloat(float64(token.Value.(float32)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(float32)))
+		}
 
 	case KindFloat64:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(float64)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetFloat(float64(token.Value.(float32)))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(float64)))
+		}
 
 	case KindString:
-		ptr.Elem().Set(reflect.ValueOf(token.Value.(string)))
+		if ptr.Type().Elem().Name() != "" {
+			// defined type
+			v := reflect.New(ptr.Type().Elem()).Elem()
+			v.SetString(token.Value.(string))
+			ptr.Elem().Set(v)
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(token.Value.(string)))
+		}
 
 	case KindNil, KindArrayEnd, KindObjectEnd:
 		return

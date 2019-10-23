@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestUnmarshal(t *testing.T) {
+func TestUnmarshalArray(t *testing.T) {
 	type foo [3]byte
 	type S struct {
 		Foos []foo
@@ -21,6 +21,18 @@ func TestUnmarshal(t *testing.T) {
 	}
 	var s S
 	if err := Unmarshal(NewDecoder(buf), &s); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestUnmarshalNamedUint(t *testing.T) {
+	type Foo uint32
+	buf := new(bytes.Buffer)
+	if err := Encode(buf, NewValue(Foo(42))); err != nil {
+		t.Fatal(err)
+	}
+	var foo Foo
+	if err := Unmarshal(NewDecoder(buf), &foo); err != nil {
 		t.Fatal(err)
 	}
 }
