@@ -62,9 +62,14 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 
 	case KindArray:
 		var arrayPtr reflect.Value
+		isArray := false
 		switch ptr.Type().Elem().Kind() {
 		case reflect.Slice:
 			arrayPtr = ptr
+		case reflect.Array:
+			sliceType := reflect.SliceOf(ptr.Type().Elem().Elem())
+			arrayPtr = reflect.New(sliceType)
+			isArray = true
 		default:
 			array := []any{}
 			arrayPtr = reflect.ValueOf(&array)
@@ -87,7 +92,13 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 				),
 			)
 		}
-		ptr.Elem().Set(arrayPtr.Elem())
+		if isArray {
+			aPtr := reflect.New(ptr.Type().Elem())
+			reflect.Copy(aPtr.Elem().Slice(0, aPtr.Elem().Len()), arrayPtr.Elem())
+			ptr.Elem().Set(aPtr.Elem())
+		} else {
+			ptr.Elem().Set(arrayPtr.Elem())
+		}
 
 	case KindObject:
 		var values []any
@@ -110,37 +121,41 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 				break
 			}
 
-			// value
-			var value any
-			_, err = UnmarshalValue(tokenizer, reflect.ValueOf(&value))
-			if err != nil {
-				return
-			}
-
-			// set or save
 			if newType {
+				var value any
+				_, err = UnmarshalValue(tokenizer, reflect.ValueOf(&value))
+				if err != nil {
+					return
+				}
 				values = append(values, value)
 				fields = append(fields, reflect.StructField{
 					Name: name,
 					Type: reflect.TypeOf(value),
 				})
+
 			} else {
 				field, ok := ptr.Type().Elem().FieldByName(name)
 				if !ok {
 					continue
 				}
-				ptr.Elem().FieldByIndex(field.Index).Set(reflect.ValueOf(value))
+				valuePtr := reflect.New(field.Type)
+				_, err = UnmarshalValue(tokenizer, valuePtr)
+				if err != nil {
+					return
+				}
+				ptr.Elem().FieldByIndex(field.Index).Set(valuePtr.Elem())
 			}
 
 		}
 
-		// create new type
-		structType := reflect.StructOf(fields)
-		structPtr := reflect.New(structType)
-		for i, value := range values {
-			structPtr.Elem().Field(i).Set(reflect.ValueOf(value))
+		if newType {
+			structType := reflect.StructOf(fields)
+			structPtr := reflect.New(structType)
+			for i, value := range values {
+				structPtr.Elem().Field(i).Set(reflect.ValueOf(value))
+			}
+			ptr.Elem().Set(structPtr.Elem())
 		}
-		ptr.Elem().Set(structPtr.Elem())
 
 	}
 
