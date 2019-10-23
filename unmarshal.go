@@ -1,6 +1,9 @@
 package sb
 
-import "reflect"
+import (
+	"encoding"
+	"reflect"
+)
 
 func Unmarshal(stream Stream, target any) error {
 	_, err := UnmarshalValue(stream, reflect.ValueOf(target))
@@ -11,15 +14,43 @@ type Detokenizer interface {
 	DetokenizeSB(stream Stream) (Token, error)
 }
 
-var detokenizerType = reflect.TypeOf((*Detokenizer)(nil)).Elem()
+var (
+	detokenizerType       = reflect.TypeOf((*Detokenizer)(nil)).Elem()
+	binaryUnmarshalerType = reflect.TypeOf((*encoding.BinaryUnmarshaler)(nil)).Elem()
+	textUnmarshalerType   = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+)
 
 func UnmarshalValue(stream Stream, ptr reflect.Value) (token Token, err error) {
 
 	if ptr.IsValid() {
 		if ptr.Type().Implements(detokenizerType) {
 			return ptr.Interface().(Detokenizer).DetokenizeSB(stream)
-		} else if fn, ok := commonDetokenizers[ptr.Type()]; ok {
-			return fn(stream, ptr.Interface())
+		} else if ptr.Type().Implements(binaryUnmarshalerType) {
+			p := stream.Next()
+			if p == nil {
+				return
+			}
+			token = *p
+			if token.Kind != KindString {
+				return
+			}
+			if err = ptr.Interface().(encoding.BinaryUnmarshaler).UnmarshalBinary([]byte(token.Value.(string))); err != nil {
+				return
+			}
+			return
+		} else if ptr.Type().Implements(textUnmarshalerType) {
+			p := stream.Next()
+			if p == nil {
+				return
+			}
+			token = *p
+			if token.Kind != KindString {
+				return
+			}
+			if err = ptr.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(token.Value.(string))); err != nil {
+				return
+			}
+			return
 		}
 	}
 

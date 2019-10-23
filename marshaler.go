@@ -1,6 +1,7 @@
 package sb
 
 import (
+	"encoding"
 	"fmt"
 	"reflect"
 )
@@ -25,7 +26,11 @@ type Tokenizer interface {
 	TokenizeSB() []Token
 }
 
-var tokenizerType = reflect.TypeOf((*Tokenizer)(nil)).Elem()
+var (
+	tokenizerType       = reflect.TypeOf((*Tokenizer)(nil)).Elem()
+	binaryMarshalerType = reflect.TypeOf((*encoding.BinaryMarshaler)(nil)).Elem()
+	textMarshalerType   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+)
 
 func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 	return func() {
@@ -35,8 +40,20 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 				t.tokens = append(t.tokens, value.Interface().(Tokenizer).TokenizeSB()...)
 				t.proc = cont
 				return
-			} else if fn, ok := commonTokenizers[value.Type()]; ok {
-				t.tokens = append(t.tokens, fn(value.Interface())...)
+			} else if value.Type().Implements(binaryMarshalerType) {
+				bs, err := value.Interface().(encoding.BinaryMarshaler).MarshalBinary()
+				if err != nil {
+					panic(err)
+				}
+				t.tokens = append(t.tokens, Token{KindString, string(bs)})
+				t.proc = cont
+				return
+			} else if value.Type().Implements(textMarshalerType) {
+				bs, err := value.Interface().(encoding.TextMarshaler).MarshalText()
+				if err != nil {
+					panic(err)
+				}
+				t.tokens = append(t.tokens, Token{KindString, string(bs)})
 				t.proc = cont
 				return
 			}
