@@ -231,6 +231,49 @@ func TestValue(t *testing.T) {
 				{KindInt, int(42)},
 			},
 		},
+
+		{
+			[]foo{
+				42,
+			},
+			[]Token{
+				{Kind: KindArray},
+				{KindInt, int(42)},
+				{Kind: KindArrayEnd},
+			},
+		},
+
+		{
+			struct {
+				Foo foo
+			}{
+				42,
+			},
+			[]Token{
+				{Kind: KindObject},
+				{KindString, "Foo"},
+				{KindInt, int(42)},
+				{Kind: KindObjectEnd},
+			},
+		},
+
+		{
+			struct {
+				Foo []foo
+			}{
+				[]foo{
+					42,
+				},
+			},
+			[]Token{
+				{Kind: KindObject},
+				{KindString, "Foo"},
+				{Kind: KindArray},
+				{KindInt, int(42)},
+				{Kind: KindArrayEnd},
+				{Kind: KindObjectEnd},
+			},
+		},
 	}
 
 	for i, c := range cases {
