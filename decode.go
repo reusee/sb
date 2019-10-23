@@ -8,7 +8,8 @@ import (
 )
 
 type Decoder struct {
-	r io.Reader
+	r      io.Reader
+	cached *Token
 }
 
 func NewDecoder(r io.Reader) *Decoder {
@@ -22,6 +23,22 @@ type DecodeError error
 var _ Stream = new(Decoder)
 
 func (d *Decoder) Next() *Token {
+	if d.cached != nil {
+		t := d.cached
+		d.cached = nil
+		return t
+	}
+	d.Peek()
+	t := d.cached
+	d.cached = nil
+	return t
+}
+
+func (d *Decoder) Peek() *Token {
+	if d.cached != nil {
+		return d.cached
+	}
+
 	var kind Kind
 	if err := binary.Read(d.r, binary.LittleEndian, &kind); errors.Is(err, io.EOF) {
 		return nil
@@ -154,8 +171,10 @@ func (d *Decoder) Next() *Token {
 
 	}
 
-	return &Token{
+	d.cached = &Token{
 		Kind:  kind,
 		Value: value,
 	}
+
+	return d.cached
 }

@@ -6,12 +6,11 @@ import (
 )
 
 func Unmarshal(stream Stream, target any) error {
-	_, err := UnmarshalValue(stream, reflect.ValueOf(target))
-	return err
+	return UnmarshalValue(stream, reflect.ValueOf(target))
 }
 
 type Detokenizer interface {
-	DetokenizeSB(stream Stream) (Token, error)
+	DetokenizeSB(stream Stream) error
 }
 
 var (
@@ -20,34 +19,38 @@ var (
 	textUnmarshalerType   = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 )
 
-func UnmarshalValue(stream Stream, ptr reflect.Value) (token Token, err error) {
+func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 
 	if ptr.IsValid() {
-		if ptr.Type().Implements(detokenizerType) {
+		if t := ptr.Type(); t.Implements(detokenizerType) {
 			return ptr.Interface().(Detokenizer).DetokenizeSB(stream)
-		} else if ptr.Type().Implements(binaryUnmarshalerType) {
+		} else if t.Implements(binaryUnmarshalerType) {
 			p := stream.Next()
 			if p == nil {
 				return
 			}
-			token = *p
+			token := *p
 			if token.Kind != KindString {
 				return
 			}
-			if err = ptr.Interface().(encoding.BinaryUnmarshaler).UnmarshalBinary([]byte(token.Value.(string))); err != nil {
+			if err = ptr.Interface().(encoding.BinaryUnmarshaler).UnmarshalBinary(
+				[]byte(token.Value.(string)),
+			); err != nil {
 				return
 			}
 			return
-		} else if ptr.Type().Implements(textUnmarshalerType) {
+		} else if t.Implements(textUnmarshalerType) {
 			p := stream.Next()
 			if p == nil {
 				return
 			}
-			token = *p
+			token := *p
 			if token.Kind != KindString {
 				return
 			}
-			if err = ptr.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(token.Value.(string))); err != nil {
+			if err = ptr.Interface().(encoding.TextUnmarshaler).UnmarshalText(
+				[]byte(token.Value.(string)),
+			); err != nil {
 				return
 			}
 			return
@@ -58,216 +61,229 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (token Token, err error) {
 	if p == nil {
 		return
 	}
-	token = *p
+	token := *p
+
+	switch token.Kind {
+	case KindNil, KindArrayEnd, KindObjectEnd:
+		return
+	}
+
+	valueType := ptr.Type().Elem()
+	hasConcreteType := false
+	if valueType.Kind() != reflect.Interface {
+		hasConcreteType = true
+		if ptr.IsNil() {
+			valuePtr := reflect.New(valueType)
+			ptr.Elem().Set(valuePtr.Elem())
+		}
+	}
+
 	switch token.Kind {
 
 	case KindBool:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetBool(token.Value.(bool))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetBool(token.Value.(bool))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(bool)))
 		}
 
 	case KindInt:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetInt(int64(token.Value.(int)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetInt(int64(token.Value.(int)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(int)))
 		}
 
 	case KindInt8:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetInt(int64(token.Value.(int8)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetInt(int64(token.Value.(int8)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(int8)))
 		}
 
 	case KindInt16:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetInt(int64(token.Value.(int16)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetInt(int64(token.Value.(int16)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(int16)))
 		}
 
 	case KindInt32:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetInt(int64(token.Value.(int32)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetInt(int64(token.Value.(int32)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(int32)))
 		}
 
 	case KindInt64:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetInt(int64(token.Value.(int64)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetInt(token.Value.(int64))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(int64)))
 		}
 
 	case KindUint:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetUint(uint64(token.Value.(uint)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetUint(uint64(token.Value.(uint)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint)))
 		}
 
 	case KindUint8:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetUint(uint64(token.Value.(uint8)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetUint(uint64(token.Value.(uint8)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint8)))
 		}
 
 	case KindUint16:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetUint(uint64(token.Value.(uint16)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetUint(uint64(token.Value.(uint16)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint16)))
 		}
 
 	case KindUint32:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetUint(uint64(token.Value.(uint32)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetUint(uint64(token.Value.(uint32)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint32)))
 		}
 
 	case KindUint64:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetUint(uint64(token.Value.(uint64)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetUint(token.Value.(uint64))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint64)))
 		}
 
 	case KindFloat32:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetFloat(float64(token.Value.(float32)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetFloat(float64(token.Value.(float32)))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(float32)))
 		}
 
 	case KindFloat64:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetFloat(float64(token.Value.(float32)))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetFloat(token.Value.(float64))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(float64)))
 		}
 
 	case KindString:
-		if ptr.Type().Elem().Name() != "" {
-			// defined type
-			v := reflect.New(ptr.Type().Elem()).Elem()
-			v.SetString(token.Value.(string))
-			ptr.Elem().Set(v)
+		if hasConcreteType {
+			ptr.Elem().SetString(token.Value.(string))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(string)))
 		}
 
-	case KindNil, KindArrayEnd, KindObjectEnd:
-		return
-
 	case KindArray:
-		var arrayPtr reflect.Value
-		isArray := false
-		switch ptr.Type().Elem().Kind() {
-		case reflect.Slice:
-			arrayPtr = ptr
-		case reflect.Array:
-			sliceType := reflect.SliceOf(ptr.Type().Elem().Elem())
-			arrayPtr = reflect.New(sliceType)
-			isArray = true
-		default:
-			array := []any{}
-			arrayPtr = reflect.ValueOf(&array)
-		}
-		elemType := arrayPtr.Type().Elem().Elem()
-		for {
-			elemPtr := reflect.New(elemType)
-			var subToken Token
-			subToken, err = UnmarshalValue(stream, elemPtr)
-			if err != nil {
-				return
+		if hasConcreteType {
+
+			if valueType.Kind() == reflect.Array {
+				// array
+				idx := 0
+				for {
+					if p := stream.Peek(); p == nil || p.Kind == KindArrayEnd {
+						stream.Next()
+						break
+					}
+					err = UnmarshalValue(stream, ptr.Elem().Index(idx).Addr())
+					if err != nil {
+						return
+					}
+					idx++
+				}
+
+			} else {
+				// slice
+				slice := ptr.Elem()
+				for {
+					if p := stream.Peek(); p == nil || p.Kind == KindArrayEnd {
+						stream.Next()
+						break
+					}
+					elemPtr := reflect.New(valueType.Elem())
+					err = UnmarshalValue(stream, elemPtr)
+					if err != nil {
+						return
+					}
+					slice = reflect.Append(slice, elemPtr.Elem())
+				}
+				ptr.Elem().Set(slice)
 			}
-			if subToken.Kind == KindArrayEnd {
-				break
-			}
-			arrayPtr.Elem().Set(
-				reflect.Append(
-					arrayPtr.Elem(),
-					elemPtr.Elem(),
-				),
-			)
-		}
-		if isArray {
-			aPtr := reflect.New(ptr.Type().Elem())
-			reflect.Copy(aPtr.Elem().Slice(0, aPtr.Elem().Len()), arrayPtr.Elem())
-			ptr.Elem().Set(aPtr.Elem())
+
 		} else {
-			ptr.Elem().Set(arrayPtr.Elem())
+			// generic slice
+			var slice []any
+			for {
+				if p := stream.Peek(); p == nil || p.Kind == KindArrayEnd {
+					stream.Next()
+					break
+				}
+				var elem any
+				err = UnmarshalValue(stream, reflect.ValueOf(&elem))
+				if err != nil {
+					return
+				}
+				slice = append(slice, elem)
+			}
+			ptr.Elem().Set(reflect.ValueOf(slice))
 		}
 
 	case KindObject:
-		var values []any
-		var fields []reflect.StructField
-		newType := false
-		if ptr.Type().Elem().Kind() != reflect.Struct {
-			newType = true
-		}
+		if hasConcreteType {
+			for {
+				if p := stream.Peek(); p == nil || p.Kind == KindObjectEnd {
+					stream.Next()
+					break
+				}
 
-		for {
+				// name
+				var name string
+				err = UnmarshalValue(stream, reflect.ValueOf(&name))
+				if err != nil {
+					return
+				}
 
-			// name
-			var name string
-			var subToken Token
-			subToken, err = UnmarshalValue(stream, reflect.ValueOf(&name))
-			if err != nil {
-				return
+				// value
+				field, ok := valueType.FieldByName(name)
+				if !ok || field.Anonymous {
+					// skip next value
+					var value any
+					err = UnmarshalValue(stream, reflect.ValueOf(&value))
+					if err != nil {
+						return
+					}
+					continue
+				}
+				err = UnmarshalValue(stream, ptr.Elem().FieldByIndex(field.Index).Addr())
+				if err != nil {
+					return err
+				}
 			}
-			if subToken.Kind == KindObjectEnd {
-				break
-			}
 
-			if newType {
+		} else {
+			// construct new type
+			var values []any
+			var fields []reflect.StructField
+			for {
+				if p := stream.Peek(); p == nil || p.Kind == KindObjectEnd {
+					stream.Next()
+					break
+				}
+
+				// name
+				var name string
+				err = UnmarshalValue(stream, reflect.ValueOf(&name))
+				if err != nil {
+					return
+				}
+
+				// value
 				var value any
-				_, err = UnmarshalValue(stream, reflect.ValueOf(&value))
+				err = UnmarshalValue(stream, reflect.ValueOf(&value))
 				if err != nil {
 					return
 				}
@@ -276,29 +292,8 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (token Token, err error) {
 					Name: name,
 					Type: reflect.TypeOf(value),
 				})
-
-			} else {
-				field, ok := ptr.Type().Elem().FieldByName(name)
-				if !ok || field.Anonymous {
-					// skip next value
-					var value any
-					_, err = UnmarshalValue(stream, reflect.ValueOf(&value))
-					if err != nil {
-						return
-					}
-					continue
-				}
-				valuePtr := reflect.New(field.Type)
-				_, err = UnmarshalValue(stream, valuePtr)
-				if err != nil {
-					return
-				}
-				ptr.Elem().FieldByIndex(field.Index).Set(valuePtr.Elem())
 			}
 
-		}
-
-		if newType {
 			structType := reflect.StructOf(fields)
 			structPtr := reflect.New(structType)
 			for i, value := range values {

@@ -258,3 +258,18 @@ check:
 	}
 	goto check
 }
+
+func (t *Marshaler) Peek() (ret *Token) {
+check:
+	if len(t.tokens) > 0 {
+		token := t.tokens[0]
+		return &token
+	}
+	if t.proc == nil {
+		return nil
+	}
+	for len(t.tokens) == 0 && t.proc != nil {
+		t.proc()
+	}
+	goto check
+}

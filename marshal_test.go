@@ -353,12 +353,12 @@ func (c Custom) TokenizeSB() []Token {
 	}
 }
 
-func (c *Custom) DetokenizeSB(stream Stream) (token Token, err error) {
+func (c *Custom) DetokenizeSB(stream Stream) (err error) {
 	p := stream.Next()
 	if p == nil {
 		return
 	}
-	token = *p
+	token := *p
 	if token.Kind != KindInt {
 		return
 	}

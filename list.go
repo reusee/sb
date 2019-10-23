@@ -22,3 +22,11 @@ func (l *list) Next() (ret *Token) {
 	l.index++
 	return
 }
+
+func (l *list) Peek() (ret *Token) {
+	if l.index >= len(l.tokens) {
+		return nil
+	}
+	ret = &l.tokens[l.index]
+	return
+}

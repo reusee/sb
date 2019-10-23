@@ -2,6 +2,7 @@ package sb
 
 type Stream interface {
 	Next() *Token
+	Peek() *Token
 }
 
 type Kind uint8
