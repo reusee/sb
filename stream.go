@@ -1,6 +1,6 @@
 package sb
 
-type Tokenizer interface {
+type Stream interface {
 	Next() *Token
 }
 

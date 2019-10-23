@@ -19,7 +19,7 @@ func NewDecoder(r io.Reader) *Decoder {
 
 type DecodeError error
 
-var _ Tokenizer = new(Decoder)
+var _ Stream = new(Decoder)
 
 func (d *Decoder) Next() *Token {
 	var kind Kind

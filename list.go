@@ -12,7 +12,7 @@ func List(tokens []Token) *list {
 	}
 }
 
-var _ Tokenizer = new(list)
+var _ Stream = new(list)
 
 func (l *list) Next() (ret *Token) {
 	if l.index >= len(l.tokens) {

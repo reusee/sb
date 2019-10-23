@@ -2,13 +2,13 @@ package sb
 
 import "reflect"
 
-func Unmarshal(tokenizer Tokenizer, target any) error {
-	_, err := UnmarshalValue(tokenizer, reflect.ValueOf(target))
+func Unmarshal(stream Stream, target any) error {
+	_, err := UnmarshalValue(stream, reflect.ValueOf(target))
 	return err
 }
 
-func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err error) {
-	p := tokenizer.Next()
+func UnmarshalValue(stream Stream, ptr reflect.Value) (token Token, err error) {
+	p := stream.Next()
 	if p == nil {
 		return
 	}
@@ -176,7 +176,7 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 		for {
 			elemPtr := reflect.New(elemType)
 			var subToken Token
-			subToken, err = UnmarshalValue(tokenizer, elemPtr)
+			subToken, err = UnmarshalValue(stream, elemPtr)
 			if err != nil {
 				return
 			}
@@ -211,7 +211,7 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 			// name
 			var name string
 			var subToken Token
-			subToken, err = UnmarshalValue(tokenizer, reflect.ValueOf(&name))
+			subToken, err = UnmarshalValue(stream, reflect.ValueOf(&name))
 			if err != nil {
 				return
 			}
@@ -221,7 +221,7 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 
 			if newType {
 				var value any
-				_, err = UnmarshalValue(tokenizer, reflect.ValueOf(&value))
+				_, err = UnmarshalValue(stream, reflect.ValueOf(&value))
 				if err != nil {
 					return
 				}
@@ -236,14 +236,14 @@ func UnmarshalValue(tokenizer Tokenizer, ptr reflect.Value) (token Token, err er
 				if !ok || field.Anonymous {
 					// skip next value
 					var value any
-					_, err = UnmarshalValue(tokenizer, reflect.ValueOf(&value))
+					_, err = UnmarshalValue(stream, reflect.ValueOf(&value))
 					if err != nil {
 						return
 					}
 					continue
 				}
 				valuePtr := reflect.New(field.Type)
-				_, err = UnmarshalValue(tokenizer, valuePtr)
+				_, err = UnmarshalValue(stream, valuePtr)
 				if err != nil {
 					return
 				}

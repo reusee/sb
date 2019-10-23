@@ -6,9 +6,9 @@ import (
 	"io"
 )
 
-func Encode(w io.Writer, tokenizer Tokenizer) error {
+func Encode(w io.Writer, stream Stream) error {
 	buf := make([]byte, 8)
-	for token := tokenizer.Next(); token != nil; token = tokenizer.Next() {
+	for token := stream.Next(); token != nil; token = stream.Next() {
 		if err := binary.Write(w, binary.LittleEndian, token.Kind); err != nil {
 			return err
 		}

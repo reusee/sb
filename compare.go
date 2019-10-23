@@ -2,10 +2,10 @@ package sb
 
 import "fmt"
 
-func Compare(tokenizer1, tokenizer2 Tokenizer) int {
+func Compare(stream1, stream2 Stream) int {
 	for {
-		t1 := tokenizer1.Next()
-		t2 := tokenizer2.Next()
+		t1 := stream1.Next()
+		t2 := stream2.Next()
 
 		if t1 == nil && t2 == nil {
 			break

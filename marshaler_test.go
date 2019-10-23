@@ -291,8 +291,8 @@ func TestMarshaler(t *testing.T) {
 		}
 
 		tokens = tokens[:0]
-		tokenizer := NewMarshaler(c.value)
-		for token := tokenizer.Next(); token != nil; token = tokenizer.Next() {
+		m := NewMarshaler(c.value)
+		for token := m.Next(); token != nil; token = m.Next() {
 			tokens = append(tokens, *token)
 		}
 		if len(tokens) != len(c.expected) {

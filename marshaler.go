@@ -10,15 +10,15 @@ type Marshaler struct {
 	tokens []Token
 }
 
-var _ Tokenizer = new(Marshaler)
+var _ Stream = new(Marshaler)
 
 func NewMarshaler(obj any) *Marshaler {
-	tokenizer := new(Marshaler)
-	tokenizer.proc = tokenizer.Tokenize(
+	m := new(Marshaler)
+	m.proc = m.Tokenize(
 		reflect.ValueOf(obj),
-		tokenizer.End,
+		m.End,
 	)
-	return tokenizer
+	return m
 }
 
 func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
@@ -199,11 +199,11 @@ func (t *Marshaler) TokenizeStruct(value reflect.Value, index int, cont func()) 
 }
 
 func Tokens(obj any) []Token {
-	tokenizer := NewMarshaler(obj)
-	for tokenizer.proc != nil {
-		tokenizer.proc()
+	m := NewMarshaler(obj)
+	for m.proc != nil {
+		m.proc()
 	}
-	return tokenizer.tokens
+	return m.tokens
 }
 
 func (t *Marshaler) Next() (ret *Token) {
