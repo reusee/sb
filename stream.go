@@ -1,8 +1,8 @@
 package sb
 
 type Stream interface {
-	Next() *Token
-	Peek() *Token
+	Next() (*Token, error)
+	Peek() (*Token, error)
 }
 
 type Kind uint8
@@ -39,4 +39,18 @@ const (
 type Token struct {
 	Kind  Kind
 	Value any
+}
+
+func TokensFromStream(stream Stream) (tokens []Token, err error) {
+	for {
+		p, err := stream.Next()
+		if err != nil {
+			return nil, err
+		}
+		if p == nil {
+			return tokens, err
+		}
+		tokens = append(tokens, *p)
+	}
+	return
 }

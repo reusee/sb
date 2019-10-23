@@ -2,6 +2,8 @@ package sb
 
 import (
 	"bytes"
+	"encoding"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -278,7 +280,10 @@ func TestMarshaler(t *testing.T) {
 
 	for i, c := range cases {
 
-		tokens := Tokens(c.value)
+		tokens, err := Tokens(c.value)
+		if err != nil {
+			t.Fatal(err)
+		}
 		if len(tokens) != len(c.expected) {
 			t.Fatalf("%d fail %+v", i, c)
 		}
@@ -290,10 +295,9 @@ func TestMarshaler(t *testing.T) {
 			}
 		}
 
-		tokens = tokens[:0]
-		m := NewMarshaler(c.value)
-		for token := m.Next(); token != nil; token = m.Next() {
-			tokens = append(tokens, *token)
+		tokens, err = TokensFromStream(NewMarshaler(c.value))
+		if err != nil {
+			t.Fatal(err)
 		}
 		if len(tokens) != len(c.expected) {
 			t.Fatalf("%d fail %+v", i, c)
@@ -310,33 +314,24 @@ func TestMarshaler(t *testing.T) {
 		}
 		decoder := NewDecoder(buf)
 		l := List(c.expected)
-		if Compare(decoder, l) != 0 {
+		if MustCompare(decoder, l) != 0 {
 			t.Fatalf("%d fail %+v", i, c)
 		}
 
-		tokens = Tokens(c.value)
+		tokens, err = Tokens(c.value)
+		if err != nil {
+			t.Fatal(err)
+		}
 		var obj any
 		if err := Unmarshal(List(tokens), &obj); err != nil {
 			t.Fatal(err)
 		}
-		if Compare(NewMarshaler(obj), NewMarshaler(c.value)) != 0 {
+		if MustCompare(NewMarshaler(obj), NewMarshaler(c.value)) != 0 {
 			t.Fatalf("not equal, got %#v, expected %#v", obj, c.value)
 		}
 
 	}
 
-}
-
-func TestBadType(t *testing.T) {
-	func() {
-		defer func() {
-			p := recover()
-			if p == nil {
-				t.Fatal()
-			}
-		}()
-		Tokens(func() {})
-	}()
 }
 
 type Custom struct {
@@ -354,7 +349,10 @@ func (c Custom) TokenizeSB() []Token {
 }
 
 func (c *Custom) DetokenizeSB(stream Stream) (err error) {
-	p := stream.Next()
+	p, err := stream.Next()
+	if err != nil {
+		return err
+	}
 	if p == nil {
 		return
 	}
@@ -378,4 +376,16 @@ func TestCustomType(t *testing.T) {
 	if c.Foo != 42 {
 		t.Fatal()
 	}
+}
+
+type badBinaryMarshaler struct{}
+
+var _ encoding.BinaryMarshaler = badBinaryMarshaler{}
+
+func (_ badBinaryMarshaler) MarshalBinary() ([]byte, error) {
+	return nil, fmt.Errorf("bad")
+}
+
+func TestBadBinaryMarshaler(t *testing.T) {
+	//TODO
 }

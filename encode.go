@@ -8,7 +8,14 @@ import (
 
 func Encode(w io.Writer, stream Stream) error {
 	buf := make([]byte, 8)
-	for token := stream.Next(); token != nil; token = stream.Next() {
+	for {
+		token, err := stream.Next()
+		if err != nil {
+			return err
+		}
+		if token == nil {
+			break
+		}
 		if err := binary.Write(w, binary.LittleEndian, token.Kind); err != nil {
 			return err
 		}
@@ -63,7 +70,7 @@ func Encode(w io.Writer, stream Stream) error {
 				}
 
 			default:
-				panic(DecodeError(fmt.Errorf("bad type %#v %T", value, value)))
+				panic(fmt.Errorf("bad type %#v %T", value, value))
 
 			}
 		}

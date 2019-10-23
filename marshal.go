@@ -2,13 +2,13 @@ package sb
 
 import (
 	"encoding"
-	"fmt"
 	"reflect"
 )
 
 type Marshaler struct {
 	proc   func()
 	tokens []Token
+	err    error
 }
 
 var _ Stream = new(Marshaler)
@@ -43,7 +43,9 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 			} else if value.Type().Implements(binaryMarshalerType) {
 				bs, err := value.Interface().(encoding.BinaryMarshaler).MarshalBinary()
 				if err != nil {
-					panic(err)
+					t.err = err
+					t.proc = nil
+					return
 				}
 				t.tokens = append(t.tokens, Token{KindString, string(bs)})
 				t.proc = cont
@@ -51,7 +53,9 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 			} else if value.Type().Implements(textMarshalerType) {
 				bs, err := value.Interface().(encoding.TextMarshaler).MarshalText()
 				if err != nil {
-					panic(err)
+					t.err = err
+					t.proc = nil
+					return
 				}
 				t.tokens = append(t.tokens, Token{KindString, string(bs)})
 				t.proc = cont
@@ -188,7 +192,7 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 			t.proc = t.TokenizeStruct(value, 0, cont)
 
 		default:
-			panic(fmt.Errorf("invalid value or type: %s", value.String()))
+			t.proc = cont
 
 		}
 	}
@@ -234,16 +238,22 @@ func (t *Marshaler) TokenizeStruct(value reflect.Value, index int, cont func()) 
 	}
 }
 
-func Tokens(obj any) []Token {
+func Tokens(obj any) ([]Token, error) {
 	m := NewMarshaler(obj)
 	for m.proc != nil {
 		m.proc()
 	}
-	return m.tokens
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.tokens, nil
 }
 
-func (t *Marshaler) Next() (ret *Token) {
+func (t *Marshaler) Next() (ret *Token, err error) {
 check:
+	if t.err != nil {
+		return nil, err
+	}
 	if len(t.tokens) > 0 {
 		token := t.tokens[0]
 		ret = &token
@@ -251,7 +261,7 @@ check:
 		return
 	}
 	if t.proc == nil {
-		return nil
+		return nil, nil
 	}
 	for len(t.tokens) == 0 && t.proc != nil {
 		t.proc()
@@ -259,14 +269,17 @@ check:
 	goto check
 }
 
-func (t *Marshaler) Peek() (ret *Token) {
+func (t *Marshaler) Peek() (ret *Token, err error) {
 check:
+	if t.err != nil {
+		return nil, err
+	}
 	if len(t.tokens) > 0 {
 		token := t.tokens[0]
-		return &token
+		return &token, nil
 	}
 	if t.proc == nil {
-		return nil
+		return nil, nil
 	}
 	for len(t.tokens) == 0 && t.proc != nil {
 		t.proc()

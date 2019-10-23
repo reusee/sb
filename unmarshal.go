@@ -19,53 +19,62 @@ var (
 	textUnmarshalerType   = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 )
 
-func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
+func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 
 	if ptr.IsValid() {
 		if t := ptr.Type(); t.Implements(detokenizerType) {
 			return ptr.Interface().(Detokenizer).DetokenizeSB(stream)
 		} else if t.Implements(binaryUnmarshalerType) {
-			p := stream.Next()
+			p, err := stream.Next()
+			if err != nil {
+				return err
+			}
 			if p == nil {
-				return
+				return UnmarshalError{ExpectingString}
 			}
 			token := *p
 			if token.Kind != KindString {
-				return
+				return UnmarshalError{ExpectingString}
 			}
 			if err = ptr.Interface().(encoding.BinaryUnmarshaler).UnmarshalBinary(
 				[]byte(token.Value.(string)),
 			); err != nil {
-				return
+				return err
 			}
-			return
+			return nil
 		} else if t.Implements(textUnmarshalerType) {
-			p := stream.Next()
+			p, err := stream.Next()
+			if err != nil {
+				return err
+			}
 			if p == nil {
-				return
+				return UnmarshalError{ExpectingString}
 			}
 			token := *p
 			if token.Kind != KindString {
-				return
+				return UnmarshalError{ExpectingString}
 			}
 			if err = ptr.Interface().(encoding.TextUnmarshaler).UnmarshalText(
 				[]byte(token.Value.(string)),
 			); err != nil {
-				return
+				return err
 			}
-			return
+			return nil
 		}
 	}
 
-	p := stream.Next()
+	p, err := stream.Next()
+	if err != nil {
+		return err
+	}
 	if p == nil {
-		return
+		return UnmarshalError{ExpectingValue}
 	}
 	token := *p
 
 	switch token.Kind {
 	case KindNil, KindArrayEnd, KindObjectEnd:
-		return
+		return nil
 	}
 
 	valueType := ptr.Type().Elem()
@@ -185,13 +194,20 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 				// array
 				idx := 0
 				for {
-					if p := stream.Peek(); p == nil || p.Kind == KindArrayEnd {
+					p, err := stream.Peek()
+					if err != nil {
+						return err
+					}
+					if p == nil {
+						return UnmarshalError{ExpectingValue}
+					}
+					if p.Kind == KindArrayEnd {
 						stream.Next()
 						break
 					}
 					err = UnmarshalValue(stream, ptr.Elem().Index(idx).Addr())
 					if err != nil {
-						return
+						return err
 					}
 					idx++
 				}
@@ -200,14 +216,21 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 				// slice
 				slice := ptr.Elem()
 				for {
-					if p := stream.Peek(); p == nil || p.Kind == KindArrayEnd {
+					p, err := stream.Peek()
+					if err != nil {
+						return err
+					}
+					if p == nil {
+						return UnmarshalError{ExpectingValue}
+					}
+					if p.Kind == KindArrayEnd {
 						stream.Next()
 						break
 					}
 					elemPtr := reflect.New(valueType.Elem())
 					err = UnmarshalValue(stream, elemPtr)
 					if err != nil {
-						return
+						return err
 					}
 					slice = reflect.Append(slice, elemPtr.Elem())
 				}
@@ -218,14 +241,21 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 			// generic slice
 			var slice []any
 			for {
-				if p := stream.Peek(); p == nil || p.Kind == KindArrayEnd {
+				p, err := stream.Peek()
+				if err != nil {
+					return err
+				}
+				if p == nil {
+					return UnmarshalError{ExpectingValue}
+				}
+				if p.Kind == KindArrayEnd {
 					stream.Next()
 					break
 				}
 				var elem any
 				err = UnmarshalValue(stream, reflect.ValueOf(&elem))
 				if err != nil {
-					return
+					return err
 				}
 				slice = append(slice, elem)
 			}
@@ -235,7 +265,14 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 	case KindObject:
 		if hasConcreteType {
 			for {
-				if p := stream.Peek(); p == nil || p.Kind == KindObjectEnd {
+				p, err := stream.Peek()
+				if err != nil {
+					return err
+				}
+				if p == nil {
+					return UnmarshalError{ExpectingValue}
+				}
+				if p.Kind == KindObjectEnd {
 					stream.Next()
 					break
 				}
@@ -244,7 +281,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 				var name string
 				err = UnmarshalValue(stream, reflect.ValueOf(&name))
 				if err != nil {
-					return
+					return err
 				}
 
 				// value
@@ -254,7 +291,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 					var value any
 					err = UnmarshalValue(stream, reflect.ValueOf(&value))
 					if err != nil {
-						return
+						return err
 					}
 					continue
 				}
@@ -269,7 +306,14 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 			var values []any
 			var fields []reflect.StructField
 			for {
-				if p := stream.Peek(); p == nil || p.Kind == KindObjectEnd {
+				p, err := stream.Peek()
+				if err != nil {
+					return err
+				}
+				if p == nil {
+					return UnmarshalError{ExpectingValue}
+				}
+				if p.Kind == KindObjectEnd {
 					stream.Next()
 					break
 				}
@@ -278,14 +322,14 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 				var name string
 				err = UnmarshalValue(stream, reflect.ValueOf(&name))
 				if err != nil {
-					return
+					return err
 				}
 
 				// value
 				var value any
 				err = UnmarshalValue(stream, reflect.ValueOf(&value))
 				if err != nil {
-					return
+					return err
 				}
 				values = append(values, value)
 				fields = append(fields, reflect.StructField{
@@ -304,5 +348,5 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) (err error) {
 
 	}
 
-	return
+	return nil
 }

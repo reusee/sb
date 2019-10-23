@@ -20,7 +20,7 @@ func TestCompare(t *testing.T) {
 		{Foo{42, "foo"}, Foo{42, "foo"}},
 	}
 	for _, c := range cases {
-		if Compare(NewMarshaler(c[0]), NewMarshaler(c[1])) != 0 {
+		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != 0 {
 			t.Fatal()
 		}
 	}
@@ -38,10 +38,10 @@ func TestCompare(t *testing.T) {
 		{42, []int{1, 2, 3}},
 	}
 	for _, c := range cases {
-		if Compare(NewMarshaler(c[0]), NewMarshaler(c[1])) != -1 {
+		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != -1 {
 			t.Fatal()
 		}
-		if Compare(NewMarshaler(c[1]), NewMarshaler(c[0])) != 1 {
+		if MustCompare(NewMarshaler(c[1]), NewMarshaler(c[0])) != 1 {
 			t.Fatal()
 		}
 	}
