@@ -163,6 +163,9 @@ func (d *Decoder) Peek() (*Token, error) {
 				return nil, err
 			}
 		}
+		if length > 128*1024*1024 {
+			return nil, DecodeError{StringTooLong}
+		}
 		bs = make([]byte, length)
 		if _, err := io.ReadFull(d.r, bs); err != nil {
 			return nil, err

@@ -33,3 +33,19 @@ var (
 	ExpectingSequence = fmt.Errorf("expecting array / slice")
 	ExpectingStruct   = fmt.Errorf("expecting struct")
 )
+
+type DecodeError struct {
+	Prev error
+}
+
+func (d DecodeError) Unwrap() error {
+	return d.Prev
+}
+
+func (d DecodeError) Error() string {
+	return fmt.Sprintf("DecodeError: %s", d.Prev.Error())
+}
+
+var (
+	StringTooLong = fmt.Errorf("string too long")
+)
