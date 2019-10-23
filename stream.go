@@ -54,3 +54,11 @@ func TokensFromStream(stream Stream) (tokens []Token, err error) {
 	}
 	return
 }
+
+func MustTokensFromStream(stream Stream) []Token {
+	tokens, err := TokensFromStream(stream)
+	if err != nil {
+		panic(err)
+	}
+	return tokens
+}

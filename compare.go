@@ -1,6 +1,9 @@
 package sb
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 func Compare(stream1, stream2 Stream) (int, error) {
 	for {
@@ -122,6 +125,9 @@ func Compare(stream1, stream2 Stream) (int, error) {
 
 			case float32:
 				v2 := t2.Value.(float32)
+				if math.IsNaN(float64(v1)) && math.IsNaN(float64(v2)) {
+					return 0, nil
+				}
 				if v1 < v2 {
 					return -1, nil
 				} else {
@@ -130,6 +136,9 @@ func Compare(stream1, stream2 Stream) (int, error) {
 
 			case float64:
 				v2 := t2.Value.(float64)
+				if math.IsNaN(v1) && math.IsNaN(v2) {
+					return 0, nil
+				}
 				if v1 < v2 {
 					return -1, nil
 				} else {

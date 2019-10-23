@@ -2,7 +2,6 @@ package sb
 
 import (
 	"bytes"
-	"io/ioutil"
 )
 
 func Fuzz(data []byte) int {
@@ -11,9 +10,24 @@ func Fuzz(data []byte) int {
 	if err != nil {
 		return 0
 	}
-	err = Encode(ioutil.Discard, NewMarshaler(v))
+
+	buf := new(bytes.Buffer)
+	err = Encode(buf, NewMarshaler(v))
 	if err != nil {
 		return 0
 	}
+	bs := buf.Bytes()
+
+	res, err := Compare(NewMarshaler(v), NewDecoder(bytes.NewReader(bs)))
+	if err != nil {
+		panic(err)
+	}
+	if res != 0 {
+		pt("%+v\n", MustTokensFromStream(NewMarshaler(v)))
+		pt("%+v\n", MustTokensFromStream(NewDecoder(bytes.NewReader(bs))))
+		pt("%#v\n", v)
+		panic(err)
+	}
+
 	return 1
 }
