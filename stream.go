@@ -34,6 +34,8 @@ const (
 
 	KindArray
 	KindObject
+
+	KindMax Kind = 0xFF
 )
 
 type Token struct {

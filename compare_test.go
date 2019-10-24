@@ -46,4 +46,19 @@ func TestCompare(t *testing.T) {
 		}
 	}
 
+	if MustCompare(List([]Token{
+		{Kind: KindMax},
+	}), List([]Token{
+		{KindInt, 42},
+	})) != 1 {
+		t.Fatal()
+	}
+	if MustCompare(List([]Token{
+		{Kind: KindMax},
+	}), List([]Token{
+		{Kind: KindMax},
+	})) != 0 {
+		t.Fatal()
+	}
+
 }
