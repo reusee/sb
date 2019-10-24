@@ -23,6 +23,7 @@ func Fuzz(data []byte) int {
 		panic(err)
 	}
 	if res != 0 {
+		pt("%d\n", res)
 		pt("%+v\n", MustTokensFromStream(NewMarshaler(v)))
 		pt("%+v\n", MustTokensFromStream(NewDecoder(bytes.NewReader(bs))))
 		pt("%#v\n", v)
