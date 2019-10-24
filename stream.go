@@ -9,6 +9,7 @@ type Kind uint8
 
 const (
 	KindInvalid Kind = iota
+	KindMin
 
 	KindArrayEnd
 	KindObjectEnd
