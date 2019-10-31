@@ -3,6 +3,7 @@ package sb
 import (
 	"encoding"
 	gotoken "go/token"
+	"math"
 	"reflect"
 )
 
@@ -221,6 +222,16 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			ptr.Elem().SetFloat(token.Value.(float64))
 		} else {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(float64)))
+		}
+
+	case KindNaN:
+		if hasConcreteType {
+			if valueKind != reflect.Float32 && valueKind != reflect.Float64 {
+				return UnmarshalError{ExpectingFloat}
+			}
+			ptr.Elem().SetFloat(math.NaN())
+		} else {
+			ptr.Elem().Set(reflect.ValueOf(math.NaN()))
 		}
 
 	case KindString:

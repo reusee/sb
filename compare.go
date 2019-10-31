@@ -2,7 +2,6 @@ package sb
 
 import (
 	"fmt"
-	"math"
 )
 
 func Compare(stream1, stream2 Stream) (int, error) {
@@ -125,32 +124,18 @@ func Compare(stream1, stream2 Stream) (int, error) {
 
 			case float32:
 				v2 := t2.Value.(float32)
-				if math.IsNaN(float64(v1)) && !math.IsNaN(float64(v2)) {
-					return 1, nil
-				} else if !math.IsNaN(float64(v1)) && math.IsNaN(float64(v2)) {
+				if v1 < v2 {
 					return -1, nil
-				}
-				if !math.IsNaN(float64(v1)) && !math.IsNaN(float64(v2)) {
-					if v1 < v2 {
-						return -1, nil
-					} else {
-						return 1, nil
-					}
+				} else {
+					return 1, nil
 				}
 
 			case float64:
 				v2 := t2.Value.(float64)
-				if math.IsNaN(v1) && !math.IsNaN(v2) {
-					return 1, nil
-				} else if !math.IsNaN(v1) && math.IsNaN(v2) {
+				if v1 < v2 {
 					return -1, nil
-				}
-				if !math.IsNaN(v1) && !math.IsNaN(v2) {
-					if v1 < v2 {
-						return -1, nil
-					} else {
-						return 1, nil
-					}
+				} else {
+					return 1, nil
 				}
 
 			case string:

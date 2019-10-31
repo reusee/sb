@@ -2,6 +2,7 @@ package sb
 
 import (
 	"encoding"
+	"math"
 	"reflect"
 )
 
@@ -159,17 +160,29 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 			t.proc = cont
 
 		case reflect.Float32:
-			t.tokens = append(t.tokens, Token{
-				Kind:  KindFloat32,
-				Value: float32(value.Float()),
-			})
+			if math.IsNaN(value.Float()) {
+				t.tokens = append(t.tokens, Token{
+					Kind: KindNaN,
+				})
+			} else {
+				t.tokens = append(t.tokens, Token{
+					Kind:  KindFloat32,
+					Value: float32(value.Float()),
+				})
+			}
 			t.proc = cont
 
 		case reflect.Float64:
-			t.tokens = append(t.tokens, Token{
-				Kind:  KindFloat64,
-				Value: float64(value.Float()),
-			})
+			if math.IsNaN(value.Float()) {
+				t.tokens = append(t.tokens, Token{
+					Kind: KindNaN,
+				})
+			} else {
+				t.tokens = append(t.tokens, Token{
+					Kind:  KindFloat64,
+					Value: float64(value.Float()),
+				})
+			}
 			t.proc = cont
 
 		case reflect.Array, reflect.Slice:

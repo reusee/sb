@@ -30,6 +30,7 @@ var (
 	ExpectingUint64     = fmt.Errorf("expecting uint64")
 	ExpectingFloat32    = fmt.Errorf("expecting float32")
 	ExpectingFloat64    = fmt.Errorf("expecting float64")
+	ExpectingFloat      = fmt.Errorf("expecting float32 or float64")
 	ExpectingSequence   = fmt.Errorf("expecting array / slice")
 	ExpectingStruct     = fmt.Errorf("expecting struct")
 	BadFieldName        = fmt.Errorf("bad field name")

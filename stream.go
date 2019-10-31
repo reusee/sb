@@ -32,6 +32,7 @@ const (
 
 	KindFloat32 = 160
 	KindFloat64 = 170
+	KindNaN     = 175
 
 	KindArray  = 180
 	KindObject = 190

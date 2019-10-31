@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -17,6 +18,7 @@ func TestFuzzCorpus(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		var v any
 		err = Unmarshal(NewDecoder(bytes.NewReader(data)), &v)
 		if err != nil {
@@ -40,6 +42,17 @@ func TestFuzzCorpus(t *testing.T) {
 			pt("%+v\n", MustTokensFromStream(NewDecoder(bytes.NewReader(bs))))
 			pt("%#v\n", v)
 			t.Fatal(err)
+		}
+
+		var v2 any
+		if err := Unmarshal(NewDecoder(bytes.NewReader(bs)), &v2); err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(v, v2) {
+			pt("%+v\n", MustTokensFromStream(NewMarshaler(v)))
+			pt("%+v\n", MustTokensFromStream(NewDecoder(bytes.NewReader(bs))))
+			pt("%#v\n", v)
+			t.Fatal()
 		}
 
 	}
