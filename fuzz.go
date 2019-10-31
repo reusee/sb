@@ -2,7 +2,6 @@ package sb
 
 import (
 	"bytes"
-	"reflect"
 )
 
 func Fuzz(data []byte) int {
@@ -25,17 +24,6 @@ func Fuzz(data []byte) int {
 	}
 	if res != 0 {
 		pt("%d\n", res)
-		pt("%+v\n", MustTokensFromStream(NewMarshaler(v)))
-		pt("%+v\n", MustTokensFromStream(NewDecoder(bytes.NewReader(bs))))
-		pt("%#v\n", v)
-		panic(err)
-	}
-
-	var v2 any
-	if err := Unmarshal(NewDecoder(bytes.NewReader(bs)), &v2); err != nil {
-		panic(err)
-	}
-	if !reflect.DeepEqual(v, v2) {
 		pt("%+v\n", MustTokensFromStream(NewMarshaler(v)))
 		pt("%+v\n", MustTokensFromStream(NewDecoder(bytes.NewReader(bs))))
 		pt("%#v\n", v)
