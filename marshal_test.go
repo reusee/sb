@@ -8,277 +8,277 @@ import (
 	"testing"
 )
 
-func TestMarshaler(t *testing.T) {
-	type Case struct {
-		value    any
-		expected []Token
-	}
+type MarshalTestCase struct {
+	value    any
+	expected []Token
+}
 
-	type foo int
+type foo int
 
-	cases := []Case{
-
-		{
-			int(42),
-			[]Token{
-				{KindInt, int(42)},
-			},
+var marshalTestCases = []MarshalTestCase{
+	{
+		int(42),
+		[]Token{
+			{KindInt, int(42)},
 		},
+	},
 
-		{
-			func() *int32 {
-				i := int32(42)
-				return &i
+	{
+		func() *int32 {
+			i := int32(42)
+			return &i
+		}(),
+		[]Token{
+			{KindInt32, int32(42)},
+		},
+	},
+
+	{
+		true,
+		[]Token{
+			{KindBool, true},
+		},
+	},
+
+	{
+		uint32(42),
+		[]Token{
+			{KindUint32, uint32(42)},
+		},
+	},
+
+	{
+		float32(42),
+		[]Token{
+			{KindFloat32, float32(42)},
+		},
+	},
+
+	{
+		[]int{42, 4, 2},
+		[]Token{
+			{Kind: KindArray},
+			{KindInt, int(42)},
+			{KindInt, int(4)},
+			{KindInt, int(2)},
+			{Kind: KindArrayEnd},
+		},
+	},
+
+	{
+		[][]int{
+			{42, 4, 2},
+			{2, 4, 42},
+		},
+		[]Token{
+			{Kind: KindArray},
+			{Kind: KindArray},
+			{KindInt, int(42)},
+			{KindInt, int(4)},
+			{KindInt, int(2)},
+			{Kind: KindArrayEnd},
+			{Kind: KindArray},
+			{KindInt, int(2)},
+			{KindInt, int(4)},
+			{KindInt, int(42)},
+			{Kind: KindArrayEnd},
+			{Kind: KindArrayEnd},
+		},
+	},
+
+	{
+		"foo",
+		[]Token{
+			{KindString, "foo"},
+		},
+	},
+
+	{
+		struct {
+			Foo int
+			Bar float32
+			Baz string
+			Boo bool
+		}{
+			42,
+			42,
+			"42",
+			false,
+		},
+		[]Token{
+			{Kind: KindObject},
+			{KindString, "Foo"},
+			{KindInt, int(42)},
+			{KindString, "Bar"},
+			{KindFloat32, float32(42)},
+			{KindString, "Baz"},
+			{KindString, "42"},
+			{KindString, "Boo"},
+			{KindBool, false},
+			{Kind: KindObjectEnd},
+		},
+	},
+
+	{
+		[]interface{}{
+			func() **int {
+				i := 42
+				j := &i
+				return &j
 			}(),
-			[]Token{
-				{KindInt32, int32(42)},
-			},
-		},
-
-		{
-			true,
-			[]Token{
-				{KindBool, true},
-			},
-		},
-
-		{
-			uint32(42),
-			[]Token{
-				{KindUint32, uint32(42)},
-			},
-		},
-
-		{
-			float32(42),
-			[]Token{
-				{KindFloat32, float32(42)},
-			},
-		},
-
-		{
-			[]int{42, 4, 2},
-			[]Token{
-				{Kind: KindArray},
-				{KindInt, int(42)},
-				{KindInt, int(4)},
-				{KindInt, int(2)},
-				{Kind: KindArrayEnd},
-			},
-		},
-
-		{
-			[][]int{
-				{42, 4, 2},
-				{2, 4, 42},
-			},
-			[]Token{
-				{Kind: KindArray},
-				{Kind: KindArray},
-				{KindInt, int(42)},
-				{KindInt, int(4)},
-				{KindInt, int(2)},
-				{Kind: KindArrayEnd},
-				{Kind: KindArray},
-				{KindInt, int(2)},
-				{KindInt, int(4)},
-				{KindInt, int(42)},
-				{Kind: KindArrayEnd},
-				{Kind: KindArrayEnd},
-			},
-		},
-
-		{
-			"foo",
-			[]Token{
-				{KindString, "foo"},
-			},
-		},
-
-		{
-			struct {
-				Foo int
-				Bar float32
-				Baz string
-				Boo bool
-			}{
-				42,
-				42,
-				"42",
-				false,
-			},
-			[]Token{
-				{Kind: KindObject},
-				{KindString, "Foo"},
-				{KindInt, int(42)},
-				{KindString, "Bar"},
-				{KindFloat32, float32(42)},
-				{KindString, "Baz"},
-				{KindString, "42"},
-				{KindString, "Boo"},
-				{KindBool, false},
-				{Kind: KindObjectEnd},
-			},
-		},
-
-		{
-			[]interface{}{
-				func() **int {
-					i := 42
-					j := &i
-					return &j
-				}(),
-				func() *int {
-					return nil
-				}(),
-				(interface{})(nil),
-			},
-			[]Token{
-				{Kind: KindArray},
-				{KindInt, int(42)},
-				{Kind: KindNil},
-				{Kind: KindNil},
-				{Kind: KindArrayEnd},
-			},
-		},
-
-		{
 			func() *int {
 				return nil
 			}(),
-			[]Token{
-				{Kind: KindNil},
-			},
+			(interface{})(nil),
 		},
-
-		{
-			func() *bool {
-				return nil
-			}(),
-			[]Token{
-				{Kind: KindNil},
-			},
+		[]Token{
+			{Kind: KindArray},
+			{KindInt, int(42)},
+			{Kind: KindNil},
+			{Kind: KindNil},
+			{Kind: KindArrayEnd},
 		},
+	},
 
-		{
-			func() *uint8 {
-				return nil
-			}(),
-			[]Token{
-				{Kind: KindNil},
-			},
-		},
-
-		{
-			func() *float32 {
-				return nil
-			}(),
-			[]Token{
-				{Kind: KindNil},
-			},
-		},
-
-		{
-			func() *[]int32 {
-				return nil
-			}(),
-			[]Token{
-				{Kind: KindNil},
-			},
-		},
-
-		{
-			func() *[]int32 {
-				array := []int32{42}
-				return &array
-			}(),
-			[]Token{
-				{Kind: KindArray},
-				{KindInt32, int32(42)},
-				{Kind: KindArrayEnd},
-			},
-		},
-
-		{
-			func() *string {
-				return nil
-			}(),
-			[]Token{
-				{Kind: KindNil},
-			},
-		},
-
-		{
-			func() *struct{} {
-				return nil
-			}(),
-			[]Token{
-				{Kind: KindNil},
-			},
-		},
-
-		func() Case {
-			str := strings.Repeat("foo", 1024)
-			return Case{
-				str,
-				[]Token{
-					{KindString, str},
-				},
-			}
+	{
+		func() *int {
+			return nil
 		}(),
-
-		{
-			foo(42),
-			[]Token{
-				{KindInt, int(42)},
-			},
+		[]Token{
+			{Kind: KindNil},
 		},
+	},
 
-		{
+	{
+		func() *bool {
+			return nil
+		}(),
+		[]Token{
+			{Kind: KindNil},
+		},
+	},
+
+	{
+		func() *uint8 {
+			return nil
+		}(),
+		[]Token{
+			{Kind: KindNil},
+		},
+	},
+
+	{
+		func() *float32 {
+			return nil
+		}(),
+		[]Token{
+			{Kind: KindNil},
+		},
+	},
+
+	{
+		func() *[]int32 {
+			return nil
+		}(),
+		[]Token{
+			{Kind: KindNil},
+		},
+	},
+
+	{
+		func() *[]int32 {
+			array := []int32{42}
+			return &array
+		}(),
+		[]Token{
+			{Kind: KindArray},
+			{KindInt32, int32(42)},
+			{Kind: KindArrayEnd},
+		},
+	},
+
+	{
+		func() *string {
+			return nil
+		}(),
+		[]Token{
+			{Kind: KindNil},
+		},
+	},
+
+	{
+		func() *struct{} {
+			return nil
+		}(),
+		[]Token{
+			{Kind: KindNil},
+		},
+	},
+
+	func() MarshalTestCase {
+		str := strings.Repeat("foo", 1024)
+		return MarshalTestCase{
+			str,
+			[]Token{
+				{KindString, str},
+			},
+		}
+	}(),
+
+	{
+		foo(42),
+		[]Token{
+			{KindInt, int(42)},
+		},
+	},
+
+	{
+		[]foo{
+			42,
+		},
+		[]Token{
+			{Kind: KindArray},
+			{KindInt, int(42)},
+			{Kind: KindArrayEnd},
+		},
+	},
+
+	{
+		struct {
+			Foo foo
+		}{
+			42,
+		},
+		[]Token{
+			{Kind: KindObject},
+			{KindString, "Foo"},
+			{KindInt, int(42)},
+			{Kind: KindObjectEnd},
+		},
+	},
+
+	{
+		struct {
+			Foo []foo
+		}{
 			[]foo{
 				42,
 			},
-			[]Token{
-				{Kind: KindArray},
-				{KindInt, int(42)},
-				{Kind: KindArrayEnd},
-			},
 		},
-
-		{
-			struct {
-				Foo foo
-			}{
-				42,
-			},
-			[]Token{
-				{Kind: KindObject},
-				{KindString, "Foo"},
-				{KindInt, int(42)},
-				{Kind: KindObjectEnd},
-			},
+		[]Token{
+			{Kind: KindObject},
+			{KindString, "Foo"},
+			{Kind: KindArray},
+			{KindInt, int(42)},
+			{Kind: KindArrayEnd},
+			{Kind: KindObjectEnd},
 		},
+	},
+}
 
-		{
-			struct {
-				Foo []foo
-			}{
-				[]foo{
-					42,
-				},
-			},
-			[]Token{
-				{Kind: KindObject},
-				{KindString, "Foo"},
-				{Kind: KindArray},
-				{KindInt, int(42)},
-				{Kind: KindArrayEnd},
-				{Kind: KindObjectEnd},
-			},
-		},
-	}
+func TestMarshaler(t *testing.T) {
 
-	for i, c := range cases {
+	for i, c := range marshalTestCases {
 
 		tokens, err := Tokens(c.value)
 		if err != nil {
@@ -286,6 +286,18 @@ func TestMarshaler(t *testing.T) {
 		}
 		if len(tokens) != len(c.expected) {
 			t.Fatalf("%d fail %+v", i, c)
+		}
+		for i, token := range tokens {
+			if token != c.expected[i] {
+				pt("expected %T\n", c.expected[i].Value)
+				pt("token %T\n", token.Value)
+				t.Fatalf("%d expected %#v, got %#v\nfail %+v", i, c.expected[i], token, c)
+			}
+		}
+
+		tokens, err = TokensFromStream(NewMarshaler(c.value))
+		if err != nil {
+			t.Fatal(err)
 		}
 		for i, token := range tokens {
 			if token != c.expected[i] {

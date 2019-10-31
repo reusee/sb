@@ -51,7 +51,7 @@ func TokensFromStream(stream Stream) (tokens []Token, err error) {
 			return nil, err
 		}
 		if p == nil {
-			return tokens, err
+			break
 		}
 		tokens = append(tokens, *p)
 	}
