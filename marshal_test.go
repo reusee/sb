@@ -465,4 +465,21 @@ func TestMarshalIgnoreUnsupportedType(t *testing.T) {
 	if len(tokens) != 0 {
 		t.Fatal()
 	}
+
+	// peek
+	m := NewMarshaler(
+		func() {},
+	)
+	_, err = m.Peek()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = m.Peek()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = m.Next()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
