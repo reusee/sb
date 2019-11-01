@@ -146,7 +146,7 @@ func Compare(stream1, stream2 Stream) (int, error) {
 					return 1, nil
 				}
 
-			default:
+			default: // NOCOVER
 				panic(fmt.Errorf("bad type %#v %T", v1, v1))
 
 			}
