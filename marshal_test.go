@@ -399,5 +399,10 @@ func (_ badBinaryMarshaler) MarshalBinary() ([]byte, error) {
 }
 
 func TestBadBinaryMarshaler(t *testing.T) {
-	//TODO
+	v := new(badBinaryMarshaler)
+	m := NewMarshaler(v)
+	_, err := TokensFromStream(m)
+	if err == nil {
+		t.Fatal()
+	}
 }

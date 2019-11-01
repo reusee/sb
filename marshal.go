@@ -265,7 +265,7 @@ func Tokens(obj any) ([]Token, error) {
 func (t *Marshaler) Next() (ret *Token, err error) {
 check:
 	if t.err != nil {
-		return nil, err
+		return nil, t.err
 	}
 	if len(t.tokens) > 0 {
 		token := t.tokens[0]
@@ -274,7 +274,7 @@ check:
 		return
 	}
 	if t.proc == nil {
-		return nil, nil
+		return nil, t.err
 	}
 	for len(t.tokens) == 0 && t.proc != nil {
 		t.proc()
