@@ -20,18 +20,12 @@ func NewDecoder(r io.Reader) *Decoder {
 
 var _ Stream = new(Decoder)
 
-func (d *Decoder) Next() (*Token, error) {
-	if d.cached != nil {
-		t := d.cached
+func (d *Decoder) Next() (token *Token, err error) {
+	token, err = d.Peek()
+	if token != nil {
 		d.cached = nil
-		return t, nil
 	}
-	if _, err := d.Peek(); err != nil {
-		return nil, err
-	}
-	t := d.cached
-	d.cached = nil
-	return t, nil
+	return
 }
 
 func (d *Decoder) Peek() (*Token, error) {
