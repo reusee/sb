@@ -27,22 +27,17 @@ type Tokenizer interface {
 	TokenizeSB() []Token
 }
 
-var (
-	tokenizerType       = reflect.TypeOf((*Tokenizer)(nil)).Elem()
-	binaryMarshalerType = reflect.TypeOf((*encoding.BinaryMarshaler)(nil)).Elem()
-	textMarshalerType   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
-)
-
 func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 	return func() {
 
 		if value.IsValid() {
-			if value.Type().Implements(tokenizerType) {
-				t.tokens = append(t.tokens, value.Interface().(Tokenizer).TokenizeSB()...)
+			i := value.Interface()
+			if v, ok := i.(Tokenizer); ok {
+				t.tokens = append(t.tokens, v.TokenizeSB()...)
 				t.proc = cont
 				return
-			} else if value.Type().Implements(binaryMarshalerType) {
-				bs, err := value.Interface().(encoding.BinaryMarshaler).MarshalBinary()
+			} else if v, ok := i.(encoding.BinaryMarshaler); ok {
+				bs, err := v.MarshalBinary()
 				if err != nil {
 					t.err = err
 					t.proc = nil
@@ -51,8 +46,8 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 				t.tokens = append(t.tokens, Token{KindString, string(bs)})
 				t.proc = cont
 				return
-			} else if value.Type().Implements(textMarshalerType) {
-				bs, err := value.Interface().(encoding.TextMarshaler).MarshalText()
+			} else if v, ok := i.(encoding.TextMarshaler); ok {
+				bs, err := v.MarshalText()
 				if err != nil {
 					t.err = err
 					t.proc = nil
@@ -252,23 +247,11 @@ func (t *Marshaler) TokenizeStruct(value reflect.Value, index int, cont func()) 
 }
 
 func (t *Marshaler) Next() (ret *Token, err error) {
-check:
-	if t.err != nil {
-		return nil, t.err
-	}
-	if len(t.tokens) > 0 {
-		token := t.tokens[0]
-		ret = &token
+	ret, err = t.Peek()
+	if ret != nil {
 		t.tokens = append(t.tokens[:0], t.tokens[1:]...)
-		return
 	}
-	if t.proc == nil {
-		return nil, t.err
-	}
-	for len(t.tokens) == 0 && t.proc != nil {
-		t.proc()
-	}
-	goto check
+	return
 }
 
 func (t *Marshaler) Peek() (ret *Token, err error) {
@@ -277,8 +260,7 @@ check:
 		return nil, t.err
 	}
 	if len(t.tokens) > 0 {
-		token := t.tokens[0]
-		return &token, nil
+		return &t.tokens[0], nil
 	}
 	if t.proc == nil {
 		return nil, t.err
