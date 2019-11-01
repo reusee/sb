@@ -417,6 +417,76 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			ptr.Elem().Set(structPtr.Elem())
 		}
 
+	case KindMap:
+		if hasConcreteType {
+			if valueKind != reflect.Map {
+				return UnmarshalError{ExpectingMap}
+			}
+
+			keyType := valueType.Key()
+			elemType := valueType.Elem()
+			for {
+				p, err := stream.Peek()
+				if err != nil {
+					return err
+				}
+				if p == nil {
+					return UnmarshalError{ExpectingValue}
+				}
+				if p.Kind == KindMapEnd {
+					stream.Next()
+					break
+				}
+				// key
+				key := reflect.New(keyType)
+				if err := UnmarshalValue(stream, key); err != nil {
+					return err
+				}
+				// value
+				value := reflect.New(elemType)
+				if err := UnmarshalValue(stream, value); err != nil {
+					return err
+				}
+				if ptr.Elem().IsNil() {
+					ptr.Elem().Set(reflect.MakeMap(valueType))
+				}
+				ptr.Elem().SetMapIndex(
+					key.Elem(),
+					value.Elem(),
+				)
+			}
+
+		} else {
+			// map[any]any
+			m := make(map[any]any)
+			for {
+				p, err := stream.Peek()
+				if err != nil {
+					return err
+				}
+				if p == nil {
+					return UnmarshalError{ExpectingValue}
+				}
+				if p.Kind == KindMapEnd {
+					stream.Next()
+					break
+				}
+				// key
+				var key any
+				if err := UnmarshalValue(stream, reflect.ValueOf(&key)); err != nil {
+					return err
+				}
+				// value
+				var value any
+				if err := UnmarshalValue(stream, reflect.ValueOf(&value)); err != nil {
+					return err
+				}
+				m[key] = value
+			}
+			ptr.Elem().Set(reflect.ValueOf(m))
+
+		}
+
 	}
 
 	return nil

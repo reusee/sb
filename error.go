@@ -14,6 +14,18 @@ func (u UnmarshalError) Error() string {
 	return fmt.Sprintf("UnmarshalError: %s", u.Prev.Error())
 }
 
+type MarshalError struct {
+	Prev error
+}
+
+func (u MarshalError) Unwrap() error {
+	return u.Prev
+}
+
+func (u MarshalError) Error() string {
+	return fmt.Sprintf("MarshalError: %s", u.Prev.Error())
+}
+
 var (
 	ExpectingValue      = fmt.Errorf("expecting value")
 	ExpectingString     = fmt.Errorf("expecting string")
@@ -33,9 +45,11 @@ var (
 	ExpectingFloat      = fmt.Errorf("expecting float32 or float64")
 	ExpectingSequence   = fmt.Errorf("expecting array / slice")
 	ExpectingStruct     = fmt.Errorf("expecting struct")
+	ExpectingMap        = fmt.Errorf("expecting map")
 	BadFieldName        = fmt.Errorf("bad field name")
 	DuplicatedFieldName = fmt.Errorf("duplicated field name")
 	TooManyElement      = fmt.Errorf("too many element")
+	BadMapKey           = fmt.Errorf("bad map key")
 )
 
 type DecodeError struct {

@@ -30,6 +30,7 @@ var unmarshalTestCases = []UnmarshalTestCase{
 	{float32(42), float32(0), nil},
 	{float64(42), float64(0), nil},
 	{string("42"), string(""), nil},
+	{map[int]int{1: 1}, map[int]int(nil), nil},
 
 	{true, int(0), ExpectingBool},
 	{42, true, ExpectingInt},
@@ -47,6 +48,7 @@ var unmarshalTestCases = []UnmarshalTestCase{
 	{math.NaN(), true, ExpectingFloat},
 	{"42", true, ExpectingString},
 	{[]int{42}, true, ExpectingSequence},
+	{map[int]int{}, true, ExpectingMap},
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -145,6 +147,9 @@ func TestUnmarshalIncompleteStream(t *testing.T) {
 		{},
 		{
 			{Kind: KindArray},
+		},
+		{
+			{Kind: KindMap},
 		},
 	}
 
@@ -413,6 +418,202 @@ func TestBadObject(t *testing.T) {
 			KindString,
 		})),
 		&v,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+}
+
+func TestBadMap(t *testing.T) {
+	var m map[int]int
+
+	// bad decoder
+	err := Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindString,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// short decoder
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// bad type
+	err = Unmarshal(
+		Tokens{
+			{Kind: KindMap},
+			{KindString, "foo"},
+		}.Iter(),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// bad type
+	err = Unmarshal(
+		Tokens{
+			{Kind: KindMap},
+			{KindString, "42"},
+			{KindInt8, int8(42)},
+		}.Iter(),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// bad skip
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindString, 0,
+			KindString,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// bad value
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindString, 3, 'F', 'o', 'o',
+			KindString,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// bad value
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindInt, 0, 0, 0, 0, 0, 0, 0, 1,
+			KindString,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+}
+
+func TestBadMapGeneric(t *testing.T) {
+	var m any
+
+	// bad decoder
+	err := Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindString,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// short decoder
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// short decoder
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindArray,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// short
+	err = Unmarshal(
+		Tokens{
+			{Kind: KindMap},
+			{KindString, "foo"},
+		}.Iter(),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// short
+	err = Unmarshal(
+		Tokens{
+			{Kind: KindMap},
+			{KindString, "42"},
+			{KindInt8, int8(42)},
+		}.Iter(),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// bad skip
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindString, 0,
+			KindString,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// bad value
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindString, 3, 'F', 'o', 'o',
+			KindString,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	// bad value
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindInt, 0, 0, 0, 0, 0, 0, 0, 1,
+			KindString,
+		})),
+		&m,
 	)
 	if err == nil {
 		t.Fatal(err)

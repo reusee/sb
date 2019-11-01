@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 type MarshalTestCase struct {
@@ -275,6 +276,56 @@ var marshalTestCases = []MarshalTestCase{
 			{Kind: KindObjectEnd},
 		},
 	},
+
+	{
+		map[int]int{},
+		[]Token{
+			{Kind: KindMap},
+			{Kind: KindMapEnd},
+		},
+	},
+
+	{
+		map[int]int{
+			1: 1,
+		},
+		[]Token{
+			{Kind: KindMap},
+			{KindInt, 1},
+			{KindInt, 1},
+			{Kind: KindMapEnd},
+		},
+	},
+
+	{
+		map[int]int{
+			42: 42,
+			1:  1,
+		},
+		[]Token{
+			{Kind: KindMap},
+			{KindInt, 1},
+			{KindInt, 1},
+			{KindInt, 42},
+			{KindInt, 42},
+			{Kind: KindMapEnd},
+		},
+	},
+
+	{
+		map[any]any{
+			42:    42,
+			"foo": "bar",
+		},
+		[]Token{
+			{Kind: KindMap},
+			{KindString, "foo"},
+			{KindString, "bar"},
+			{KindInt, 42},
+			{KindInt, 42},
+			{Kind: KindMapEnd},
+		},
+	},
 }
 
 func TestMarshaler(t *testing.T) {
@@ -485,5 +536,29 @@ func TestMarshalIgnoreUnsupportedType(t *testing.T) {
 	_, err = m.Next()
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestBadMapKey(t *testing.T) {
+	_, err := TokensFromStream(
+		NewMarshaler(
+			map[any]any{
+				badBinaryMarshaler{}: true,
+			},
+		),
+	)
+	if err == nil {
+		t.Fatal()
+	}
+
+	_, err = TokensFromStream(
+		NewMarshaler(
+			map[any]any{
+				unsafe.Pointer(nil): true,
+			},
+		),
+	)
+	if err == nil {
+		t.Fatal()
 	}
 }

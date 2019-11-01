@@ -13,6 +13,7 @@ const (
 
 	KindArrayEnd  = 10
 	KindObjectEnd = 20
+	KindMapEnd    = 25
 
 	KindNil    = 30
 	KindBool   = 40
@@ -36,6 +37,7 @@ const (
 
 	KindArray  = 180
 	KindObject = 190
+	KindMap    = 200
 
 	KindMax Kind = 0xFF
 )

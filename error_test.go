@@ -21,4 +21,11 @@ func TestError(t *testing.T) {
 	if err.Error() != "DecodeError: string too long" {
 		t.Fatal()
 	}
+	err = MarshalError{BadMapKey}
+	if !errors.Is(err, BadMapKey) {
+		t.Fatal()
+	}
+	if err.Error() != "MarshalError: bad map key" {
+		t.Fatal()
+	}
 }

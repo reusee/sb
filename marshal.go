@@ -200,6 +200,12 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 			})
 			t.proc = t.TokenizeStruct(value, cont)
 
+		case reflect.Map:
+			t.tokens = append(t.tokens, Token{
+				Kind: KindMap,
+			})
+			t.proc = t.TokenizeMap(value, cont)
+
 		default:
 			t.proc = cont
 
@@ -257,6 +263,73 @@ func (t *Marshaler) TokenizeStructField(value reflect.Value, fields []reflect.St
 		t.proc = t.Tokenize(
 			value.FieldByIndex(field.Index),
 			t.TokenizeStructField(value, fields[1:], cont),
+		)
+	}
+}
+
+type mapTuple struct {
+	keyTokens Tokens
+	value     reflect.Value
+}
+
+func (t *Marshaler) TokenizeMap(value reflect.Value, cont func()) func() {
+	return t.TokenizeMapIter(value, value.MapRange(), []mapTuple{}, cont)
+}
+
+func (t *Marshaler) TokenizeMapIter(
+	value reflect.Value,
+	iter *reflect.MapIter,
+	tuples []mapTuple,
+	cont func(),
+) func() {
+	return func() {
+		if !iter.Next() {
+			// done
+			sort.Slice(tuples, func(i, j int) bool {
+				return MustCompare(
+					tuples[i].keyTokens.Iter(),
+					tuples[j].keyTokens.Iter(),
+				) < 0
+			})
+			t.proc = t.TokenizeMapValue(tuples, cont)
+			return
+		}
+		tokens, err := TokensFromStream(NewMarshaler(iter.Key().Interface()))
+		if err != nil {
+			t.err = err
+			t.proc = nil
+			return
+		} else if len(tokens) == 0 {
+			t.err = MarshalError{BadMapKey}
+			t.proc = nil
+			return
+		}
+		t.proc = t.TokenizeMapIter(
+			value,
+			iter,
+			append(tuples, mapTuple{
+				keyTokens: tokens,
+				value:     iter.Value(),
+			}),
+			cont,
+		)
+	}
+}
+
+func (t *Marshaler) TokenizeMapValue(tuples []mapTuple, cont func()) func() {
+	return func() {
+		if len(tuples) == 0 {
+			t.tokens = append(t.tokens, Token{
+				Kind: KindMapEnd,
+			})
+			t.proc = cont
+			return
+		}
+		tuple := tuples[0]
+		t.tokens = append(t.tokens, tuple.keyTokens...)
+		t.proc = t.Tokenize(
+			tuple.value,
+			t.TokenizeMapValue(tuples[1:], cont),
 		)
 	}
 }
