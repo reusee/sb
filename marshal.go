@@ -299,7 +299,8 @@ func (t *Marshaler) TokenizeMapIter(
 			t.err = err
 			t.proc = nil
 			return
-		} else if len(tokens) == 0 {
+		} else if len(tokens) == 0 ||
+			(len(tokens) == 1 && tokens[0].Kind == KindNaN) {
 			t.err = MarshalError{BadMapKey}
 			t.proc = nil
 			return

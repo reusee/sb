@@ -476,6 +476,15 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				if err := UnmarshalValue(stream, reflect.ValueOf(&key)); err != nil {
 					return err
 				}
+				if key == nil {
+					return UnmarshalError{ExpectingValue}
+				} else if !reflect.TypeOf(key).Comparable() {
+					return UnmarshalError{BadMapKey}
+				} else if f, ok := key.(float64); ok && math.IsNaN(f) {
+					return UnmarshalError{BadMapKey}
+				} else if f, ok := key.(float32); ok && math.IsNaN(float64(f)) {
+					return UnmarshalError{BadMapKey}
+				}
 				// value
 				var value any
 				if err := UnmarshalValue(stream, reflect.ValueOf(&value)); err != nil {

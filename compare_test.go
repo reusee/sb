@@ -18,6 +18,7 @@ func TestCompare(t *testing.T) {
 		{"foo", "foo"},
 		{[]int{1, 2, 3}, []int{1, 2, 3}},
 		{Foo{42, "foo"}, Foo{42, "foo"}},
+		{map[int]int{1: 1}, map[int]int{1: 1}},
 	}
 	for _, c := range equalCases {
 		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != 0 {
@@ -51,6 +52,7 @@ func TestCompare(t *testing.T) {
 		{uint64(42), uint64(84)},
 		{float32(42), float32(84)},
 		{float64(42), float64(84)},
+		{map[int]int{1: 1}, map[int]int{1: 42}},
 	}
 	for _, c := range notEqualCases {
 		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != -1 {

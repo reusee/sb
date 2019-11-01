@@ -619,4 +619,17 @@ func TestBadMapGeneric(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// bad key
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindMap,
+			KindArray,
+			KindArrayEnd,
+		})),
+		&m,
+	)
+	if err == nil {
+		t.Fatal(err)
+	}
+
 }
