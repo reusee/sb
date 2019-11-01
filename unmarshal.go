@@ -15,18 +15,13 @@ type Detokenizer interface {
 	DetokenizeSB(stream Stream) error
 }
 
-var (
-	detokenizerType       = reflect.TypeOf((*Detokenizer)(nil)).Elem()
-	binaryUnmarshalerType = reflect.TypeOf((*encoding.BinaryUnmarshaler)(nil)).Elem()
-	textUnmarshalerType   = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
-)
-
 func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 
 	if ptr.IsValid() {
-		if t := ptr.Type(); t.Implements(detokenizerType) {
-			return ptr.Interface().(Detokenizer).DetokenizeSB(stream)
-		} else if t.Implements(binaryUnmarshalerType) {
+		i := ptr.Interface()
+		if v, ok := i.(Detokenizer); ok {
+			return v.DetokenizeSB(stream)
+		} else if v, ok := i.(encoding.BinaryUnmarshaler); ok {
 			p, err := stream.Next()
 			if err != nil {
 				return err
@@ -38,13 +33,13 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if token.Kind != KindString {
 				return UnmarshalError{ExpectingString}
 			}
-			if err = ptr.Interface().(encoding.BinaryUnmarshaler).UnmarshalBinary(
+			if err = v.UnmarshalBinary(
 				[]byte(token.Value.(string)),
 			); err != nil {
 				return err
 			}
 			return nil
-		} else if t.Implements(textUnmarshalerType) {
+		} else if v, ok := i.(encoding.TextUnmarshaler); ok {
 			p, err := stream.Next()
 			if err != nil {
 				return err
@@ -56,7 +51,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if token.Kind != KindString {
 				return UnmarshalError{ExpectingString}
 			}
-			if err = ptr.Interface().(encoding.TextUnmarshaler).UnmarshalText(
+			if err = v.UnmarshalText(
 				[]byte(token.Value.(string)),
 			); err != nil {
 				return err
@@ -65,14 +60,13 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 		}
 	}
 
-	p, err := stream.Next()
+	token, err := stream.Next()
 	if err != nil {
 		return err
 	}
-	if p == nil {
+	if token == nil {
 		return UnmarshalError{ExpectingValue}
 	}
-	token := *p
 
 	switch token.Kind {
 	case KindNil:
