@@ -251,17 +251,6 @@ func (t *Marshaler) TokenizeStruct(value reflect.Value, index int, cont func()) 
 	}
 }
 
-func Tokens(obj any) ([]Token, error) {
-	m := NewMarshaler(obj)
-	for m.proc != nil {
-		m.proc()
-	}
-	if m.err != nil {
-		return nil, m.err
-	}
-	return m.tokens, nil
-}
-
 func (t *Marshaler) Next() (ret *Token, err error) {
 check:
 	if t.err != nil {

@@ -281,7 +281,7 @@ func TestMarshaler(t *testing.T) {
 
 	for i, c := range marshalTestCases {
 
-		tokens, err := Tokens(c.value)
+		tokens, err := TokensFromStream(NewMarshaler(c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -293,31 +293,6 @@ func TestMarshaler(t *testing.T) {
 				pt("expected %T\n", c.expected[i].Value)
 				pt("token %T\n", token.Value)
 				t.Fatalf("%d expected %#v, got %#v\nfail %+v", i, c.expected[i], token, c)
-			}
-		}
-
-		tokens, err = TokensFromStream(NewMarshaler(c.value))
-		if err != nil {
-			t.Fatal(err)
-		}
-		for i, token := range tokens {
-			if token != c.expected[i] {
-				pt("expected %T\n", c.expected[i].Value)
-				pt("token %T\n", token.Value)
-				t.Fatalf("%d expected %#v, got %#v\nfail %+v", i, c.expected[i], token, c)
-			}
-		}
-
-		tokens, err = TokensFromStream(NewMarshaler(c.value))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(tokens) != len(c.expected) {
-			t.Fatalf("%d fail %+v", i, c)
-		}
-		for i, token := range tokens {
-			if token != c.expected[i] {
-				t.Fatalf("expected %#v, got %#v\nfail %+v", c.expected[i], token, c)
 			}
 		}
 
@@ -326,17 +301,16 @@ func TestMarshaler(t *testing.T) {
 			t.Fatal(err)
 		}
 		decoder := NewDecoder(buf)
-		l := List(c.expected)
-		if MustCompare(decoder, l) != 0 {
+		if MustCompare(decoder, Tokens(c.expected).Iter()) != 0 {
 			t.Fatalf("%d fail %+v", i, c)
 		}
 
-		tokens, err = Tokens(c.value)
+		tokens, err = TokensFromStream(NewMarshaler(c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
 		var obj any
-		if err := Unmarshal(List(tokens), &obj); err != nil {
+		if err := Unmarshal(tokens.Iter(), &obj); err != nil {
 			t.Fatal(err)
 		}
 		if MustCompare(NewMarshaler(obj), NewMarshaler(c.value)) != 0 {
@@ -449,7 +423,7 @@ func TestTimeMarshalText(t *testing.T) {
 		t.Fatal(err)
 	}
 	var tt timeTextMarshaler
-	if err := Unmarshal(List(tokens), &tt); err != nil {
+	if err := Unmarshal(tokens.Iter(), &tt); err != nil {
 		t.Fatal(err)
 	}
 	if time.Since(tt.t) > time.Second {

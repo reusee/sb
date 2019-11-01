@@ -57,7 +57,7 @@ func TestUnmarshalStructWithPrivateField(t *testing.T) {
 }
 
 func TestUnmarshalIncompleteStream(t *testing.T) {
-	cases := [][]Token{
+	cases := []Tokens{
 		{
 			{Kind: KindObject},
 		},
@@ -76,7 +76,7 @@ func TestUnmarshalIncompleteStream(t *testing.T) {
 
 	for _, c := range cases {
 		var v any
-		err := Unmarshal(List(c), &v)
+		err := Unmarshal(c.Iter(), &v)
 		if err == nil {
 			t.Fatal()
 		}

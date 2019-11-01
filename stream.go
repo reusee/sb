@@ -44,25 +44,3 @@ type Token struct {
 	Kind  Kind
 	Value any
 }
-
-func TokensFromStream(stream Stream) (tokens []Token, err error) {
-	for {
-		p, err := stream.Next()
-		if err != nil {
-			return nil, err
-		}
-		if p == nil {
-			break
-		}
-		tokens = append(tokens, *p)
-	}
-	return
-}
-
-func MustTokensFromStream(stream Stream) []Token {
-	tokens, err := TokensFromStream(stream)
-	if err != nil {
-		panic(err)
-	}
-	return tokens
-}
