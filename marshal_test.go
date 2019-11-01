@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 type MarshalTestCase struct {
@@ -403,6 +404,55 @@ func TestBadBinaryMarshaler(t *testing.T) {
 	m := NewMarshaler(v)
 	_, err := TokensFromStream(m)
 	if err == nil {
+		t.Fatal()
+	}
+}
+
+type badTextMarshaler struct{}
+
+var _ encoding.TextMarshaler = badTextMarshaler{}
+
+func (_ badTextMarshaler) MarshalText() ([]byte, error) {
+	return nil, fmt.Errorf("bad")
+}
+
+func TestBadTextMarshaler(t *testing.T) {
+	v := new(badTextMarshaler)
+	m := NewMarshaler(v)
+	_, err := TokensFromStream(m)
+	if err == nil {
+		t.Fatal()
+	}
+}
+
+type timeTextMarshaler struct {
+	t time.Time
+}
+
+var _ encoding.TextMarshaler = timeTextMarshaler{}
+
+func (t timeTextMarshaler) MarshalText() ([]byte, error) {
+	return t.t.MarshalText()
+}
+
+var _ encoding.TextUnmarshaler = new(timeTextMarshaler)
+
+func (t *timeTextMarshaler) UnmarshalText(data []byte) error {
+	return t.t.UnmarshalText(data)
+}
+
+func TestTimeMarshalText(t *testing.T) {
+	now := timeTextMarshaler{time.Now()}
+	m := NewMarshaler(now)
+	tokens, err := TokensFromStream(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var tt timeTextMarshaler
+	if err := Unmarshal(List(tokens), &tt); err != nil {
+		t.Fatal(err)
+	}
+	if time.Since(tt.t) > time.Second {
 		t.Fatal()
 	}
 }
