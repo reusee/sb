@@ -281,6 +281,7 @@ func TestMarshaler(t *testing.T) {
 
 	for i, c := range marshalTestCases {
 
+		// marshal
 		tokens, err := TokensFromStream(NewMarshaler(c.value))
 		if err != nil {
 			t.Fatal(err)
@@ -296,6 +297,7 @@ func TestMarshaler(t *testing.T) {
 			}
 		}
 
+		// encode
 		buf := new(bytes.Buffer)
 		if err := Encode(buf, NewMarshaler(c.value)); err != nil {
 			t.Fatal(err)
@@ -305,6 +307,7 @@ func TestMarshaler(t *testing.T) {
 			t.Fatalf("%d fail %+v", i, c)
 		}
 
+		// compare
 		tokens, err = TokensFromStream(NewMarshaler(c.value))
 		if err != nil {
 			t.Fatal(err)
@@ -315,6 +318,19 @@ func TestMarshaler(t *testing.T) {
 		}
 		if MustCompare(NewMarshaler(obj), NewMarshaler(c.value)) != 0 {
 			t.Fatalf("not equal, got %#v, expected %#v", obj, c.value)
+		}
+
+		// peek
+		m := NewMarshaler(c.value)
+		token, err := m.Peek()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if token == nil {
+			t.Fatal()
+		}
+		if *token != c.expected[0] {
+			t.Fatal()
 		}
 
 	}
@@ -380,6 +396,12 @@ func TestBadBinaryMarshaler(t *testing.T) {
 	if err == nil {
 		t.Fatal()
 	}
+	// peek
+	m = NewMarshaler(v)
+	_, err = m.Peek()
+	if err == nil {
+		t.Fatal()
+	}
 }
 
 type badTextMarshaler struct{}
@@ -427,6 +449,20 @@ func TestTimeMarshalText(t *testing.T) {
 		t.Fatal(err)
 	}
 	if time.Since(tt.t) > time.Second {
+		t.Fatal()
+	}
+}
+
+func TestMarshalIgnoreUnsupportedType(t *testing.T) {
+	tokens, err := TokensFromStream(
+		NewMarshaler(
+			func() {},
+		),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tokens) != 0 {
 		t.Fatal()
 	}
 }
