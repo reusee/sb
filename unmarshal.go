@@ -87,8 +87,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 	if valueKind != reflect.Interface {
 		hasConcreteType = true
 		if ptr.IsNil() {
-			valuePtr := reflect.New(valueType)
-			ptr.Elem().Set(valuePtr.Elem())
+			ptr = reflect.New(valueType)
 		}
 	}
 
@@ -261,6 +260,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					if p.Kind == KindArrayEnd {
 						stream.Next()
 						break
+					}
+					if idx >= ptr.Elem().Len() {
+						return UnmarshalError{TooManyElement}
 					}
 					err = UnmarshalValue(stream, ptr.Elem().Index(idx).Addr())
 					if err != nil {

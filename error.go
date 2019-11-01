@@ -35,6 +35,7 @@ var (
 	ExpectingStruct     = fmt.Errorf("expecting struct")
 	BadFieldName        = fmt.Errorf("bad field name")
 	DuplicatedFieldName = fmt.Errorf("duplicated field name")
+	TooManyElement      = fmt.Errorf("too many element")
 )
 
 type DecodeError struct {
