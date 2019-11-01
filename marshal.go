@@ -4,6 +4,7 @@ import (
 	"encoding"
 	"math"
 	"reflect"
+	"sort"
 )
 
 type Marshaler struct {
@@ -197,7 +198,7 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 			t.tokens = append(t.tokens, Token{
 				Kind: KindObject,
 			})
-			t.proc = t.TokenizeStruct(value, 0, cont)
+			t.proc = t.TokenizeStruct(value, cont)
 
 		default:
 			t.proc = cont
@@ -226,22 +227,36 @@ func (t *Marshaler) TokenizeArray(value reflect.Value, index int, cont func()) f
 	}
 }
 
-func (t *Marshaler) TokenizeStruct(value reflect.Value, index int, cont func()) func() {
+func (t *Marshaler) TokenizeStruct(value reflect.Value, cont func()) func() {
+	var fields []reflect.StructField
+	valueType := value.Type()
+	numField := valueType.NumField()
+	for i := 0; i < numField; i++ {
+		fields = append(fields, valueType.Field(i))
+	}
+	sort.Slice(fields, func(i, j int) bool {
+		return fields[i].Name < fields[j].Name
+	})
+	return t.TokenizeStructField(value, fields, cont)
+}
+
+func (t *Marshaler) TokenizeStructField(value reflect.Value, fields []reflect.StructField, cont func()) func() {
 	return func() {
-		if index >= value.NumField() {
+		if len(fields) == 0 {
 			t.tokens = append(t.tokens, Token{
 				Kind: KindObjectEnd,
 			})
 			t.proc = cont
 			return
 		}
+		field := fields[0]
 		t.tokens = append(t.tokens, Token{
 			Kind:  KindString,
-			Value: value.Type().Field(index).Name,
+			Value: field.Name,
 		})
 		t.proc = t.Tokenize(
-			value.Field(index),
-			t.TokenizeStruct(value, index+1, cont),
+			value.FieldByIndex(field.Index),
+			t.TokenizeStructField(value, fields[1:], cont),
 		)
 	}
 }

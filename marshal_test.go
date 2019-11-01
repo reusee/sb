@@ -108,14 +108,14 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindObject},
-			{KindString, "Foo"},
-			{KindInt, int(42)},
 			{KindString, "Bar"},
 			{KindFloat32, float32(42)},
 			{KindString, "Baz"},
 			{KindString, "42"},
 			{KindString, "Boo"},
 			{KindBool, false},
+			{KindString, "Foo"},
+			{KindInt, int(42)},
 			{Kind: KindObjectEnd},
 		},
 	},
@@ -289,11 +289,15 @@ func TestMarshaler(t *testing.T) {
 		if len(tokens) != len(c.expected) {
 			t.Fatalf("%d fail %+v", i, c)
 		}
-		for i, token := range tokens {
-			if token != c.expected[i] {
-				pt("expected %T\n", c.expected[i].Value)
+		for idx, token := range tokens {
+			if token != c.expected[idx] {
+				pt("expected %T\n", c.expected[idx].Value)
 				pt("token %T\n", token.Value)
-				t.Fatalf("%d expected %#v, got %#v\nfail %+v", i, c.expected[i], token, c)
+				t.Fatalf(
+					"case %d token %d\nexpected %#v\ngot %#v\nfail %+v",
+					i, idx,
+					c.expected[idx], token, c,
+				)
 			}
 		}
 
