@@ -9,10 +9,12 @@ import (
 )
 
 type Marshaler struct {
-	proc   func()
 	tokens []Token
 	err    error
+	proc   Proc
 }
+
+type Proc func() Proc
 
 var _ Stream = new(Marshaler)
 
@@ -20,7 +22,7 @@ func NewMarshaler(obj any) *Marshaler {
 	m := new(Marshaler)
 	m.proc = m.Tokenize(
 		reflect.ValueOf(obj),
-		m.End,
+		nil,
 	)
 	return m
 }
@@ -31,35 +33,30 @@ type Tokenizer interface {
 
 var bytesType = reflect.TypeOf((*[]byte)(nil)).Elem()
 
-func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
-	return func() {
+func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
+	return func() Proc {
 
 		if value.IsValid() {
 			i := value.Interface()
 			if v, ok := i.(Tokenizer); ok {
 				t.tokens = append(t.tokens, v.TokenizeSB()...)
-				t.proc = cont
-				return
+				return cont
 			} else if v, ok := i.(encoding.BinaryMarshaler); ok {
 				bs, err := v.MarshalBinary()
 				if err != nil {
 					t.err = err
-					t.proc = nil
-					return
+					return nil
 				}
 				t.tokens = append(t.tokens, Token{KindString, string(bs)})
-				t.proc = cont
-				return
+				return cont
 			} else if v, ok := i.(encoding.TextMarshaler); ok {
 				bs, err := v.MarshalText()
 				if err != nil {
 					t.err = err
-					t.proc = nil
-					return
+					return nil
 				}
 				t.tokens = append(t.tokens, Token{KindString, string(bs)})
-				t.proc = cont
-				return
+				return cont
 			}
 		}
 
@@ -69,16 +66,16 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 			t.tokens = append(t.tokens, Token{
 				Kind: KindNil,
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Ptr, reflect.Interface:
 			if value.IsNil() {
 				t.tokens = append(t.tokens, Token{
 					Kind: KindNil,
 				})
-				t.proc = cont
+				return cont
 			} else {
-				t.proc = t.Tokenize(value.Elem(), cont)
+				return t.Tokenize(value.Elem(), cont)
 			}
 
 		case reflect.Bool:
@@ -86,77 +83,77 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 				Kind:  KindBool,
 				Value: bool(value.Bool()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Int:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindInt,
 				Value: int(value.Int()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Int8:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindInt8,
 				Value: int8(value.Int()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Int16:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindInt16,
 				Value: int16(value.Int()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Int32:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindInt32,
 				Value: int32(value.Int()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Int64:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindInt64,
 				Value: int64(value.Int()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Uint:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindUint,
 				Value: uint(value.Uint()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Uint8:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindUint8,
 				Value: uint8(value.Uint()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Uint16:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindUint16,
 				Value: uint16(value.Uint()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Uint32:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindUint32,
 				Value: uint32(value.Uint()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Uint64:
 			t.tokens = append(t.tokens, Token{
 				Kind:  KindUint64,
 				Value: uint64(value.Uint()),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Float32:
 			if math.IsNaN(value.Float()) {
@@ -169,7 +166,7 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 					Value: float32(value.Float()),
 				})
 			}
-			t.proc = cont
+			return cont
 
 		case reflect.Float64:
 			if math.IsNaN(value.Float()) {
@@ -182,7 +179,7 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 					Value: float64(value.Float()),
 				})
 			}
-			t.proc = cont
+			return cont
 
 		case reflect.Array, reflect.Slice:
 			if value.Type().AssignableTo(bytesType) {
@@ -192,12 +189,12 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 					Kind:  KindBytes,
 					Value: bs,
 				})
-				t.proc = cont
+				return cont
 			} else {
 				t.tokens = append(t.tokens, Token{
 					Kind: KindArray,
 				})
-				t.proc = t.TokenizeArray(value, 0, cont)
+				return t.TokenizeArray(value, 0, cont)
 			}
 
 		case reflect.String:
@@ -205,41 +202,36 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont func()) func() {
 				Kind:  KindString,
 				Value: value.String(),
 			})
-			t.proc = cont
+			return cont
 
 		case reflect.Struct:
 			t.tokens = append(t.tokens, Token{
 				Kind: KindObject,
 			})
-			t.proc = t.TokenizeStruct(value, cont)
+			return t.TokenizeStruct(value, cont)
 
 		case reflect.Map:
 			t.tokens = append(t.tokens, Token{
 				Kind: KindMap,
 			})
-			t.proc = t.TokenizeMap(value, cont)
+			return t.TokenizeMap(value, cont)
 
 		default:
-			t.proc = cont
+			return cont
 
 		}
 	}
 }
 
-func (t *Marshaler) End() {
-	t.proc = nil
-}
-
-func (t *Marshaler) TokenizeArray(value reflect.Value, index int, cont func()) func() {
-	return func() {
+func (t *Marshaler) TokenizeArray(value reflect.Value, index int, cont Proc) Proc {
+	return func() Proc {
 		if index >= value.Len() {
 			t.tokens = append(t.tokens, Token{
 				Kind: KindArrayEnd,
 			})
-			t.proc = cont
-			return
+			return cont
 		}
-		t.proc = t.Tokenize(
+		return t.Tokenize(
 			value.Index(index),
 			t.TokenizeArray(value, index+1, cont),
 		)
@@ -248,7 +240,7 @@ func (t *Marshaler) TokenizeArray(value reflect.Value, index int, cont func()) f
 
 var structFields sync.Map
 
-func (t *Marshaler) TokenizeStruct(value reflect.Value, cont func()) func() {
+func (t *Marshaler) TokenizeStruct(value reflect.Value, cont Proc) Proc {
 	var fields []reflect.StructField
 	valueType := value.Type()
 	if v, ok := structFields.Load(valueType); ok {
@@ -266,21 +258,20 @@ func (t *Marshaler) TokenizeStruct(value reflect.Value, cont func()) func() {
 	return t.TokenizeStructField(value, fields, cont)
 }
 
-func (t *Marshaler) TokenizeStructField(value reflect.Value, fields []reflect.StructField, cont func()) func() {
-	return func() {
+func (t *Marshaler) TokenizeStructField(value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
+	return func() Proc {
 		if len(fields) == 0 {
 			t.tokens = append(t.tokens, Token{
 				Kind: KindObjectEnd,
 			})
-			t.proc = cont
-			return
+			return cont
 		}
 		field := fields[0]
 		t.tokens = append(t.tokens, Token{
 			Kind:  KindString,
 			Value: field.Name,
 		})
-		t.proc = t.Tokenize(
+		return t.Tokenize(
 			value.FieldByIndex(field.Index),
 			t.TokenizeStructField(value, fields[1:], cont),
 		)
@@ -292,7 +283,7 @@ type mapTuple struct {
 	value     reflect.Value
 }
 
-func (t *Marshaler) TokenizeMap(value reflect.Value, cont func()) func() {
+func (t *Marshaler) TokenizeMap(value reflect.Value, cont Proc) Proc {
 	return t.TokenizeMapIter(value, value.MapRange(), []mapTuple{}, cont)
 }
 
@@ -300,9 +291,9 @@ func (t *Marshaler) TokenizeMapIter(
 	value reflect.Value,
 	iter *reflect.MapIter,
 	tuples []mapTuple,
-	cont func(),
-) func() {
-	return func() {
+	cont Proc,
+) Proc {
+	return func() Proc {
 		if !iter.Next() {
 			// done
 			sort.Slice(tuples, func(i, j int) bool {
@@ -311,21 +302,18 @@ func (t *Marshaler) TokenizeMapIter(
 					tuples[j].keyTokens.Iter(),
 				) < 0
 			})
-			t.proc = t.TokenizeMapValue(tuples, cont)
-			return
+			return t.TokenizeMapValue(tuples, cont)
 		}
 		tokens, err := TokensFromStream(NewMarshaler(iter.Key().Interface()))
 		if err != nil {
 			t.err = err
-			t.proc = nil
-			return
+			return nil
 		} else if len(tokens) == 0 ||
 			(len(tokens) == 1 && tokens[0].Kind == KindNaN) {
 			t.err = MarshalError{BadMapKey}
-			t.proc = nil
-			return
+			return nil
 		}
-		t.proc = t.TokenizeMapIter(
+		return t.TokenizeMapIter(
 			value,
 			iter,
 			append(tuples, mapTuple{
@@ -337,18 +325,17 @@ func (t *Marshaler) TokenizeMapIter(
 	}
 }
 
-func (t *Marshaler) TokenizeMapValue(tuples []mapTuple, cont func()) func() {
-	return func() {
+func (t *Marshaler) TokenizeMapValue(tuples []mapTuple, cont Proc) Proc {
+	return func() Proc {
 		if len(tuples) == 0 {
 			t.tokens = append(t.tokens, Token{
 				Kind: KindMapEnd,
 			})
-			t.proc = cont
-			return
+			return cont
 		}
 		tuple := tuples[0]
 		t.tokens = append(t.tokens, tuple.keyTokens...)
-		t.proc = t.Tokenize(
+		return t.Tokenize(
 			tuple.value,
 			t.TokenizeMapValue(tuples[1:], cont),
 		)
@@ -375,7 +362,7 @@ check:
 		return nil, t.err
 	}
 	for len(t.tokens) == 0 && t.proc != nil {
-		t.proc()
+		t.proc = t.proc()
 	}
 	goto check
 }

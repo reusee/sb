@@ -31,20 +31,22 @@ func BenchmarkUnmarshalInt(b *testing.B) {
 	}
 }
 
+type BenchFoo struct {
+	Foo int
+	Bar string
+	Baz []int
+}
+
+var benchFoo = BenchFoo{
+	Foo: 42,
+	Bar: "42",
+	Baz: []int{42, 42},
+}
+
 func BenchmarkMarshalStruct(b *testing.B) {
-	type Foo struct {
-		Foo int
-		Bar string
-		Baz []int
-	}
-	foo := Foo{
-		Foo: 42,
-		Bar: "42",
-		Baz: []int{42, 42},
-	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := NewMarshaler(foo)
+		m := NewMarshaler(benchFoo)
 		for {
 			token, err := m.Next()
 			if err != nil {
