@@ -245,6 +245,14 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			ptr.Elem().Set(reflect.ValueOf(token.Value.(string)))
 		}
 
+	case KindBytes:
+		if hasConcreteType {
+			if !valueType.AssignableTo(bytesType) {
+				return UnmarshalError{ExpectingBytes}
+			}
+		}
+		ptr.Elem().Set(reflect.ValueOf(token.Value.([]byte)))
+
 	case KindArray:
 		if hasConcreteType {
 

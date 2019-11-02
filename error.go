@@ -26,9 +26,22 @@ func (u MarshalError) Error() string {
 	return fmt.Sprintf("MarshalError: %s", u.Prev.Error())
 }
 
+type DecodeError struct {
+	Prev error
+}
+
+func (d DecodeError) Unwrap() error {
+	return d.Prev
+}
+
+func (d DecodeError) Error() string {
+	return fmt.Sprintf("DecodeError: %s", d.Prev.Error())
+}
+
 var (
 	ExpectingValue      = fmt.Errorf("expecting value")
 	ExpectingString     = fmt.Errorf("expecting string")
+	ExpectingBytes      = fmt.Errorf("expecting bytes")
 	ExpectingBool       = fmt.Errorf("expecting bool")
 	ExpectingInt        = fmt.Errorf("expecting int")
 	ExpectingInt8       = fmt.Errorf("expecting int8")
@@ -50,20 +63,6 @@ var (
 	DuplicatedFieldName = fmt.Errorf("duplicated field name")
 	TooManyElement      = fmt.Errorf("too many element")
 	BadMapKey           = fmt.Errorf("bad map key")
-)
-
-type DecodeError struct {
-	Prev error
-}
-
-func (d DecodeError) Unwrap() error {
-	return d.Prev
-}
-
-func (d DecodeError) Error() string {
-	return fmt.Sprintf("DecodeError: %s", d.Prev.Error())
-}
-
-var (
-	StringTooLong = fmt.Errorf("string too long")
+	StringTooLong       = fmt.Errorf("string too long")
+	BytesTooLong        = fmt.Errorf("bytes too long")
 )

@@ -69,6 +69,25 @@ func Encode(w io.Writer, stream Stream) error {
 					return err
 				}
 
+			case []byte:
+				l := uint64(len(value))
+				if l < 128 {
+					if _, err := w.Write([]byte{byte(l)}); err != nil { // NOCOVER
+						return err
+					}
+				} else {
+					n := binary.PutUvarint(buf, l)
+					if _, err := w.Write([]byte{byte(^n)}); err != nil { // NOCOVER
+						return err
+					}
+					if _, err := w.Write(buf[:n]); err != nil { // NOCOVER
+						return err
+					}
+				}
+				if _, err := w.Write(value); err != nil { // NOCOVER
+					return err
+				}
+
 			default: // NOCOVER
 				panic(fmt.Errorf("bad type %#v %T", value, value))
 

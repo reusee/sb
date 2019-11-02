@@ -166,6 +166,34 @@ func (d *Decoder) Peek() (*Token, error) {
 		}
 		value = string(bs)
 
+	case KindBytes:
+		var length uint64
+		bs := make([]byte, 1)
+		if _, err := io.ReadFull(d.r, bs); err != nil {
+			return nil, err
+		}
+		if bs[0] < 128 {
+			length = uint64(bs[0])
+		} else {
+			bs = make([]byte, ^bs[0])
+			if _, err := io.ReadFull(d.r, bs); err != nil {
+				return nil, err
+			}
+			var err error
+			length, err = binary.ReadUvarint(bytes.NewReader(bs))
+			if err != nil {
+				return nil, err
+			}
+		}
+		if length > 128*1024*1024 {
+			return nil, DecodeError{BytesTooLong}
+		}
+		bs = make([]byte, length)
+		if _, err := io.ReadFull(d.r, bs); err != nil {
+			return nil, err
+		}
+		value = bs
+
 	}
 
 	d.cached = &Token{

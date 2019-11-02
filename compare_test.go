@@ -53,6 +53,7 @@ func TestCompare(t *testing.T) {
 		{float32(42), float32(84)},
 		{float64(42), float64(84)},
 		{map[int]int{1: 1}, map[int]int{1: 42}},
+		{[]byte("foo"), []byte("foobar")},
 	}
 	for _, c := range notEqualCases {
 		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != -1 {

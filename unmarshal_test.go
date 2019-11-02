@@ -31,6 +31,7 @@ var unmarshalTestCases = []UnmarshalTestCase{
 	{float64(42), float64(0), nil},
 	{string("42"), string(""), nil},
 	{map[int]int{1: 1}, map[int]int(nil), nil},
+	{[]byte("foo"), []byte("foo"), nil},
 
 	{true, int(0), ExpectingBool},
 	{42, true, ExpectingInt},
@@ -50,6 +51,7 @@ var unmarshalTestCases = []UnmarshalTestCase{
 	{[]int{42}, true, ExpectingSequence},
 	{map[int]int{}, true, ExpectingMap},
 	{42, (****string)(nil), ExpectingInt},
+	{[]byte("foo"), true, ExpectingBytes},
 }
 
 func TestUnmarshal(t *testing.T) {

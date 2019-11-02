@@ -18,6 +18,7 @@ const (
 	KindNil    = 30
 	KindBool   = 40
 	KindString = 50
+	KindBytes  = 55
 
 	KindInt   = 60
 	KindInt8  = 70
