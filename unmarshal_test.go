@@ -650,6 +650,7 @@ func TestUnmarshalDeepRef(t *testing.T) {
 	if ****p != 42 {
 		t.Fatal()
 	}
+
 	var p2 *int
 	err = Unmarshal(Tokens{
 		{KindInt, 42},
@@ -661,6 +662,17 @@ func TestUnmarshalDeepRef(t *testing.T) {
 		t.Fatal()
 	}
 	if *p2 != 42 {
+		t.Fatal()
+	}
+
+	var p3 **int
+	err = Unmarshal(Tokens{
+		{Kind: KindNil},
+	}.Iter(), &p3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p3 != nil {
 		t.Fatal()
 	}
 }
