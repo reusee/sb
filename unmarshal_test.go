@@ -49,6 +49,7 @@ var unmarshalTestCases = []UnmarshalTestCase{
 	{"42", true, ExpectingString},
 	{[]int{42}, true, ExpectingSequence},
 	{map[int]int{}, true, ExpectingMap},
+	{42, (****string)(nil), ExpectingInt},
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -57,6 +58,7 @@ func TestUnmarshal(t *testing.T) {
 		ptr := reflect.New(reflect.TypeOf(c.target))
 		err := Unmarshal(stream, ptr.Interface())
 		if !errors.Is(err, c.err) {
+			pt("%v\n", err)
 			t.Fatal()
 		}
 		if err == nil {
@@ -632,4 +634,33 @@ func TestBadMapGeneric(t *testing.T) {
 		t.Fatal(err)
 	}
 
+}
+
+func TestUnmarshalDeepRef(t *testing.T) {
+	var p ****int
+	err := Unmarshal(Tokens{
+		{KindInt, 42},
+	}.Iter(), &p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p == nil {
+		t.Fatal()
+	}
+	if ****p != 42 {
+		t.Fatal()
+	}
+	var p2 *int
+	err = Unmarshal(Tokens{
+		{KindInt, 42},
+	}.Iter(), &p2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p2 == nil {
+		t.Fatal()
+	}
+	if *p2 != 42 {
+		t.Fatal()
+	}
 }

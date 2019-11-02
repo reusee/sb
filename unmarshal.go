@@ -60,31 +60,47 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 		}
 	}
 
-	token, err := stream.Next()
+	token, err := stream.Peek()
 	if err != nil {
+		stream.Next() // consume
 		return err
 	}
 	if token == nil {
+		stream.Next() // consume
 		return UnmarshalError{ExpectingValue}
 	}
 
 	switch token.Kind {
 	case KindNil:
+		stream.Next() // consume
 		return nil
 	case KindArrayEnd, KindObjectEnd:
+		stream.Next() // consume
 		return UnmarshalError{ExpectingValue}
 	}
 
 	valueType := ptr.Type().Elem()
 	valueKind := valueType.Kind()
 	hasConcreteType := false
-	if valueKind != reflect.Interface {
+	if valueKind == reflect.Ptr {
+		// deref
+		valuePtr := ptr.Elem()
+		if valuePtr.IsNil() {
+			valuePtr = reflect.New(valueType.Elem())
+		}
+		if err := UnmarshalValue(stream, valuePtr); err != nil {
+			return err
+		}
+		ptr.Elem().Set(valuePtr)
+		return nil
+	} else if valueKind != reflect.Interface {
 		hasConcreteType = true
 		if ptr.IsNil() {
 			ptr = reflect.New(valueType)
 		}
 	}
 
+	token, _ = stream.Next()
 	switch token.Kind {
 
 	case KindBool:
