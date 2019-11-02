@@ -5,6 +5,7 @@ import (
 	"math"
 	"reflect"
 	"sort"
+	"sync"
 )
 
 type Marshaler struct {
@@ -233,16 +234,23 @@ func (t *Marshaler) TokenizeArray(value reflect.Value, index int, cont func()) f
 	}
 }
 
+var structFields sync.Map
+
 func (t *Marshaler) TokenizeStruct(value reflect.Value, cont func()) func() {
 	var fields []reflect.StructField
 	valueType := value.Type()
-	numField := valueType.NumField()
-	for i := 0; i < numField; i++ {
-		fields = append(fields, valueType.Field(i))
+	if v, ok := structFields.Load(valueType); ok {
+		fields = v.([]reflect.StructField)
+	} else {
+		numField := valueType.NumField()
+		for i := 0; i < numField; i++ {
+			fields = append(fields, valueType.Field(i))
+		}
+		sort.Slice(fields, func(i, j int) bool {
+			return fields[i].Name < fields[j].Name
+		})
+		structFields.Store(valueType, fields)
 	}
-	sort.Slice(fields, func(i, j int) bool {
-		return fields[i].Name < fields[j].Name
-	})
 	return t.TokenizeStructField(value, fields, cont)
 }
 
