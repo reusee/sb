@@ -62,11 +62,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 
 	token, err := stream.Peek()
 	if err != nil {
-		stream.Next() // consume
 		return err
 	}
 	if token == nil {
-		stream.Next() // consume
 		return UnmarshalError{ExpectingValue}
 	}
 
@@ -75,7 +73,6 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 		stream.Next() // consume
 		return nil
 	case KindArrayEnd, KindObjectEnd:
-		stream.Next() // consume
 		return UnmarshalError{ExpectingValue}
 	}
 
