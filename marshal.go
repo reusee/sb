@@ -344,20 +344,14 @@ func (t *Marshaler) TokenizeMapValue(tuples []*mapTuple, cont Proc) Proc {
 }
 
 func (t *Marshaler) Next() (ret *Token, err error) {
-	ret, err = t.Peek()
-	if ret != nil {
-		t.tokens = append(t.tokens[:0], t.tokens[1:]...)
-	}
-	return
-}
-
-func (t *Marshaler) Peek() (ret *Token, err error) {
 check:
 	if t.err != nil {
 		return nil, t.err
 	}
 	if len(t.tokens) > 0 {
-		return &t.tokens[0], nil
+		ret = &t.tokens[0]
+		t.tokens = append(t.tokens[:0], t.tokens[1:]...)
+		return
 	}
 	if t.proc == nil {
 		return nil, t.err

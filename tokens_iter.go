@@ -22,11 +22,3 @@ func (t *TokensIter) Next() (ret *Token, err error) {
 	t.index++
 	return
 }
-
-func (t *TokensIter) Peek() (ret *Token, err error) {
-	if t.index >= len(t.tokens) {
-		return nil, nil
-	}
-	ret = &t.tokens[t.index]
-	return
-}

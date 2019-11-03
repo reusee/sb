@@ -375,19 +375,6 @@ func TestMarshaler(t *testing.T) {
 			t.Fatalf("not equal, got %#v, expected %#v", obj, c.value)
 		}
 
-		// peek
-		m := NewMarshaler(c.value)
-		token, err := m.Peek()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if token == nil {
-			t.Fatal()
-		}
-		if *token != c.expected[0] {
-			t.Fatal()
-		}
-
 	}
 
 }
@@ -448,12 +435,6 @@ func TestBadBinaryMarshaler(t *testing.T) {
 	v := new(badBinaryMarshaler)
 	m := NewMarshaler(v)
 	_, err := TokensFromStream(m)
-	if err == nil {
-		t.Fatal()
-	}
-	// peek
-	m = NewMarshaler(v)
-	_, err = m.Peek()
 	if err == nil {
 		t.Fatal()
 	}
@@ -519,23 +500,6 @@ func TestMarshalIgnoreUnsupportedType(t *testing.T) {
 	}
 	if len(tokens) != 0 {
 		t.Fatal()
-	}
-
-	// peek
-	m := NewMarshaler(
-		func() {},
-	)
-	_, err = m.Peek()
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = m.Peek()
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = m.Next()
-	if err != nil {
-		t.Fatal(err)
 	}
 }
 

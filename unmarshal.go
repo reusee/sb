@@ -60,7 +60,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 		}
 	}
 
-	token, err := stream.Peek()
+	token, err := stream.Next()
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,6 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 
 	switch token.Kind {
 	case KindNil:
-		stream.Next() // consume
 		return nil
 	case KindArrayEnd, KindObjectEnd:
 		return UnmarshalError{ExpectingValue}
@@ -84,7 +83,10 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 		if ptr.Elem().IsNil() {
 			ptr.Elem().Set(reflect.New(valueType.Elem()))
 		}
-		return UnmarshalValue(stream, ptr.Elem())
+		return UnmarshalValue(
+			&unreadToken{token, stream},
+			ptr.Elem(),
+		)
 	} else if valueKind != reflect.Interface {
 		hasConcreteType = true
 		if ptr.IsNil() {
@@ -92,7 +94,6 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 		}
 	}
 
-	token, _ = stream.Next()
 	switch token.Kind {
 
 	case KindBool:
@@ -271,7 +272,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				// array
 				idx := 0
 				for {
-					p, err := stream.Peek()
+					p, err := stream.Next()
 					if err != nil {
 						return err
 					}
@@ -279,13 +280,15 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 						return UnmarshalError{ExpectingValue}
 					}
 					if p.Kind == KindArrayEnd {
-						stream.Next()
 						break
 					}
 					if idx >= ptr.Elem().Len() {
 						return UnmarshalError{TooManyElement}
 					}
-					err = UnmarshalValue(stream, ptr.Elem().Index(idx).Addr())
+					err = UnmarshalValue(
+						&unreadToken{p, stream},
+						ptr.Elem().Index(idx).Addr(),
+					)
 					if err != nil {
 						return err
 					}
@@ -296,7 +299,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				// slice
 				slice := ptr.Elem()
 				for {
-					p, err := stream.Peek()
+					p, err := stream.Next()
 					if err != nil {
 						return err
 					}
@@ -304,11 +307,13 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 						return UnmarshalError{ExpectingValue}
 					}
 					if p.Kind == KindArrayEnd {
-						stream.Next()
 						break
 					}
 					elemPtr := reflect.New(valueType.Elem())
-					err = UnmarshalValue(stream, elemPtr)
+					err = UnmarshalValue(
+						&unreadToken{p, stream},
+						elemPtr,
+					)
 					if err != nil {
 						return err
 					}
@@ -324,7 +329,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			// generic slice
 			var slice []any
 			for {
-				p, err := stream.Peek()
+				p, err := stream.Next()
 				if err != nil {
 					return err
 				}
@@ -332,11 +337,13 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					return UnmarshalError{ExpectingValue}
 				}
 				if p.Kind == KindArrayEnd {
-					stream.Next()
 					break
 				}
 				var elem any
-				err = UnmarshalValue(stream, reflect.ValueOf(&elem))
+				err = UnmarshalValue(
+					&unreadToken{p, stream},
+					reflect.ValueOf(&elem),
+				)
 				if err != nil {
 					return err
 				}
@@ -352,7 +359,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			}
 
 			for {
-				p, err := stream.Peek()
+				p, err := stream.Next()
 				if err != nil {
 					return err
 				}
@@ -360,13 +367,15 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					return UnmarshalError{ExpectingValue}
 				}
 				if p.Kind == KindObjectEnd {
-					stream.Next()
 					break
 				}
 
 				// name
 				var name string
-				err = UnmarshalValue(stream, reflect.ValueOf(&name))
+				err = UnmarshalValue(
+					&unreadToken{p, stream},
+					reflect.ValueOf(&name),
+				)
 				if err != nil {
 					return err
 				}
@@ -394,7 +403,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			var fields []reflect.StructField
 			names := make(map[string]struct{})
 			for {
-				p, err := stream.Peek()
+				p, err := stream.Next()
 				if err != nil {
 					return err
 				}
@@ -402,13 +411,15 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					return UnmarshalError{ExpectingValue}
 				}
 				if p.Kind == KindObjectEnd {
-					stream.Next()
 					break
 				}
 
 				// name
 				var name string
-				err = UnmarshalValue(stream, reflect.ValueOf(&name))
+				err = UnmarshalValue(
+					&unreadToken{p, stream},
+					reflect.ValueOf(&name),
+				)
 				if err != nil {
 					return err
 				}
@@ -453,7 +464,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			keyType := valueType.Key()
 			elemType := valueType.Elem()
 			for {
-				p, err := stream.Peek()
+				p, err := stream.Next()
 				if err != nil {
 					return err
 				}
@@ -461,12 +472,14 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					return UnmarshalError{ExpectingValue}
 				}
 				if p.Kind == KindMapEnd {
-					stream.Next()
 					break
 				}
 				// key
 				key := reflect.New(keyType)
-				if err := UnmarshalValue(stream, key); err != nil {
+				if err := UnmarshalValue(
+					&unreadToken{p, stream},
+					key,
+				); err != nil {
 					return err
 				}
 				// value
@@ -487,7 +500,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			// map[any]any
 			m := make(map[any]any)
 			for {
-				p, err := stream.Peek()
+				p, err := stream.Next()
 				if err != nil {
 					return err
 				}
@@ -495,12 +508,14 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					return UnmarshalError{ExpectingValue}
 				}
 				if p.Kind == KindMapEnd {
-					stream.Next()
 					break
 				}
 				// key
 				var key any
-				if err := UnmarshalValue(stream, reflect.ValueOf(&key)); err != nil {
+				if err := UnmarshalValue(
+					&unreadToken{p, stream},
+					reflect.ValueOf(&key),
+				); err != nil {
 					return err
 				}
 				if key == nil {
@@ -526,4 +541,20 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 	}
 
 	return nil
+}
+
+type unreadToken struct {
+	token  *Token
+	stream Stream
+}
+
+var _ Stream = new(unreadToken)
+
+func (s *unreadToken) Next() (token *Token, err error) {
+	if s.token != nil {
+		token = s.token
+		s.token = nil
+		return
+	}
+	return s.stream.Next()
 }
