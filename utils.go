@@ -1,6 +1,8 @@
 package sb
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type (
 	any = interface{}

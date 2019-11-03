@@ -16,6 +16,8 @@ type UnmarshalTestCase struct {
 	err    error
 }
 
+type testBytes []byte
+
 var unmarshalTestCases = []UnmarshalTestCase{
 	{true, bool(false), nil},
 	{int8(42), int8(0), nil},
@@ -32,6 +34,8 @@ var unmarshalTestCases = []UnmarshalTestCase{
 	{string("42"), string(""), nil},
 	{map[int]int{1: 1}, map[int]int(nil), nil},
 	{[]byte("foo"), []byte("foo"), nil},
+	{testBytes{42}, testBytes{42}, nil},
+	{[3]int{1}, [3]int{1}, nil},
 
 	{true, int(0), ExpectingBool},
 	{42, true, ExpectingInt},

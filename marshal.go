@@ -31,8 +31,6 @@ type Tokenizer interface {
 	TokenizeSB() []Token
 }
 
-var bytesType = reflect.TypeOf((*[]byte)(nil)).Elem()
-
 func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
 	return func() Proc {
 
@@ -182,12 +180,10 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
 			return cont
 
 		case reflect.Array, reflect.Slice:
-			if value.Type().AssignableTo(bytesType) {
-				var bs []byte
-				reflect.ValueOf(&bs).Elem().Set(value)
+			if isBytes(value.Type()) {
 				t.tokens = append(t.tokens, Token{
 					Kind:  KindBytes,
-					Value: bs,
+					Value: toBytes(value),
 				})
 				return cont
 			} else {
