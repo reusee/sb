@@ -1,6 +1,9 @@
 package sb
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func BenchmarkMarshalInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
@@ -47,6 +50,26 @@ func BenchmarkMarshalStruct(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		m := NewMarshaler(benchFoo)
+		for {
+			token, err := m.Next()
+			if err != nil {
+				b.Fatal(err)
+			}
+			if token == nil {
+				break
+			}
+		}
+	}
+}
+
+func BenchmarkMarshalMap(b *testing.B) {
+	m := make(map[int]string)
+	for i := 0; i < 128; i++ {
+		m[i] = fmt.Sprintf("%x", i)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m := NewMarshaler(m)
 		for {
 			token, err := m.Next()
 			if err != nil {

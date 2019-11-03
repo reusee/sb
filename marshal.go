@@ -280,13 +280,18 @@ type mapTuple struct {
 }
 
 func (t *Marshaler) TokenizeMap(value reflect.Value, cont Proc) Proc {
-	return t.TokenizeMapIter(value, value.MapRange(), []mapTuple{}, cont)
+	return t.TokenizeMapIter(
+		value,
+		value.MapRange(),
+		make([]*mapTuple, 0, value.Len()),
+		cont,
+	)
 }
 
 func (t *Marshaler) TokenizeMapIter(
 	value reflect.Value,
 	iter *reflect.MapIter,
-	tuples []mapTuple,
+	tuples []*mapTuple,
 	cont Proc,
 ) Proc {
 	return func() Proc {
@@ -312,7 +317,7 @@ func (t *Marshaler) TokenizeMapIter(
 		return t.TokenizeMapIter(
 			value,
 			iter,
-			append(tuples, mapTuple{
+			append(tuples, &mapTuple{
 				keyTokens: tokens,
 				value:     iter.Value(),
 			}),
@@ -321,7 +326,7 @@ func (t *Marshaler) TokenizeMapIter(
 	}
 }
 
-func (t *Marshaler) TokenizeMapValue(tuples []mapTuple, cont Proc) Proc {
+func (t *Marshaler) TokenizeMapValue(tuples []*mapTuple, cont Proc) Proc {
 	return func() Proc {
 		if len(tuples) == 0 {
 			t.tokens = append(t.tokens, Token{
