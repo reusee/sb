@@ -29,7 +29,9 @@ func toBytes(v reflect.Value) []byte {
 		reflect.ValueOf(&bs).Elem().Set(v)
 		return bs
 	} else if t.Kind() == reflect.Array {
-		return toBytes(v.Slice(0, v.Len()))
+		bs := make([]byte, v.Len())
+		reflect.Copy(reflect.ValueOf(bs), v)
+		return bs
 	}
 	panic(fmt.Errorf("unknown type %v", t)) // NOCOVER
 }
