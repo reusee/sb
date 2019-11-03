@@ -2,32 +2,62 @@ package sb
 
 import (
 	"bytes"
+	"io"
 )
 
 func Fuzz(data []byte) int { // NOCOVER
-	var v any
-	err := Unmarshal(NewDecoder(bytes.NewReader(data)), &v)
-	if err != nil { // NOCOVER
-		return 0
-	}
+	r := bytes.NewReader(data)
+	for {
 
-	buf := new(bytes.Buffer) // NOCOVER
-	err = Encode(buf, NewMarshaler(v))
-	if err != nil { // NOCOVER
-		panic(err)
-	}
-	bs := buf.Bytes() // NOCOVER
+		// decode and unmarshal
+		if r.Len() == 0 {
+			break
+		}
+		var obj any
+		tee := new(bytes.Buffer)
+		if err := Unmarshal(
+			NewDecoder(io.TeeReader(r, tee)),
+			&obj,
+		); err != nil {
+			return 0
+		}
+		teeBytes := tee.Bytes()
 
-	res, err := Compare(NewMarshaler(v), NewDecoder(bytes.NewReader(bs)))
-	if err != nil { // NOCOVER
-		panic(err)
-	}
-	if res != 0 { // NOCOVER
-		pt("%d\n", res)
-		pt("%+v\n", MustTokensFromStream(NewMarshaler(v)))
-		pt("%+v\n", MustTokensFromStream(NewDecoder(bytes.NewReader(bs))))
-		pt("%#v\n", v)
-		panic(err)
+		// marshal and encode
+		buf := new(bytes.Buffer)
+		if err := Encode(buf, NewMarshaler(obj)); err != nil {
+			panic(err)
+		}
+		bs := buf.Bytes()
+
+		// decode and unmarshal
+		var obj2 any
+		if err := Unmarshal(
+			NewDecoder(bytes.NewReader(teeBytes)),
+			&obj2,
+		); err != nil {
+			panic(err)
+		}
+
+		// compare
+		if MustCompare(
+			NewDecoder(bytes.NewReader(bs)),
+			NewMarshaler(obj2),
+		) != 0 {
+			tokens1 := MustTokensFromStream(
+				NewDecoder(bytes.NewReader(teeBytes)),
+			)
+			tokens2 := MustTokensFromStream(
+				NewDecoder(bytes.NewReader(bs)),
+			)
+			for i, token := range tokens1 {
+				if i < len(tokens2) {
+					pt("%+v\n%+v\n\n", token, tokens2[i])
+				}
+			}
+			panic("not equal")
+		}
+
 	}
 
 	return 1 // NOCOVER
