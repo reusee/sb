@@ -9,12 +9,11 @@ import (
 )
 
 type Marshaler struct {
-	tokens []Token
-	err    error
-	proc   Proc
+	err  error
+	proc Proc
 }
 
-type Proc func() Proc
+type Proc func() (*Token, Proc)
 
 var _ Stream = new(Marshaler)
 
@@ -31,203 +30,188 @@ type Tokenizer interface {
 	TokenizeSB() []Token
 }
 
+func (t *Marshaler) GenerateTokens(tokens []Token, cont Proc) Proc {
+	return func() (*Token, Proc) {
+		if len(tokens) == 0 {
+			return nil, cont
+		}
+		return &tokens[0], t.GenerateTokens(tokens[1:], cont)
+	}
+}
+
 func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
-	return func() Proc {
+	return func() (*Token, Proc) {
 
 		if value.IsValid() {
 			i := value.Interface()
 			if v, ok := i.(Tokenizer); ok {
-				t.tokens = append(t.tokens, v.TokenizeSB()...)
-				return cont
+				return nil, t.GenerateTokens(v.TokenizeSB(), cont)
 			} else if v, ok := i.(encoding.BinaryMarshaler); ok {
 				bs, err := v.MarshalBinary()
 				if err != nil {
 					t.err = err
-					return nil
+					return nil, nil
 				}
-				t.tokens = append(t.tokens, Token{KindString, string(bs)})
-				return cont
+				return &Token{KindString, string(bs)}, cont
 			} else if v, ok := i.(encoding.TextMarshaler); ok {
 				bs, err := v.MarshalText()
 				if err != nil {
 					t.err = err
-					return nil
+					return nil, nil
 				}
-				t.tokens = append(t.tokens, Token{KindString, string(bs)})
-				return cont
+				return &Token{KindString, string(bs)}, cont
 			}
 		}
 
 		switch value.Kind() {
 
 		case reflect.Invalid:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind: KindNil,
-			})
-			return cont
+			}, cont
 
 		case reflect.Ptr, reflect.Interface:
 			if value.IsNil() {
-				t.tokens = append(t.tokens, Token{
+				return &Token{
 					Kind: KindNil,
-				})
-				return cont
+				}, cont
 			} else {
-				return t.Tokenize(value.Elem(), cont)
+				return nil, t.Tokenize(value.Elem(), cont)
 			}
 
 		case reflect.Bool:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindBool,
 				Value: bool(value.Bool()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Int:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindInt,
 				Value: int(value.Int()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Int8:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindInt8,
 				Value: int8(value.Int()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Int16:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindInt16,
 				Value: int16(value.Int()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Int32:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindInt32,
 				Value: int32(value.Int()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Int64:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindInt64,
 				Value: int64(value.Int()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Uint:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindUint,
 				Value: uint(value.Uint()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Uint8:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindUint8,
 				Value: uint8(value.Uint()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Uint16:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindUint16,
 				Value: uint16(value.Uint()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Uint32:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindUint32,
 				Value: uint32(value.Uint()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Uint64:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindUint64,
 				Value: uint64(value.Uint()),
-			})
-			return cont
+			}, cont
 
 		case reflect.Float32:
 			if math.IsNaN(value.Float()) {
-				t.tokens = append(t.tokens, Token{
+				return &Token{
 					Kind: KindNaN,
-				})
+				}, cont
 			} else {
-				t.tokens = append(t.tokens, Token{
+				return &Token{
 					Kind:  KindFloat32,
 					Value: float32(value.Float()),
-				})
+				}, cont
 			}
-			return cont
 
 		case reflect.Float64:
 			if math.IsNaN(value.Float()) {
-				t.tokens = append(t.tokens, Token{
+				return &Token{
 					Kind: KindNaN,
-				})
+				}, cont
 			} else {
-				t.tokens = append(t.tokens, Token{
+				return &Token{
 					Kind:  KindFloat64,
 					Value: float64(value.Float()),
-				})
+				}, cont
 			}
-			return cont
 
 		case reflect.Array, reflect.Slice:
 			if isBytes(value.Type()) {
-				t.tokens = append(t.tokens, Token{
+				return &Token{
 					Kind:  KindBytes,
 					Value: toBytes(value),
-				})
-				return cont
+				}, cont
 			} else {
-				t.tokens = append(t.tokens, Token{
+				return &Token{
 					Kind: KindArray,
-				})
-				return t.TokenizeArray(value, 0, cont)
+				}, t.TokenizeArray(value, 0, cont)
 			}
 
 		case reflect.String:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind:  KindString,
 				Value: value.String(),
-			})
-			return cont
+			}, cont
 
 		case reflect.Struct:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind: KindObject,
-			})
-			return t.TokenizeStruct(value, cont)
+			}, t.TokenizeStruct(value, cont)
 
 		case reflect.Map:
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind: KindMap,
-			})
-			return t.TokenizeMap(value, cont)
+			}, t.TokenizeMap(value, cont)
 
 		default:
-			return cont
+			return nil, cont
 
 		}
 	}
 }
 
 func (t *Marshaler) TokenizeArray(value reflect.Value, index int, cont Proc) Proc {
-	return func() Proc {
+	return func() (*Token, Proc) {
 		if index >= value.Len() {
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind: KindArrayEnd,
-			})
-			return cont
+			}, cont
 		}
-		return t.Tokenize(
+		return nil, t.Tokenize(
 			value.Index(index),
 			t.TokenizeArray(value, index+1, cont),
 		)
@@ -255,22 +239,20 @@ func (t *Marshaler) TokenizeStruct(value reflect.Value, cont Proc) Proc {
 }
 
 func (t *Marshaler) TokenizeStructField(value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
-	return func() Proc {
+	return func() (*Token, Proc) {
 		if len(fields) == 0 {
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind: KindObjectEnd,
-			})
-			return cont
+			}, cont
 		}
 		field := fields[0]
-		t.tokens = append(t.tokens, Token{
-			Kind:  KindString,
-			Value: field.Name,
-		})
-		return t.Tokenize(
-			value.FieldByIndex(field.Index),
-			t.TokenizeStructField(value, fields[1:], cont),
-		)
+		return &Token{
+				Kind:  KindString,
+				Value: field.Name,
+			}, t.Tokenize(
+				value.FieldByIndex(field.Index),
+				t.TokenizeStructField(value, fields[1:], cont),
+			)
 	}
 }
 
@@ -294,7 +276,7 @@ func (t *Marshaler) TokenizeMapIter(
 	tuples []*mapTuple,
 	cont Proc,
 ) Proc {
-	return func() Proc {
+	return func() (*Token, Proc) {
 		if !iter.Next() {
 			// done
 			sort.Slice(tuples, func(i, j int) bool {
@@ -303,18 +285,18 @@ func (t *Marshaler) TokenizeMapIter(
 					tuples[j].keyTokens.Iter(),
 				) < 0
 			})
-			return t.TokenizeMapValue(tuples, cont)
+			return nil, t.TokenizeMapValue(tuples, cont)
 		}
 		tokens, err := TokensFromStream(NewMarshaler(iter.Key().Interface()))
 		if err != nil {
 			t.err = err
-			return nil
+			return nil, nil
 		} else if len(tokens) == 0 ||
 			(len(tokens) == 1 && tokens[0].Kind == KindNaN) {
 			t.err = MarshalError{BadMapKey}
-			return nil
+			return nil, nil
 		}
-		return t.TokenizeMapIter(
+		return nil, t.TokenizeMapIter(
 			value,
 			iter,
 			append(tuples, &mapTuple{
@@ -327,18 +309,19 @@ func (t *Marshaler) TokenizeMapIter(
 }
 
 func (t *Marshaler) TokenizeMapValue(tuples []*mapTuple, cont Proc) Proc {
-	return func() Proc {
+	return func() (*Token, Proc) {
 		if len(tuples) == 0 {
-			t.tokens = append(t.tokens, Token{
+			return &Token{
 				Kind: KindMapEnd,
-			})
-			return cont
+			}, cont
 		}
 		tuple := tuples[0]
-		t.tokens = append(t.tokens, tuple.keyTokens...)
-		return t.Tokenize(
-			tuple.value,
-			t.TokenizeMapValue(tuples[1:], cont),
+		return nil, t.GenerateTokens(
+			tuple.keyTokens,
+			t.Tokenize(
+				tuple.value,
+				t.TokenizeMapValue(tuples[1:], cont),
+			),
 		)
 	}
 }
@@ -348,16 +331,12 @@ check:
 	if t.err != nil {
 		return nil, t.err
 	}
-	if len(t.tokens) > 0 {
-		ret = &t.tokens[0]
-		t.tokens = append(t.tokens[:0], t.tokens[1:]...)
-		return
-	}
 	if t.proc == nil {
 		return nil, t.err
 	}
-	for len(t.tokens) == 0 && t.proc != nil {
-		t.proc = t.proc()
+	ret, t.proc = t.proc()
+	if ret != nil {
+		return ret, t.err
 	}
 	goto check
 }
