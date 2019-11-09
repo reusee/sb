@@ -19,6 +19,8 @@ func TestCompare(t *testing.T) {
 		{[]int{1, 2, 3}, []int{1, 2, 3}},
 		{Foo{42, "foo"}, Foo{42, "foo"}},
 		{map[int]int{1: 1}, map[int]int{1: 1}},
+		{Min, Min},
+		{Max, Max},
 	}
 	for _, c := range equalCases {
 		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != 0 {
@@ -54,6 +56,8 @@ func TestCompare(t *testing.T) {
 		{float64(42), float64(84)},
 		{map[int]int{1: 1}, map[int]int{1: 42}},
 		{[]byte("foo"), []byte("foobar")},
+		{Min, 42},
+		{42, Max},
 	}
 	for _, c := range notEqualCases {
 		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != -1 {

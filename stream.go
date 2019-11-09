@@ -46,3 +46,27 @@ type Token struct {
 	Kind  Kind
 	Value any
 }
+
+type min struct{}
+
+var _ Tokenizer = min{}
+
+func (_ min) TokenizeSB() []Token {
+	return []Token{
+		{Kind: KindMin},
+	}
+}
+
+var Min = min{}
+
+type max struct{}
+
+var _ Tokenizer = max{}
+
+func (_ max) TokenizeSB() []Token {
+	return []Token{
+		{Kind: KindMax},
+	}
+}
+
+var Max = max{}
