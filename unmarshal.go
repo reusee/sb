@@ -71,7 +71,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 	switch token.Kind {
 	case KindNil:
 		return nil
-	case KindArrayEnd, KindObjectEnd:
+	case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
 		return UnmarshalError{ExpectingValue}
 	}
 
@@ -437,9 +437,6 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				if err != nil {
 					return err
 				}
-				if value == nil {
-					return UnmarshalError{ExpectingValue}
-				}
 				values = append(values, value)
 				fields = append(fields, reflect.StructField{
 					Name: name,
@@ -518,9 +515,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				); err != nil {
 					return err
 				}
-				if key == nil {
-					return UnmarshalError{ExpectingValue}
-				} else if !reflect.TypeOf(key).Comparable() {
+				if !reflect.TypeOf(key).Comparable() {
 					return UnmarshalError{BadMapKey}
 				} else if f, ok := key.(float64); ok && math.IsNaN(f) {
 					return UnmarshalError{BadMapKey}
@@ -538,6 +533,89 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 
 		}
 
+	case KindTuple:
+		if hasConcreteType {
+			if valueKind != reflect.Func {
+				return UnmarshalError{ExpectingTuple}
+			}
+
+			numOut := valueType.NumOut()
+			var items []reflect.Value
+			for i := 0; i < numOut; i++ {
+				p, err := stream.Next()
+				if err != nil {
+					return err
+				}
+				if p == nil {
+					return UnmarshalError{ExpectingValue}
+				}
+				if p.Kind == KindTupleEnd {
+					return UnmarshalError{ExpectingValue}
+				}
+				itemType := valueType.Out(i)
+				value := reflect.New(itemType)
+				if err := UnmarshalValue(
+					&unreadToken{p, stream},
+					value,
+				); err != nil {
+					return err
+				}
+				items = append(items, value.Elem())
+			}
+			p, err := stream.Next()
+			if err != nil {
+				return err
+			}
+			if p.Kind != KindTupleEnd {
+				return UnmarshalError{TooManyElement}
+			}
+			ptr.Elem().Set(reflect.MakeFunc(
+				valueType,
+				func(args []reflect.Value) []reflect.Value {
+					return items
+				},
+			))
+
+		} else {
+			// func() (...any)
+			var items []reflect.Value
+			var itemTypes []reflect.Type
+			for {
+				p, err := stream.Next()
+				if err != nil {
+					return err
+				}
+				if p == nil {
+					return UnmarshalError{ExpectingValue}
+				}
+				if p.Kind == KindTupleEnd {
+					break
+				}
+				var obj any
+				value := reflect.ValueOf(&obj)
+				itemTypes = append(itemTypes, anyType)
+				if err := UnmarshalValue(
+					&unreadToken{p, stream},
+					value,
+				); err != nil {
+					return err
+				}
+				items = append(items, value.Elem())
+			}
+			ptr.Elem().Set(reflect.MakeFunc(
+				reflect.FuncOf(
+					[]reflect.Type{},
+					itemTypes,
+					false,
+				),
+				func(args []reflect.Value) []reflect.Value {
+					return items
+				},
+			))
+		}
+
+	default:
+		return UnmarshalError{BadTokenKind}
 	}
 
 	return nil

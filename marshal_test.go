@@ -326,6 +326,18 @@ var marshalTestCases = []MarshalTestCase{
 			{Kind: KindMapEnd},
 		},
 	},
+
+	{
+		func() (int, string) {
+			return 42, "42"
+		},
+		[]Token{
+			{Kind: KindTuple},
+			{KindInt, 42},
+			{KindString, "42"},
+			{Kind: KindTupleEnd},
+		},
+	},
 }
 
 func TestMarshaler(t *testing.T) {
@@ -492,7 +504,7 @@ func TestTimeMarshalText(t *testing.T) {
 func TestMarshalIgnoreUnsupportedType(t *testing.T) {
 	tokens, err := TokensFromStream(
 		NewMarshaler(
-			func() {},
+			make(chan int),
 		),
 	)
 	if err != nil {

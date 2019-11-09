@@ -197,6 +197,15 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
 				Kind: KindMap,
 			}, t.TokenizeMap(value, cont)
 
+		case reflect.Func:
+			items := value.Call([]reflect.Value{})
+			return &Token{
+					Kind: KindTuple,
+				}, t.TokenizeTuple(
+					items,
+					cont,
+				)
+
 		default:
 			return nil, cont
 
@@ -323,6 +332,24 @@ func (t *Marshaler) TokenizeMapValue(tuples []*mapTuple, cont Proc) Proc {
 				t.TokenizeMapValue(tuples[1:], cont),
 			),
 		)
+	}
+}
+
+func (t *Marshaler) TokenizeTuple(items []reflect.Value, cont Proc) Proc {
+	return func() (*Token, Proc) {
+		if len(items) == 0 {
+			return &Token{
+				Kind: KindTupleEnd,
+			}, cont
+		} else {
+			return nil, t.Tokenize(
+				items[0],
+				t.TokenizeTuple(
+					items[1:],
+					cont,
+				),
+			)
+		}
 	}
 }
 

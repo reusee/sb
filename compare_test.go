@@ -21,6 +21,15 @@ func TestCompare(t *testing.T) {
 		{map[int]int{1: 1}, map[int]int{1: 1}},
 		{Min, Min},
 		{Max, Max},
+		{
+			func() (int, string) {
+				return 42, "42"
+			},
+			func() (int, string) {
+				return 42, "42"
+			},
+		},
+		{nil, nil},
 	}
 	for _, c := range equalCases {
 		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != 0 {
@@ -29,6 +38,7 @@ func TestCompare(t *testing.T) {
 	}
 
 	notEqualCases := []Case{
+		{nil, true},
 		{false, true},
 		{41, 42},
 		{uint8(41), uint32(42)},
@@ -40,8 +50,8 @@ func TestCompare(t *testing.T) {
 		{Foo{42, "aoo"}, Foo{42, "foo"}},
 		{42, []int{1, 2, 3}},
 		{
-			func() {},
 			42,
+			func() {},
 		},
 		{int8(42), int8(84)},
 		{int16(42), int16(84)},
@@ -58,7 +68,24 @@ func TestCompare(t *testing.T) {
 		{[]byte("foo"), []byte("foobar")},
 		{Min, 42},
 		{42, Max},
+		{
+			func() (int, int) {
+				return 1, 1
+			},
+			func() (int, int) {
+				return 1, 42
+			},
+		},
+		{
+			func() (int, int) {
+				return 1, 1
+			},
+			func() (int, int, int) {
+				return 1, 1, 1
+			},
+		},
 	}
+
 	for _, c := range notEqualCases {
 		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != -1 {
 			t.Fatal()
