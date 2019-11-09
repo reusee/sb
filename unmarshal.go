@@ -437,6 +437,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				if err != nil {
 					return err
 				}
+				if value == nil {
+					return UnmarshalError{ExpectingValue}
+				}
 				values = append(values, value)
 				fields = append(fields, reflect.StructField{
 					Name: name,
@@ -515,7 +518,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				); err != nil {
 					return err
 				}
-				if !reflect.TypeOf(key).Comparable() {
+				if key == nil {
+					return UnmarshalError{ExpectingValue}
+				} else if !reflect.TypeOf(key).Comparable() {
 					return UnmarshalError{BadMapKey}
 				} else if f, ok := key.(float64); ok && math.IsNaN(f) {
 					return UnmarshalError{BadMapKey}
@@ -601,6 +606,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					return err
 				}
 				items = append(items, value.Elem())
+			}
+			if len(itemTypes) > 50 {
+				return UnmarshalError{TooManyElement}
 			}
 			ptr.Elem().Set(reflect.MakeFunc(
 				reflect.FuncOf(
