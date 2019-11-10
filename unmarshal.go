@@ -15,10 +15,10 @@ type Detokenizer interface {
 	DetokenizeSB(stream Stream) error
 }
 
-func UnmarshalValue(stream Stream, ptr reflect.Value) error {
+func UnmarshalValue(stream Stream, target reflect.Value) error {
 
-	if ptr.IsValid() {
-		i := ptr.Interface()
+	if target.IsValid() {
+		i := target.Interface()
 		if v, ok := i.(Detokenizer); ok {
 			return v.DetokenizeSB(stream)
 		} else if v, ok := i.(encoding.BinaryUnmarshaler); ok {
@@ -75,22 +75,34 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 		return UnmarshalError{ExpectingValue}
 	}
 
-	valueType := ptr.Type().Elem()
-	valueKind := valueType.Kind()
+	targetType := target.Type()
+	targetKind := targetType.Kind()
+	var valueType reflect.Type
+	var valueKind reflect.Kind
+	if targetKind == reflect.Func {
+		valueType = targetType
+		valueKind = targetKind
+	} else if targetKind == reflect.Ptr {
+		valueType = targetType.Elem()
+		valueKind = valueType.Kind()
+	} else {
+		return UnmarshalError{BadTargetType}
+	}
+
 	hasConcreteType := false
 	if valueKind == reflect.Ptr {
 		// deref
-		if ptr.Elem().IsNil() {
-			ptr.Elem().Set(reflect.New(valueType.Elem()))
+		if target.Elem().IsNil() {
+			target.Elem().Set(reflect.New(valueType.Elem()))
 		}
 		return UnmarshalValue(
 			&unreadToken{token, stream},
-			ptr.Elem(),
+			target.Elem(),
 		)
 	} else if valueKind != reflect.Interface {
 		hasConcreteType = true
-		if ptr.IsNil() {
-			ptr = reflect.New(valueType)
+		if target.IsNil() {
+			target = reflect.New(valueType)
 		}
 	}
 
@@ -101,9 +113,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Bool {
 				return UnmarshalError{ExpectingBool}
 			}
-			ptr.Elem().SetBool(token.Value.(bool))
+			target.Elem().SetBool(token.Value.(bool))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(bool)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(bool)))
 		}
 
 	case KindInt:
@@ -111,9 +123,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Int {
 				return UnmarshalError{ExpectingInt}
 			}
-			ptr.Elem().SetInt(int64(token.Value.(int)))
+			target.Elem().SetInt(int64(token.Value.(int)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(int)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(int)))
 		}
 
 	case KindInt8:
@@ -121,9 +133,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Int8 {
 				return UnmarshalError{ExpectingInt8}
 			}
-			ptr.Elem().SetInt(int64(token.Value.(int8)))
+			target.Elem().SetInt(int64(token.Value.(int8)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(int8)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(int8)))
 		}
 
 	case KindInt16:
@@ -131,9 +143,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Int16 {
 				return UnmarshalError{ExpectingInt16}
 			}
-			ptr.Elem().SetInt(int64(token.Value.(int16)))
+			target.Elem().SetInt(int64(token.Value.(int16)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(int16)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(int16)))
 		}
 
 	case KindInt32:
@@ -141,9 +153,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Int32 {
 				return UnmarshalError{ExpectingInt32}
 			}
-			ptr.Elem().SetInt(int64(token.Value.(int32)))
+			target.Elem().SetInt(int64(token.Value.(int32)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(int32)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(int32)))
 		}
 
 	case KindInt64:
@@ -151,9 +163,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Int64 {
 				return UnmarshalError{ExpectingInt64}
 			}
-			ptr.Elem().SetInt(token.Value.(int64))
+			target.Elem().SetInt(token.Value.(int64))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(int64)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(int64)))
 		}
 
 	case KindUint:
@@ -161,9 +173,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Uint {
 				return UnmarshalError{ExpectingUint}
 			}
-			ptr.Elem().SetUint(uint64(token.Value.(uint)))
+			target.Elem().SetUint(uint64(token.Value.(uint)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(uint)))
 		}
 
 	case KindUint8:
@@ -171,9 +183,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Uint8 {
 				return UnmarshalError{ExpectingUint8}
 			}
-			ptr.Elem().SetUint(uint64(token.Value.(uint8)))
+			target.Elem().SetUint(uint64(token.Value.(uint8)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint8)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(uint8)))
 		}
 
 	case KindUint16:
@@ -181,9 +193,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Uint16 {
 				return UnmarshalError{ExpectingUint16}
 			}
-			ptr.Elem().SetUint(uint64(token.Value.(uint16)))
+			target.Elem().SetUint(uint64(token.Value.(uint16)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint16)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(uint16)))
 		}
 
 	case KindUint32:
@@ -191,9 +203,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Uint32 {
 				return UnmarshalError{ExpectingUint32}
 			}
-			ptr.Elem().SetUint(uint64(token.Value.(uint32)))
+			target.Elem().SetUint(uint64(token.Value.(uint32)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint32)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(uint32)))
 		}
 
 	case KindUint64:
@@ -201,9 +213,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Uint64 {
 				return UnmarshalError{ExpectingUint64}
 			}
-			ptr.Elem().SetUint(token.Value.(uint64))
+			target.Elem().SetUint(token.Value.(uint64))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(uint64)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(uint64)))
 		}
 
 	case KindFloat32:
@@ -211,9 +223,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Float32 {
 				return UnmarshalError{ExpectingFloat32}
 			}
-			ptr.Elem().SetFloat(float64(token.Value.(float32)))
+			target.Elem().SetFloat(float64(token.Value.(float32)))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(float32)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(float32)))
 		}
 
 	case KindFloat64:
@@ -221,9 +233,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Float64 {
 				return UnmarshalError{ExpectingFloat64}
 			}
-			ptr.Elem().SetFloat(token.Value.(float64))
+			target.Elem().SetFloat(token.Value.(float64))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(float64)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(float64)))
 		}
 
 	case KindNaN:
@@ -231,9 +243,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.Float32 && valueKind != reflect.Float64 {
 				return UnmarshalError{ExpectingFloat}
 			}
-			ptr.Elem().SetFloat(math.NaN())
+			target.Elem().SetFloat(math.NaN())
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(math.NaN()))
+			target.Elem().Set(reflect.ValueOf(math.NaN()))
 		}
 
 	case KindString:
@@ -241,9 +253,9 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if valueKind != reflect.String {
 				return UnmarshalError{ExpectingString}
 			}
-			ptr.Elem().SetString(token.Value.(string))
+			target.Elem().SetString(token.Value.(string))
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.(string)))
+			target.Elem().Set(reflect.ValueOf(token.Value.(string)))
 		}
 
 	case KindBytes:
@@ -253,16 +265,16 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			}
 			if valueKind == reflect.Slice {
 				// slice
-				ptr.Elem().Set(reflect.ValueOf(token.Value.([]byte)))
+				target.Elem().Set(reflect.ValueOf(token.Value.([]byte)))
 			} else {
 				// array
 				reflect.Copy(
-					ptr.Elem().Slice(0, ptr.Elem().Len()),
+					target.Elem().Slice(0, target.Elem().Len()),
 					reflect.ValueOf(token.Value.([]byte)),
 				)
 			}
 		} else {
-			ptr.Elem().Set(reflect.ValueOf(token.Value.([]byte)))
+			target.Elem().Set(reflect.ValueOf(token.Value.([]byte)))
 		}
 
 	case KindArray:
@@ -282,12 +294,12 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					if p.Kind == KindArrayEnd {
 						break
 					}
-					if idx >= ptr.Elem().Len() {
+					if idx >= target.Elem().Len() {
 						return UnmarshalError{TooManyElement}
 					}
 					err = UnmarshalValue(
 						&unreadToken{p, stream},
-						ptr.Elem().Index(idx).Addr(),
+						target.Elem().Index(idx).Addr(),
 					)
 					if err != nil {
 						return err
@@ -297,7 +309,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 
 			} else if valueKind == reflect.Slice {
 				// slice
-				slice := ptr.Elem()
+				slice := target.Elem()
 				for {
 					p, err := stream.Next()
 					if err != nil {
@@ -319,7 +331,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					}
 					slice = reflect.Append(slice, elemPtr.Elem())
 				}
-				ptr.Elem().Set(slice)
+				target.Elem().Set(slice)
 
 			} else {
 				return UnmarshalError{ExpectingSequence}
@@ -349,7 +361,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				}
 				slice = append(slice, elem)
 			}
-			ptr.Elem().Set(reflect.ValueOf(slice))
+			target.Elem().Set(reflect.ValueOf(slice))
 		}
 
 	case KindObject:
@@ -391,7 +403,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 					}
 					continue
 				}
-				err = UnmarshalValue(stream, ptr.Elem().FieldByIndex(field.Index).Addr())
+				err = UnmarshalValue(stream, target.Elem().FieldByIndex(field.Index).Addr())
 				if err != nil {
 					return err
 				}
@@ -452,7 +464,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			for i, value := range values {
 				structPtr.Elem().Field(i).Set(reflect.ValueOf(value))
 			}
-			ptr.Elem().Set(structPtr.Elem())
+			target.Elem().Set(structPtr.Elem())
 		}
 
 	case KindMap:
@@ -487,10 +499,10 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				if err := UnmarshalValue(stream, value); err != nil {
 					return err
 				}
-				if ptr.Elem().IsNil() {
-					ptr.Elem().Set(reflect.MakeMap(valueType))
+				if target.Elem().IsNil() {
+					target.Elem().Set(reflect.MakeMap(valueType))
 				}
-				ptr.Elem().SetMapIndex(
+				target.Elem().SetMapIndex(
 					key.Elem(),
 					value.Elem(),
 				)
@@ -534,7 +546,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				}
 				m[key] = value
 			}
-			ptr.Elem().Set(reflect.ValueOf(m))
+			target.Elem().Set(reflect.ValueOf(m))
 
 		}
 
@@ -577,7 +589,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				if p.Kind != KindTupleEnd {
 					return UnmarshalError{TooManyElement}
 				}
-				ptr.Elem().Set(reflect.MakeFunc(
+				target.Elem().Set(reflect.MakeFunc(
 					valueType,
 					func(args []reflect.Value) []reflect.Value {
 						return items
@@ -614,7 +626,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 				if p.Kind != KindTupleEnd {
 					return UnmarshalError{TooManyElement}
 				}
-				ptr.Elem().Call(items)
+				target.Call(items)
 
 			} else {
 				return UnmarshalError{BadTupleType}
@@ -649,7 +661,7 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			if len(itemTypes) > 50 {
 				return UnmarshalError{TooManyElement}
 			}
-			ptr.Elem().Set(reflect.MakeFunc(
+			target.Elem().Set(reflect.MakeFunc(
 				reflect.FuncOf(
 					[]reflect.Type{},
 					itemTypes,

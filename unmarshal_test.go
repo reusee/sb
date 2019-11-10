@@ -929,7 +929,7 @@ func TestUnmarshalTupleCall(t *testing.T) {
 				return 42, 1
 			},
 		),
-		&fn,
+		fn,
 	); err != nil {
 		t.Fatal(err)
 	}
