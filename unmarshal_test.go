@@ -798,7 +798,7 @@ func TestBadTupleCall(t *testing.T) {
 			KindTuple,
 			KindString,
 		})),
-		&tuple,
+		tuple,
 	)
 	if err == nil {
 		t.Fatal()
@@ -809,7 +809,7 @@ func TestBadTupleCall(t *testing.T) {
 		NewDecoder(bytes.NewReader([]byte{
 			KindTuple,
 		})),
-		&tuple,
+		tuple,
 	)
 	if err == nil {
 		t.Fatal()
@@ -818,7 +818,7 @@ func TestBadTupleCall(t *testing.T) {
 	// too few items
 	err = Unmarshal(
 		NewMarshaler(func() {}),
-		&tuple,
+		tuple,
 	)
 	if !errors.Is(err, ExpectingValue) {
 		t.Fatal()
@@ -829,7 +829,7 @@ func TestBadTupleCall(t *testing.T) {
 		NewMarshaler(func() (int, int) {
 			return 42, 42
 		}),
-		&tuple,
+		tuple,
 	)
 	if !errors.Is(err, TooManyElement) {
 		t.Fatal()
@@ -840,7 +840,7 @@ func TestBadTupleCall(t *testing.T) {
 		NewMarshaler(func() string {
 			return "42"
 		}),
-		&tuple,
+		tuple,
 	)
 	if !errors.Is(err, ExpectingString) {
 		t.Fatal()
@@ -853,7 +853,59 @@ func TestBadTupleCall(t *testing.T) {
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
 			KindString, // incomplete string
 		})),
-		&tuple,
+		tuple,
+	)
+	if err == nil {
+		t.Fatal()
+	}
+
+}
+
+func TestBadTupleCallVariadic(t *testing.T) {
+	var tuple func(args ...int)
+
+	// bad token
+	err := Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindTuple,
+			KindString,
+		})),
+		tuple,
+	)
+	if err == nil {
+		t.Fatal()
+	}
+
+	// short token
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindTuple,
+		})),
+		tuple,
+	)
+	if err == nil {
+		t.Fatal()
+	}
+
+	// bad item
+	err = Unmarshal(
+		NewMarshaler(func() string {
+			return "42"
+		}),
+		tuple,
+	)
+	if !errors.Is(err, ExpectingString) {
+		t.Fatal()
+	}
+
+	// bad end
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindTuple,
+			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
+			KindString, // incomplete string
+		})),
+		tuple,
 	)
 	if err == nil {
 		t.Fatal()
@@ -932,5 +984,39 @@ func TestUnmarshalTupleCall(t *testing.T) {
 		fn,
 	); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestUnmarshalTupleCallVariadic(t *testing.T) {
+	fn := func(args ...any) {
+		if len(args) != 2 {
+			t.Fatal()
+		}
+		if i, ok := args[0].(int); !ok || i != 42 {
+			t.Fatal()
+		}
+		if i, ok := args[1].(int); !ok || i != 1 {
+			t.Fatal()
+		}
+	}
+	if err := Unmarshal(
+		NewMarshaler(
+			func() (int, int) {
+				return 42, 1
+			},
+		),
+		fn,
+	); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestBadUnmarshalTarget(t *testing.T) {
+	err := Unmarshal(
+		NewMarshaler(42),
+		42,
+	)
+	if !errors.Is(err, BadTargetType) {
+		t.Fatal()
 	}
 }

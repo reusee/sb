@@ -101,7 +101,7 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 		)
 	} else if valueKind != reflect.Interface {
 		hasConcreteType = true
-		if target.IsNil() {
+		if targetKind == reflect.Ptr && target.IsNil() {
 			target = reflect.New(valueType)
 		}
 	}
@@ -597,36 +597,68 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 				))
 
 			} else if numOut == 0 && numIn > 0 {
-				var items []reflect.Value
-				for i := 0; i < numIn; i++ {
+
+				if numIn == 1 && valueType.IsVariadic() {
+					itemType := valueType.In(0).Elem()
+					var items []reflect.Value
+					for {
+						p, err := stream.Next()
+						if err != nil {
+							return err
+						}
+						if p == nil {
+							return UnmarshalError{ExpectingValue}
+						}
+						if p.Kind == KindTupleEnd {
+							break
+						}
+						value := reflect.New(itemType)
+						if err := UnmarshalValue(
+							&unreadToken{p, stream},
+							value,
+						); err != nil {
+							return err
+						}
+						items = append(items, value.Elem())
+					}
+					if !target.IsNil() {
+						target.Call(items)
+					}
+
+				} else {
+					var items []reflect.Value
+					for i := 0; i < numIn; i++ {
+						p, err := stream.Next()
+						if err != nil {
+							return err
+						}
+						if p == nil {
+							return UnmarshalError{ExpectingValue}
+						}
+						if p.Kind == KindTupleEnd {
+							return UnmarshalError{ExpectingValue}
+						}
+						itemType := valueType.In(i)
+						value := reflect.New(itemType)
+						if err := UnmarshalValue(
+							&unreadToken{p, stream},
+							value,
+						); err != nil {
+							return err
+						}
+						items = append(items, value.Elem())
+					}
 					p, err := stream.Next()
 					if err != nil {
 						return err
 					}
-					if p == nil {
-						return UnmarshalError{ExpectingValue}
+					if p.Kind != KindTupleEnd {
+						return UnmarshalError{TooManyElement}
 					}
-					if p.Kind == KindTupleEnd {
-						return UnmarshalError{ExpectingValue}
+					if !target.IsNil() {
+						target.Call(items)
 					}
-					itemType := valueType.In(i)
-					value := reflect.New(itemType)
-					if err := UnmarshalValue(
-						&unreadToken{p, stream},
-						value,
-					); err != nil {
-						return err
-					}
-					items = append(items, value.Elem())
 				}
-				p, err := stream.Next()
-				if err != nil {
-					return err
-				}
-				if p.Kind != KindTupleEnd {
-					return UnmarshalError{TooManyElement}
-				}
-				target.Call(items)
 
 			} else {
 				return UnmarshalError{BadTupleType}
