@@ -545,41 +545,80 @@ func UnmarshalValue(stream Stream, ptr reflect.Value) error {
 			}
 
 			numOut := valueType.NumOut()
-			var items []reflect.Value
-			for i := 0; i < numOut; i++ {
+			numIn := valueType.NumIn()
+
+			if numOut > 0 && numIn == 0 {
+				var items []reflect.Value
+				for i := 0; i < numOut; i++ {
+					p, err := stream.Next()
+					if err != nil {
+						return err
+					}
+					if p == nil {
+						return UnmarshalError{ExpectingValue}
+					}
+					if p.Kind == KindTupleEnd {
+						return UnmarshalError{ExpectingValue}
+					}
+					itemType := valueType.Out(i)
+					value := reflect.New(itemType)
+					if err := UnmarshalValue(
+						&unreadToken{p, stream},
+						value,
+					); err != nil {
+						return err
+					}
+					items = append(items, value.Elem())
+				}
 				p, err := stream.Next()
 				if err != nil {
 					return err
 				}
-				if p == nil {
-					return UnmarshalError{ExpectingValue}
+				if p.Kind != KindTupleEnd {
+					return UnmarshalError{TooManyElement}
 				}
-				if p.Kind == KindTupleEnd {
-					return UnmarshalError{ExpectingValue}
+				ptr.Elem().Set(reflect.MakeFunc(
+					valueType,
+					func(args []reflect.Value) []reflect.Value {
+						return items
+					},
+				))
+
+			} else if numOut == 0 && numIn > 0 {
+				var items []reflect.Value
+				for i := 0; i < numIn; i++ {
+					p, err := stream.Next()
+					if err != nil {
+						return err
+					}
+					if p == nil {
+						return UnmarshalError{ExpectingValue}
+					}
+					if p.Kind == KindTupleEnd {
+						return UnmarshalError{ExpectingValue}
+					}
+					itemType := valueType.In(i)
+					value := reflect.New(itemType)
+					if err := UnmarshalValue(
+						&unreadToken{p, stream},
+						value,
+					); err != nil {
+						return err
+					}
+					items = append(items, value.Elem())
 				}
-				itemType := valueType.Out(i)
-				value := reflect.New(itemType)
-				if err := UnmarshalValue(
-					&unreadToken{p, stream},
-					value,
-				); err != nil {
+				p, err := stream.Next()
+				if err != nil {
 					return err
 				}
-				items = append(items, value.Elem())
+				if p.Kind != KindTupleEnd {
+					return UnmarshalError{TooManyElement}
+				}
+				ptr.Elem().Call(items)
+
+			} else {
+				return UnmarshalError{BadTupleType}
 			}
-			p, err := stream.Next()
-			if err != nil {
-				return err
-			}
-			if p.Kind != KindTupleEnd {
-				return UnmarshalError{TooManyElement}
-			}
-			ptr.Elem().Set(reflect.MakeFunc(
-				valueType,
-				func(args []reflect.Value) []reflect.Value {
-					return items
-				},
-			))
 
 		} else {
 			// func() (...any)

@@ -67,4 +67,5 @@ var (
 	StringTooLong       = fmt.Errorf("string too long")
 	BytesTooLong        = fmt.Errorf("bytes too long")
 	BadTokenKind        = fmt.Errorf("bad token kind")
+	BadTupleType        = fmt.Errorf("bad tuple type")
 )

@@ -68,6 +68,11 @@ var unmarshalTestCases = []UnmarshalTestCase{
 		true,
 		ExpectingTuple,
 	},
+	{
+		func() int { return 42 },
+		(func(int) int)(nil),
+		BadTupleType,
+	},
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -784,6 +789,78 @@ func TestBadTuple(t *testing.T) {
 
 }
 
+func TestBadTupleCall(t *testing.T) {
+	var tuple func(int)
+
+	// bad token
+	err := Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindTuple,
+			KindString,
+		})),
+		&tuple,
+	)
+	if err == nil {
+		t.Fatal()
+	}
+
+	// short token
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindTuple,
+		})),
+		&tuple,
+	)
+	if err == nil {
+		t.Fatal()
+	}
+
+	// too few items
+	err = Unmarshal(
+		NewMarshaler(func() {}),
+		&tuple,
+	)
+	if !errors.Is(err, ExpectingValue) {
+		t.Fatal()
+	}
+
+	// too many items
+	err = Unmarshal(
+		NewMarshaler(func() (int, int) {
+			return 42, 42
+		}),
+		&tuple,
+	)
+	if !errors.Is(err, TooManyElement) {
+		t.Fatal()
+	}
+
+	// bad item
+	err = Unmarshal(
+		NewMarshaler(func() string {
+			return "42"
+		}),
+		&tuple,
+	)
+	if !errors.Is(err, ExpectingString) {
+		t.Fatal()
+	}
+
+	// bad end
+	err = Unmarshal(
+		NewDecoder(bytes.NewReader([]byte{
+			KindTuple,
+			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
+			KindString, // incomplete string
+		})),
+		&tuple,
+	)
+	if err == nil {
+		t.Fatal()
+	}
+
+}
+
 func TestBadGenericTuple(t *testing.T) {
 	var tuple any
 
@@ -835,4 +912,25 @@ func TestBadGenericTuple(t *testing.T) {
 		t.Fatal()
 	}
 
+}
+
+func TestUnmarshalTupleCall(t *testing.T) {
+	fn := func(a int, b int) {
+		if a != 42 {
+			t.Fatal()
+		}
+		if b != 1 {
+			t.Fatal()
+		}
+	}
+	if err := Unmarshal(
+		NewMarshaler(
+			func() (int, int) {
+				return 42, 1
+			},
+		),
+		&fn,
+	); err != nil {
+		t.Fatal(err)
+	}
 }
