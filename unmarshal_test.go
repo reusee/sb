@@ -1037,3 +1037,23 @@ func TestUnmarshalTupleToErrCaller(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestUnmarshalTupleToErrVariadicCaller(t *testing.T) {
+	err := Unmarshal(
+		NewMarshaler(func() int {
+			return 42
+		}),
+		func(args ...any) error {
+			if len(args) != 1 {
+				t.Fatal()
+			}
+			if args[0].(int) != 42 {
+				t.Fatal()
+			}
+			return fmt.Errorf("foo")
+		},
+	)
+	if err.Error() != "foo" {
+		t.Fatal()
+	}
+}
