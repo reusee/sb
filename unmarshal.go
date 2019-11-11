@@ -596,7 +596,9 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 					},
 				))
 
-			} else if numOut == 0 && numIn > 0 {
+			} else if numIn > 0 &&
+				(numOut == 0 ||
+					(numOut == 1 && valueType.Out(0) == errorType)) {
 
 				if numIn == 1 && valueType.IsVariadic() {
 					itemType := valueType.In(0).Elem()
@@ -622,7 +624,10 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 						items = append(items, value.Elem())
 					}
 					if !target.IsNil() {
-						target.Call(items)
+						rets := target.Call(items)
+						if len(rets) > 0 {
+							return rets[0].Interface().(error)
+						}
 					}
 
 				} else {
@@ -656,7 +661,10 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 						return UnmarshalError{TooManyElement}
 					}
 					if !target.IsNil() {
-						target.Call(items)
+						rets := target.Call(items)
+						if len(rets) > 0 {
+							return rets[0].Interface().(error)
+						}
 					}
 				}
 

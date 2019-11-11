@@ -12,5 +12,6 @@ type (
 var (
 	pt = fmt.Printf
 
-	anyType = reflect.TypeOf((*any)(nil)).Elem()
+	anyType   = reflect.TypeOf((*any)(nil)).Elem()
+	errorType = reflect.TypeOf((*error)(nil)).Elem()
 )
