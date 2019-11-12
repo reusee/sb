@@ -19,7 +19,7 @@ var _ Stream = new(Marshaler)
 
 func NewMarshaler(obj any) *Marshaler {
 	m := new(Marshaler)
-	m.proc = m.Tokenize(
+	m.proc = m.tokenize(
 		reflect.ValueOf(obj),
 		nil,
 	)
@@ -30,22 +30,22 @@ type Tokenizer interface {
 	TokenizeSB() []Token
 }
 
-func (t *Marshaler) GenerateTokens(tokens []Token, cont Proc) Proc {
+func (t *Marshaler) generateTokens(tokens []Token, cont Proc) Proc {
 	return func() (*Token, Proc) {
 		if len(tokens) == 0 {
 			return nil, cont
 		}
-		return &tokens[0], t.GenerateTokens(tokens[1:], cont)
+		return &tokens[0], t.generateTokens(tokens[1:], cont)
 	}
 }
 
-func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
+func (t *Marshaler) tokenize(value reflect.Value, cont Proc) Proc {
 	return func() (*Token, Proc) {
 
 		if value.IsValid() {
 			i := value.Interface()
 			if v, ok := i.(Tokenizer); ok {
-				return nil, t.GenerateTokens(v.TokenizeSB(), cont)
+				return nil, t.generateTokens(v.TokenizeSB(), cont)
 			} else if v, ok := i.(encoding.BinaryMarshaler); ok {
 				bs, err := v.MarshalBinary()
 				if err != nil {
@@ -76,7 +76,7 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
 					Kind: KindNil,
 				}, cont
 			} else {
-				return nil, t.Tokenize(value.Elem(), cont)
+				return nil, t.tokenize(value.Elem(), cont)
 			}
 
 		case reflect.Bool:
@@ -178,7 +178,7 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
 			} else {
 				return &Token{
 					Kind: KindArray,
-				}, t.TokenizeArray(value, 0, cont)
+				}, t.tokenizeArray(value, 0, cont)
 			}
 
 		case reflect.String:
@@ -190,18 +190,18 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
 		case reflect.Struct:
 			return &Token{
 				Kind: KindObject,
-			}, t.TokenizeStruct(value, cont)
+			}, t.tokenizeStruct(value, cont)
 
 		case reflect.Map:
 			return &Token{
 				Kind: KindMap,
-			}, t.TokenizeMap(value, cont)
+			}, t.tokenizeMap(value, cont)
 
 		case reflect.Func:
 			items := value.Call([]reflect.Value{})
 			return &Token{
 					Kind: KindTuple,
-				}, t.TokenizeTuple(
+				}, t.tokenizeTuple(
 					items,
 					cont,
 				)
@@ -213,23 +213,23 @@ func (t *Marshaler) Tokenize(value reflect.Value, cont Proc) Proc {
 	}
 }
 
-func (t *Marshaler) TokenizeArray(value reflect.Value, index int, cont Proc) Proc {
+func (t *Marshaler) tokenizeArray(value reflect.Value, index int, cont Proc) Proc {
 	return func() (*Token, Proc) {
 		if index >= value.Len() {
 			return &Token{
 				Kind: KindArrayEnd,
 			}, cont
 		}
-		return nil, t.Tokenize(
+		return nil, t.tokenize(
 			value.Index(index),
-			t.TokenizeArray(value, index+1, cont),
+			t.tokenizeArray(value, index+1, cont),
 		)
 	}
 }
 
 var structFields sync.Map
 
-func (t *Marshaler) TokenizeStruct(value reflect.Value, cont Proc) Proc {
+func (t *Marshaler) tokenizeStruct(value reflect.Value, cont Proc) Proc {
 	var fields []reflect.StructField
 	valueType := value.Type()
 	if v, ok := structFields.Load(valueType); ok {
@@ -244,10 +244,10 @@ func (t *Marshaler) TokenizeStruct(value reflect.Value, cont Proc) Proc {
 		})
 		structFields.Store(valueType, fields)
 	}
-	return t.TokenizeStructField(value, fields, cont)
+	return t.tokenizeStructField(value, fields, cont)
 }
 
-func (t *Marshaler) TokenizeStructField(value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
+func (t *Marshaler) tokenizeStructField(value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
 	return func() (*Token, Proc) {
 		if len(fields) == 0 {
 			return &Token{
@@ -258,9 +258,9 @@ func (t *Marshaler) TokenizeStructField(value reflect.Value, fields []reflect.St
 		return &Token{
 				Kind:  KindString,
 				Value: field.Name,
-			}, t.Tokenize(
+			}, t.tokenize(
 				value.FieldByIndex(field.Index),
-				t.TokenizeStructField(value, fields[1:], cont),
+				t.tokenizeStructField(value, fields[1:], cont),
 			)
 	}
 }
@@ -270,8 +270,8 @@ type mapTuple struct {
 	value     reflect.Value
 }
 
-func (t *Marshaler) TokenizeMap(value reflect.Value, cont Proc) Proc {
-	return t.TokenizeMapIter(
+func (t *Marshaler) tokenizeMap(value reflect.Value, cont Proc) Proc {
+	return t.tokenizeMapIter(
 		value,
 		value.MapRange(),
 		make([]*mapTuple, 0, value.Len()),
@@ -279,7 +279,7 @@ func (t *Marshaler) TokenizeMap(value reflect.Value, cont Proc) Proc {
 	)
 }
 
-func (t *Marshaler) TokenizeMapIter(
+func (t *Marshaler) tokenizeMapIter(
 	value reflect.Value,
 	iter *reflect.MapIter,
 	tuples []*mapTuple,
@@ -294,7 +294,7 @@ func (t *Marshaler) TokenizeMapIter(
 					tuples[j].keyTokens.Iter(),
 				) < 0
 			})
-			return nil, t.TokenizeMapValue(tuples, cont)
+			return nil, t.tokenizeMapValue(tuples, cont)
 		}
 		tokens, err := TokensFromStream(NewMarshaler(iter.Key().Interface()))
 		if err != nil {
@@ -305,7 +305,7 @@ func (t *Marshaler) TokenizeMapIter(
 			t.err = MarshalError{BadMapKey}
 			return nil, nil
 		}
-		return nil, t.TokenizeMapIter(
+		return nil, t.tokenizeMapIter(
 			value,
 			iter,
 			append(tuples, &mapTuple{
@@ -317,7 +317,7 @@ func (t *Marshaler) TokenizeMapIter(
 	}
 }
 
-func (t *Marshaler) TokenizeMapValue(tuples []*mapTuple, cont Proc) Proc {
+func (t *Marshaler) tokenizeMapValue(tuples []*mapTuple, cont Proc) Proc {
 	return func() (*Token, Proc) {
 		if len(tuples) == 0 {
 			return &Token{
@@ -325,26 +325,26 @@ func (t *Marshaler) TokenizeMapValue(tuples []*mapTuple, cont Proc) Proc {
 			}, cont
 		}
 		tuple := tuples[0]
-		return nil, t.GenerateTokens(
+		return nil, t.generateTokens(
 			tuple.keyTokens,
-			t.Tokenize(
+			t.tokenize(
 				tuple.value,
-				t.TokenizeMapValue(tuples[1:], cont),
+				t.tokenizeMapValue(tuples[1:], cont),
 			),
 		)
 	}
 }
 
-func (t *Marshaler) TokenizeTuple(items []reflect.Value, cont Proc) Proc {
+func (t *Marshaler) tokenizeTuple(items []reflect.Value, cont Proc) Proc {
 	return func() (*Token, Proc) {
 		if len(items) == 0 {
 			return &Token{
 				Kind: KindTupleEnd,
 			}, cont
 		} else {
-			return nil, t.Tokenize(
+			return nil, t.tokenize(
 				items[0],
-				t.TokenizeTuple(
+				t.tokenizeTuple(
 					items[1:],
 					cont,
 				),
