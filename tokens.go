@@ -3,6 +3,9 @@ package sb
 type Tokens []Token
 
 func TokensFromStream(stream Stream) (tokens Tokens, err error) {
+	if iter, ok := stream.(*TokensIter); ok {
+		return iter.tokens, nil
+	}
 	for {
 		p, err := stream.Next()
 		if err != nil {
