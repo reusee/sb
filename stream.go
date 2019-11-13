@@ -51,9 +51,9 @@ type Token struct {
 
 type min struct{}
 
-var _ Tokenizer = min{}
+var _ SBMarshaler = min{}
 
-func (_ min) TokenizeSB() []Token {
+func (_ min) MarshalSB() []Token {
 	return []Token{
 		{Kind: KindMin},
 	}
@@ -63,9 +63,9 @@ var Min = min{}
 
 type max struct{}
 
-var _ Tokenizer = max{}
+var _ SBMarshaler = max{}
 
-func (_ max) TokenizeSB() []Token {
+func (_ max) MarshalSB() []Token {
 	return []Token{
 		{Kind: KindMax},
 	}

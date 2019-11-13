@@ -395,17 +395,17 @@ type Custom struct {
 	Foo int
 }
 
-var _ Tokenizer = Custom{}
+var _ SBMarshaler = Custom{}
 
-var _ Detokenizer = new(Custom)
+var _ SBUnmarshaler = new(Custom)
 
-func (c Custom) TokenizeSB() []Token {
+func (c Custom) MarshalSB() []Token {
 	return []Token{
 		{KindInt, c.Foo},
 	}
 }
 
-func (c *Custom) DetokenizeSB(stream Stream) (err error) {
+func (c *Custom) UnmarshalSB(stream Stream) (err error) {
 	p, err := stream.Next()
 	if err != nil {
 		return err

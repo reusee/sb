@@ -26,8 +26,8 @@ func NewMarshaler(obj any) *Marshaler {
 	return m
 }
 
-type Tokenizer interface {
-	TokenizeSB() []Token
+type SBMarshaler interface {
+	MarshalSB() []Token
 }
 
 func (t *Marshaler) generateTokens(tokens []Token, cont Proc) Proc {
@@ -44,8 +44,8 @@ func (t *Marshaler) tokenize(value reflect.Value, cont Proc) Proc {
 
 		if value.IsValid() {
 			i := value.Interface()
-			if v, ok := i.(Tokenizer); ok {
-				return nil, t.generateTokens(v.TokenizeSB(), cont)
+			if v, ok := i.(SBMarshaler); ok {
+				return nil, t.generateTokens(v.MarshalSB(), cont)
 			} else if v, ok := i.(encoding.BinaryMarshaler); ok {
 				bs, err := v.MarshalBinary()
 				if err != nil {

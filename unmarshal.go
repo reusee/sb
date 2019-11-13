@@ -11,16 +11,16 @@ func Unmarshal(stream Stream, target any) error {
 	return UnmarshalValue(stream, reflect.ValueOf(target))
 }
 
-type Detokenizer interface {
-	DetokenizeSB(stream Stream) error
+type SBUnmarshaler interface {
+	UnmarshalSB(stream Stream) error
 }
 
 func UnmarshalValue(stream Stream, target reflect.Value) error {
 
 	if target.IsValid() {
 		i := target.Interface()
-		if v, ok := i.(Detokenizer); ok {
-			return v.DetokenizeSB(stream)
+		if v, ok := i.(SBUnmarshaler); ok {
+			return v.UnmarshalSB(stream)
 		} else if v, ok := i.(encoding.BinaryUnmarshaler); ok {
 			p, err := stream.Next()
 			if err != nil {
