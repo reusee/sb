@@ -1,6 +1,7 @@
 package sb
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 )
@@ -136,6 +137,89 @@ func BenchmarkUnarshalTupleCall(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err := Unmarshal(tokens.Iter(), fn); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkCompareTokens(b *testing.B) {
+	tokens := MustTokensFromStream(
+		NewMarshaler(benchFoo),
+	)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := Compare(
+			tokens.Iter(),
+			tokens.Iter(),
+		)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkCompareMarshaler(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_, err := Compare(
+			NewMarshaler(benchFoo),
+			NewMarshaler(benchFoo),
+		)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkCompareMarshalerAndTokens(b *testing.B) {
+	tokens := MustTokensFromStream(
+		NewMarshaler(benchFoo),
+	)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := Compare(
+			tokens.Iter(),
+			NewMarshaler(benchFoo),
+		)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkCompareDecoders(b *testing.B) {
+	buf := new(bytes.Buffer)
+	if err := Encode(buf, NewMarshaler(benchFoo)); err != nil {
+		b.Fatal(err)
+	}
+	data := buf.Bytes()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := Compare(
+			NewDecoder(bytes.NewReader(data)),
+			NewDecoder(bytes.NewReader(data)),
+		)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkCompareDecodersAndTokens(b *testing.B) {
+	buf := new(bytes.Buffer)
+	if err := Encode(buf, NewMarshaler(benchFoo)); err != nil {
+		b.Fatal(err)
+	}
+	data := buf.Bytes()
+	tokens := MustTokensFromStream(
+		NewMarshaler(benchFoo),
+	)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := Compare(
+			tokens.Iter(),
+			NewDecoder(bytes.NewReader(data)),
+		)
+		if err != nil {
 			b.Fatal(err)
 		}
 	}
