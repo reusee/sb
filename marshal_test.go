@@ -399,9 +399,12 @@ var _ SBMarshaler = Custom{}
 
 var _ SBUnmarshaler = new(Custom)
 
-func (c Custom) MarshalSB() []Token {
-	return []Token{
-		{KindInt, c.Foo},
+func (c Custom) MarshalSB(cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc) {
+		return &Token{
+			Kind:  KindInt,
+			Value: c.Foo,
+		}, cont
 	}
 }
 
