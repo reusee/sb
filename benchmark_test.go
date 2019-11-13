@@ -62,6 +62,17 @@ func BenchmarkMarshalStruct(b *testing.B) {
 	}
 }
 
+func BenchmarkUnmarshalStruct(b *testing.B) {
+	tokens := MustTokensFromStream(NewMarshaler(benchFoo))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var foo BenchFoo
+		if err := Unmarshal(tokens.Iter(), &foo); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkMarshalMap(b *testing.B) {
 	m := make(map[int]string)
 	for i := 0; i < 128; i++ {
@@ -78,6 +89,54 @@ func BenchmarkMarshalMap(b *testing.B) {
 			if token == nil {
 				break
 			}
+		}
+	}
+}
+
+func BenchmarkMarshalTuple(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		m := NewMarshaler(func() int {
+			return 42
+		})
+		for {
+			token, err := m.Next()
+			if err != nil {
+				b.Fatal(err)
+			}
+			if token == nil {
+				break
+			}
+		}
+	}
+}
+
+func BenchmarkUnarshalTuple(b *testing.B) {
+	tokens := MustTokensFromStream(NewMarshaler(
+		func() int {
+			return 42
+		},
+	))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var fn func() int
+		if err := Unmarshal(tokens.Iter(), &fn); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkUnarshalTupleCall(b *testing.B) {
+	tokens := MustTokensFromStream(NewMarshaler(
+		func() int {
+			return 42
+		},
+	))
+	fn := func(int) {
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := Unmarshal(tokens.Iter(), fn); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
