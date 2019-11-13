@@ -5,11 +5,17 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"math"
 )
 
 type Decoder struct {
-	r io.Reader
+	r   io.Reader
+	buf [decoderBufLen]byte
 }
+
+const (
+	decoderBufLen = 8
+)
 
 func NewDecoder(r io.Reader) *Decoder {
 	return &Decoder{
@@ -20,126 +26,116 @@ func NewDecoder(r io.Reader) *Decoder {
 var _ Stream = new(Decoder)
 
 func (d *Decoder) Next() (token *Token, err error) {
-	var kind Kind
-	if err := binary.Read(d.r, binary.LittleEndian, &kind); errors.Is(err, io.EOF) {
+
+	if _, err := io.ReadFull(d.r, d.buf[:1]); errors.Is(err, io.EOF) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
+	kind := Kind(d.buf[0])
 
 	var value any
 	switch kind {
 
 	case KindBool:
-		bs := make([]byte, 1)
-		if _, err := io.ReadFull(d.r, bs); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:1]); err != nil {
 			return nil, err
 		}
-		if bs[0] > 0 {
+		if d.buf[0] > 0 {
 			value = true
 		} else {
 			value = false
 		}
 
 	case KindInt:
-		var i int64
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:8]); err != nil {
 			return nil, err
 		}
-		value = int(i)
+		value = int(binary.LittleEndian.Uint64(d.buf[:8]))
 
 	case KindInt8:
-		var i int8
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:1]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = int8(d.buf[0])
 
 	case KindInt16:
-		var i int16
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:2]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = int16(binary.LittleEndian.Uint16(d.buf[:2]))
 
 	case KindInt32:
-		var i int32
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:4]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = int32(binary.LittleEndian.Uint32(d.buf[:4]))
 
 	case KindInt64:
-		var i int64
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:8]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = int64(binary.LittleEndian.Uint64(d.buf[:8]))
 
 	case KindUint:
-		var i uint64
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:8]); err != nil {
 			return nil, err
 		}
-		value = uint(i)
+		value = uint(binary.LittleEndian.Uint64(d.buf[:8]))
 
 	case KindUint8:
-		var i uint8
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:1]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = uint8(d.buf[0])
 
 	case KindUint16:
-		var i uint16
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:2]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = binary.LittleEndian.Uint16(d.buf[:2])
 
 	case KindUint32:
-		var i uint32
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:4]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = binary.LittleEndian.Uint32(d.buf[:4])
 
 	case KindUint64:
-		var i uint64
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:8]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = binary.LittleEndian.Uint64(d.buf[:8])
 
 	case KindFloat32:
-		var i float32
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:4]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = math.Float32frombits(binary.LittleEndian.Uint32(d.buf[:4]))
 
 	case KindFloat64:
-		var i float64
-		if err := binary.Read(d.r, binary.LittleEndian, &i); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:8]); err != nil {
 			return nil, err
 		}
-		value = i
+		value = math.Float64frombits(binary.LittleEndian.Uint64(d.buf[:8]))
 
 	case KindString:
 		var length uint64
-		bs := make([]byte, 1)
-		if _, err := io.ReadFull(d.r, bs); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:1]); err != nil {
 			return nil, err
 		}
-		if bs[0] < 128 {
-			length = uint64(bs[0])
+		if d.buf[0] < 128 {
+			length = uint64(d.buf[0])
 		} else {
-			bs = make([]byte, ^bs[0])
-			if _, err := io.ReadFull(d.r, bs); err != nil {
+			l := ^d.buf[0]
+			if l > 8 {
+				return nil, DecodeError{StringTooLong}
+			}
+			if _, err := io.ReadFull(d.r, d.buf[:l]); err != nil {
 				return nil, err
 			}
 			var err error
-			length, err = binary.ReadUvarint(bytes.NewReader(bs))
+			length, err = binary.ReadUvarint(bytes.NewReader(d.buf[:l]))
 			if err != nil {
 				return nil, err
 			}
@@ -147,7 +143,12 @@ func (d *Decoder) Next() (token *Token, err error) {
 		if length > 128*1024*1024 {
 			return nil, DecodeError{StringTooLong}
 		}
-		bs = make([]byte, length)
+		var bs []byte
+		if length <= decoderBufLen {
+			bs = d.buf[:length]
+		} else {
+			bs = make([]byte, length)
+		}
 		if _, err := io.ReadFull(d.r, bs); err != nil {
 			return nil, err
 		}
@@ -155,27 +156,29 @@ func (d *Decoder) Next() (token *Token, err error) {
 
 	case KindBytes:
 		var length uint64
-		bs := make([]byte, 1)
-		if _, err := io.ReadFull(d.r, bs); err != nil {
+		if _, err := io.ReadFull(d.r, d.buf[:1]); err != nil {
 			return nil, err
 		}
-		if bs[0] < 128 {
-			length = uint64(bs[0])
+		if d.buf[0] < 128 {
+			length = uint64(d.buf[0])
 		} else {
-			bs = make([]byte, ^bs[0])
-			if _, err := io.ReadFull(d.r, bs); err != nil {
+			l := ^d.buf[0]
+			if l > 8 {
+				return nil, DecodeError{StringTooLong}
+			}
+			if _, err := io.ReadFull(d.r, d.buf[:l]); err != nil {
 				return nil, err
 			}
 			var err error
-			length, err = binary.ReadUvarint(bytes.NewReader(bs))
+			length, err = binary.ReadUvarint(bytes.NewReader(d.buf[:l]))
 			if err != nil {
 				return nil, err
 			}
 		}
 		if length > 128*1024*1024 {
-			return nil, DecodeError{BytesTooLong}
+			return nil, DecodeError{StringTooLong}
 		}
-		bs = make([]byte, length)
+		bs := make([]byte, length)
 		if _, err := io.ReadFull(d.r, bs); err != nil {
 			return nil, err
 		}
