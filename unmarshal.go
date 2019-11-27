@@ -626,7 +626,11 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 					if !target.IsNil() {
 						rets := target.Call(items)
 						if len(rets) > 0 {
-							return rets[0].Interface().(error)
+							i := rets[0].Interface()
+							if i != nil {
+								return i.(error)
+							}
+							return nil
 						}
 					}
 
@@ -663,7 +667,11 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 					if !target.IsNil() {
 						rets := target.Call(items)
 						if len(rets) > 0 {
-							return rets[0].Interface().(error)
+							i := rets[0].Interface()
+							if i != nil {
+								return i.(error)
+							}
+							return nil
 						}
 					}
 				}
