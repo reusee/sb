@@ -10,7 +10,7 @@ import (
 
 type Marshaler struct {
 	err  error
-	proc MarshalProc
+	Proc MarshalProc
 }
 
 type MarshalProc func() (*Token, MarshalProc)
@@ -19,9 +19,18 @@ var _ Stream = new(Marshaler)
 
 func NewMarshaler(obj any) *Marshaler {
 	m := new(Marshaler)
-	m.proc = m.tokenize(
+	m.Proc = m.tokenize(
 		reflect.ValueOf(obj),
 		nil,
+	)
+	return m
+}
+
+func NewMarshalerCont(obj any, cont MarshalProc) *Marshaler {
+	m := new(Marshaler)
+	m.Proc = m.tokenize(
+		reflect.ValueOf(obj),
+		cont,
 	)
 	return m
 }
@@ -357,10 +366,10 @@ check:
 	if t.err != nil {
 		return nil, t.err
 	}
-	if t.proc == nil {
+	if t.Proc == nil {
 		return nil, t.err
 	}
-	ret, t.proc = t.proc()
+	ret, t.Proc = t.Proc()
 	if ret != nil {
 		return ret, t.err
 	}

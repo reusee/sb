@@ -338,6 +338,13 @@ var marshalTestCases = []MarshalTestCase{
 			{Kind: KindTupleEnd},
 		},
 	},
+
+	{
+		marshalStringAsInt("foo"),
+		[]Token{
+			{KindInt, int(3)},
+		},
+	},
 }
 
 func TestMarshaler(t *testing.T) {
@@ -539,5 +546,15 @@ func TestBadMapKey(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal()
+	}
+}
+
+type marshalStringAsInt string
+
+var _ SBMarshaler = marshalStringAsInt("")
+
+func (m marshalStringAsInt) MarshalSB(cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc) {
+		return nil, NewMarshalerCont(len(m), cont).Proc
 	}
 }
