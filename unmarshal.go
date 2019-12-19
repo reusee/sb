@@ -560,6 +560,7 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 			numIn := valueType.NumIn()
 
 			if numOut > 0 && numIn == 0 {
+				// func() (...)
 				var items []reflect.Value
 				for i := 0; i < numOut; i++ {
 					p, err := stream.Next()
@@ -599,6 +600,7 @@ func UnmarshalValue(stream Stream, target reflect.Value) error {
 			} else if numIn > 0 &&
 				(numOut == 0 ||
 					(numOut == 1 && valueType.Out(0) == errorType)) {
+				// func(...) or func(...) error
 
 				if numIn == 1 && valueType.IsVariadic() {
 					itemType := valueType.In(0).Elem()
