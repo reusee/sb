@@ -119,16 +119,11 @@ func TestCompareBadStream(t *testing.T) {
 	if err == nil {
 		t.Fatal()
 	}
+
+	s1 = NewMarshaler(new(badTextMarshaler))
+	s2 = NewMarshaler(42)
 	_, err = Compare(s2, s1)
 	if err == nil {
 		t.Fatal()
 	}
-	func() {
-		defer func() {
-			if p := recover(); p == nil {
-				t.Fatal()
-			}
-		}()
-		MustCompare(s1, s2)
-	}()
 }

@@ -407,11 +407,11 @@ var _ SBMarshaler = Custom{}
 var _ SBUnmarshaler = new(Custom)
 
 func (c Custom) MarshalSB(cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
+	return func() (*Token, MarshalProc, error) {
 		return &Token{
 			Kind:  KindInt,
 			Value: c.Foo,
-		}, cont
+		}, cont, nil
 	}
 }
 
@@ -554,7 +554,7 @@ type marshalStringAsInt string
 var _ SBMarshaler = marshalStringAsInt("")
 
 func (m marshalStringAsInt) MarshalSB(cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
-		return nil, NewMarshalerCont(len(m), cont).Proc
+	return func() (*Token, MarshalProc, error) {
+		return nil, MarshalAny(len(m), cont), nil
 	}
 }

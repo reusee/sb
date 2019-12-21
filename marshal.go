@@ -8,67 +8,49 @@ import (
 	"sync"
 )
 
-type Marshaler struct {
-	err  error
-	Proc MarshalProc
-}
-
-type MarshalProc func() (*Token, MarshalProc)
-
-var _ Stream = new(Marshaler)
-
-func NewMarshaler(obj any) *Marshaler {
-	m := new(Marshaler)
-	m.Proc = m.tokenize(
-		reflect.ValueOf(obj),
-		nil,
-	)
-	return m
-}
-
-func NewMarshalerCont(obj any, cont MarshalProc) *Marshaler {
-	m := new(Marshaler)
-	m.Proc = m.tokenize(
-		reflect.ValueOf(obj),
-		cont,
-	)
-	return m
-}
+type MarshalProc func() (*Token, MarshalProc, error)
 
 type SBMarshaler interface {
 	MarshalSB(cont MarshalProc) MarshalProc
 }
 
-func (t *Marshaler) generateTokens(tokens []Token, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
+func NewMarshaler(value any) *MarshalProc {
+	marshaler := MarshalValue(reflect.ValueOf(value), nil)
+	return &marshaler
+}
+
+func MarshalTokens(tokens []Token, cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc, error) {
 		if len(tokens) == 0 {
-			return nil, cont
+			return nil, cont, nil
 		}
-		return &tokens[0], t.generateTokens(tokens[1:], cont)
+		return &tokens[0], MarshalTokens(tokens[1:], cont), nil
 	}
 }
 
-func (t *Marshaler) tokenize(value reflect.Value, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
+func MarshalAny(value any, cont MarshalProc) MarshalProc {
+	return MarshalValue(reflect.ValueOf(value), cont)
+}
+
+func MarshalValue(value reflect.Value, cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc, error) {
 
 		if value.IsValid() {
 			i := value.Interface()
 			if v, ok := i.(SBMarshaler); ok {
-				return nil, v.MarshalSB(cont)
+				return nil, v.MarshalSB(cont), nil
 			} else if v, ok := i.(encoding.BinaryMarshaler); ok {
 				bs, err := v.MarshalBinary()
 				if err != nil {
-					t.err = err
-					return nil, nil
+					return nil, nil, err
 				}
-				return &Token{KindString, string(bs)}, cont
+				return &Token{KindString, string(bs)}, cont, nil
 			} else if v, ok := i.(encoding.TextMarshaler); ok {
 				bs, err := v.MarshalText()
 				if err != nil {
-					t.err = err
-					return nil, nil
+					return nil, nil, err
 				}
-				return &Token{KindString, string(bs)}, cont
+				return &Token{KindString, string(bs)}, cont, nil
 			}
 		}
 
@@ -77,105 +59,105 @@ func (t *Marshaler) tokenize(value reflect.Value, cont MarshalProc) MarshalProc 
 		case reflect.Invalid:
 			return &Token{
 				Kind: KindNil,
-			}, cont
+			}, cont, nil
 
 		case reflect.Ptr, reflect.Interface:
 			if value.IsNil() {
 				return &Token{
 					Kind: KindNil,
-				}, cont
+				}, cont, nil
 			} else {
-				return nil, t.tokenize(value.Elem(), cont)
+				return nil, MarshalValue(value.Elem(), cont), nil
 			}
 
 		case reflect.Bool:
 			return &Token{
 				Kind:  KindBool,
 				Value: bool(value.Bool()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Int:
 			return &Token{
 				Kind:  KindInt,
 				Value: int(value.Int()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Int8:
 			return &Token{
 				Kind:  KindInt8,
 				Value: int8(value.Int()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Int16:
 			return &Token{
 				Kind:  KindInt16,
 				Value: int16(value.Int()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Int32:
 			return &Token{
 				Kind:  KindInt32,
 				Value: int32(value.Int()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Int64:
 			return &Token{
 				Kind:  KindInt64,
 				Value: int64(value.Int()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Uint:
 			return &Token{
 				Kind:  KindUint,
 				Value: uint(value.Uint()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Uint8:
 			return &Token{
 				Kind:  KindUint8,
 				Value: uint8(value.Uint()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Uint16:
 			return &Token{
 				Kind:  KindUint16,
 				Value: uint16(value.Uint()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Uint32:
 			return &Token{
 				Kind:  KindUint32,
 				Value: uint32(value.Uint()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Uint64:
 			return &Token{
 				Kind:  KindUint64,
 				Value: uint64(value.Uint()),
-			}, cont
+			}, cont, nil
 
 		case reflect.Float32:
 			if math.IsNaN(value.Float()) {
 				return &Token{
 					Kind: KindNaN,
-				}, cont
+				}, cont, nil
 			} else {
 				return &Token{
 					Kind:  KindFloat32,
 					Value: float32(value.Float()),
-				}, cont
+				}, cont, nil
 			}
 
 		case reflect.Float64:
 			if math.IsNaN(value.Float()) {
 				return &Token{
 					Kind: KindNaN,
-				}, cont
+				}, cont, nil
 			} else {
 				return &Token{
 					Kind:  KindFloat64,
 					Value: float64(value.Float()),
-				}, cont
+				}, cont, nil
 			}
 
 		case reflect.Array, reflect.Slice:
@@ -183,62 +165,62 @@ func (t *Marshaler) tokenize(value reflect.Value, cont MarshalProc) MarshalProc 
 				return &Token{
 					Kind:  KindBytes,
 					Value: toBytes(value),
-				}, cont
+				}, cont, nil
 			} else {
 				return &Token{
 					Kind: KindArray,
-				}, t.tokenizeArray(value, 0, cont)
+				}, MarshalArray(value, 0, cont), nil
 			}
 
 		case reflect.String:
 			return &Token{
 				Kind:  KindString,
 				Value: value.String(),
-			}, cont
+			}, cont, nil
 
 		case reflect.Struct:
 			return &Token{
 				Kind: KindObject,
-			}, t.tokenizeStruct(value, cont)
+			}, MarshalStruct(value, cont), nil
 
 		case reflect.Map:
 			return &Token{
 				Kind: KindMap,
-			}, t.tokenizeMap(value, cont)
+			}, MarshalMap(value, cont), nil
 
 		case reflect.Func:
 			items := value.Call([]reflect.Value{})
 			return &Token{
 					Kind: KindTuple,
-				}, t.tokenizeTuple(
+				}, MarshalTuple(
 					items,
 					cont,
-				)
+				), nil
 
 		default:
-			return nil, cont
+			return nil, cont, nil
 
 		}
 	}
 }
 
-func (t *Marshaler) tokenizeArray(value reflect.Value, index int, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
+func MarshalArray(value reflect.Value, index int, cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc, error) {
 		if index >= value.Len() {
 			return &Token{
 				Kind: KindArrayEnd,
-			}, cont
+			}, cont, nil
 		}
-		return nil, t.tokenize(
+		return nil, MarshalValue(
 			value.Index(index),
-			t.tokenizeArray(value, index+1, cont),
-		)
+			MarshalArray(value, index+1, cont),
+		), nil
 	}
 }
 
 var structFields sync.Map
 
-func (t *Marshaler) tokenizeStruct(value reflect.Value, cont MarshalProc) MarshalProc {
+func MarshalStruct(value reflect.Value, cont MarshalProc) MarshalProc {
 	var fields []reflect.StructField
 	valueType := value.Type()
 	if v, ok := structFields.Load(valueType); ok {
@@ -253,125 +235,121 @@ func (t *Marshaler) tokenizeStruct(value reflect.Value, cont MarshalProc) Marsha
 		})
 		structFields.Store(valueType, fields)
 	}
-	return t.tokenizeStructField(value, fields, cont)
+	return MarshalStructFields(value, fields, cont)
 }
 
-func (t *Marshaler) tokenizeStructField(value reflect.Value, fields []reflect.StructField, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
+func MarshalStructFields(value reflect.Value, fields []reflect.StructField, cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc, error) {
 		if len(fields) == 0 {
 			return &Token{
 				Kind: KindObjectEnd,
-			}, cont
+			}, cont, nil
 		}
 		field := fields[0]
 		return &Token{
 				Kind:  KindString,
 				Value: field.Name,
-			}, t.tokenize(
+			}, MarshalValue(
 				value.FieldByIndex(field.Index),
-				t.tokenizeStructField(value, fields[1:], cont),
-			)
+				MarshalStructFields(value, fields[1:], cont),
+			), nil
 	}
 }
 
-type mapTuple struct {
-	keyTokens Tokens
-	value     reflect.Value
+type MapTuple struct {
+	KeyTokens Tokens
+	Value     reflect.Value
 }
 
-func (t *Marshaler) tokenizeMap(value reflect.Value, cont MarshalProc) MarshalProc {
-	return t.tokenizeMapIter(
+func MarshalMap(value reflect.Value, cont MarshalProc) MarshalProc {
+	return MarshalMapIter(
 		value,
 		value.MapRange(),
-		make([]*mapTuple, 0, value.Len()),
+		make([]*MapTuple, 0, value.Len()),
 		cont,
 	)
 }
 
-func (t *Marshaler) tokenizeMapIter(
-	value reflect.Value,
-	iter *reflect.MapIter,
-	tuples []*mapTuple,
-	cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
+func MarshalMapIter(value reflect.Value, iter *reflect.MapIter, tuples []*MapTuple, cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc, error) {
 		if !iter.Next() {
 			// done
 			sort.Slice(tuples, func(i, j int) bool {
 				return MustCompare(
-					tuples[i].keyTokens.Iter(),
-					tuples[j].keyTokens.Iter(),
+					tuples[i].KeyTokens.Iter(),
+					tuples[j].KeyTokens.Iter(),
 				) < 0
 			})
-			return nil, t.tokenizeMapValue(tuples, cont)
+			return nil, MarshalMapValue(tuples, cont), nil
 		}
-		tokens, err := TokensFromStream(NewMarshaler(iter.Key().Interface()))
+		marshaler := MarshalValue(iter.Key(), nil)
+		tokens, err := TokensFromStream(&marshaler)
 		if err != nil {
-			t.err = err
-			return nil, nil
+			return nil, nil, err
 		} else if len(tokens) == 0 ||
 			(len(tokens) == 1 && tokens[0].Kind == KindNaN) {
-			t.err = MarshalError{BadMapKey}
-			return nil, nil
+			return nil, nil, MarshalError{BadMapKey}
 		}
-		return nil, t.tokenizeMapIter(
+		return nil, MarshalMapIter(
 			value,
 			iter,
-			append(tuples, &mapTuple{
-				keyTokens: tokens,
-				value:     iter.Value(),
+			append(tuples, &MapTuple{
+				KeyTokens: tokens,
+				Value:     iter.Value(),
 			}),
 			cont,
-		)
+		), nil
 	}
 }
 
-func (t *Marshaler) tokenizeMapValue(tuples []*mapTuple, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
+func MarshalMapValue(tuples []*MapTuple, cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc, error) {
 		if len(tuples) == 0 {
 			return &Token{
 				Kind: KindMapEnd,
-			}, cont
+			}, cont, nil
 		}
 		tuple := tuples[0]
-		return nil, t.generateTokens(
-			tuple.keyTokens,
-			t.tokenize(
-				tuple.value,
-				t.tokenizeMapValue(tuples[1:], cont),
+		return nil, MarshalTokens(
+			tuple.KeyTokens,
+			MarshalValue(
+				tuple.Value,
+				MarshalMapValue(tuples[1:], cont),
 			),
-		)
+		), nil
 	}
 }
 
-func (t *Marshaler) tokenizeTuple(items []reflect.Value, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc) {
+func MarshalTuple(items []reflect.Value, cont MarshalProc) MarshalProc {
+	return func() (*Token, MarshalProc, error) {
 		if len(items) == 0 {
 			return &Token{
 				Kind: KindTupleEnd,
-			}, cont
+			}, cont, nil
 		} else {
-			return nil, t.tokenize(
+			return nil, MarshalValue(
 				items[0],
-				t.tokenizeTuple(
+				MarshalTuple(
 					items[1:],
 					cont,
 				),
-			)
+			), nil
 		}
 	}
 }
 
-func (t *Marshaler) Next() (ret *Token, err error) {
-check:
-	if t.err != nil {
-		return nil, t.err
+var _ Stream = (*MarshalProc)(nil)
+
+func (p *MarshalProc) Next() (*Token, error) {
+	for {
+		if p == nil || *p == nil {
+			return nil, nil
+		}
+		var ret *Token
+		var err error
+		ret, *p, err = (*p)()
+		if ret != nil || err != nil {
+			return ret, err
+		}
 	}
-	if t.Proc == nil {
-		return nil, t.err
-	}
-	ret, t.Proc = t.Proc()
-	if ret != nil {
-		return ret, t.err
-	}
-	goto check
 }
