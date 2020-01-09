@@ -2,6 +2,7 @@ package sb
 
 import (
 	"bytes"
+	"crypto/md5"
 	"io"
 )
 
@@ -56,6 +57,16 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 			}
 			panic("not equal")
+		}
+
+		// hash
+		hasher := NewHasher(NewMarshaler(obj2), md5.New)
+		tokens, err := TokensFromStream(hasher)
+		if err != nil {
+			panic(err)
+		}
+		if tokens[len(tokens)-1].Kind != KindHash {
+			panic("expecting hash token")
 		}
 
 	}
