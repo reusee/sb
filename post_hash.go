@@ -6,12 +6,10 @@ import (
 	"io"
 )
 
-type PostHashProc func() (*Token, PostHashProc, error)
-
 func NewPostHasher(
 	stream Stream,
 	newState func() hash.Hash,
-) *PostHashProc {
+) *Proc {
 	states := []hash.Hash{
 		newState(),
 	}
@@ -19,7 +17,7 @@ func NewPostHasher(
 		stream,
 		newState,
 		&states,
-		func() (*Token, PostHashProc, error) {
+		func() (*Token, Proc, error) {
 			if len(states) != 1 { // NOCOVER
 				panic("bad state")
 			}
@@ -36,9 +34,9 @@ func PostHashStream(
 	stream Stream,
 	newState func() hash.Hash,
 	states *[]hash.Hash,
-	cont PostHashProc,
-) PostHashProc {
-	return func() (*Token, PostHashProc, error) {
+	cont Proc,
+) Proc {
+	return func() (*Token, Proc, error) {
 		token, err := stream.Next()
 		if err != nil { // NOCOVER
 			return nil, nil, err
@@ -128,8 +126,8 @@ func PostHashStream(
 	}
 }
 
-func emitHash(sum []byte, states *[]hash.Hash, cont PostHashProc) PostHashProc {
-	return func() (*Token, PostHashProc, error) {
+func emitHash(sum []byte, states *[]hash.Hash, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		// write to stack
 		if _, err := (*states)[len(*states)-1].Write(sum); err != nil { // NOCOVER
 			return nil, nil, err
@@ -138,22 +136,6 @@ func emitHash(sum []byte, states *[]hash.Hash, cont PostHashProc) PostHashProc {
 			Kind:  KindPostHash,
 			Value: sum,
 		}, cont, nil
-	}
-}
-
-var _ Stream = (*PostHashProc)(nil)
-
-func (p *PostHashProc) Next() (*Token, error) {
-	for {
-		if p == nil || *p == nil {
-			return nil, nil
-		}
-		var ret *Token
-		var err error
-		ret, *p, err = (*p)()
-		if ret != nil || err != nil {
-			return ret, err
-		}
 	}
 }
 

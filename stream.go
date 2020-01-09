@@ -55,8 +55,8 @@ type min struct{}
 
 var _ SBMarshaler = min{}
 
-func (_ min) MarshalSB(cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func (_ min) MarshalSB(cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		return &Token{
 			Kind: KindMin,
 		}, cont, nil
@@ -69,8 +69,8 @@ type max struct{}
 
 var _ SBMarshaler = max{}
 
-func (_ max) MarshalSB(cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func (_ max) MarshalSB(cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		return &Token{
 			Kind: KindMax,
 		}, cont, nil

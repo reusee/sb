@@ -8,19 +8,17 @@ import (
 	"sync"
 )
 
-type MarshalProc func() (*Token, MarshalProc, error)
-
 type SBMarshaler interface {
-	MarshalSB(cont MarshalProc) MarshalProc
+	MarshalSB(cont Proc) Proc
 }
 
-func NewMarshaler(value any) *MarshalProc {
+func NewMarshaler(value any) *Proc {
 	marshaler := MarshalValue(reflect.ValueOf(value), nil)
 	return &marshaler
 }
 
-func MarshalTokens(tokens []Token, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func MarshalTokens(tokens []Token, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		if len(tokens) == 0 {
 			return nil, cont, nil
 		}
@@ -28,12 +26,12 @@ func MarshalTokens(tokens []Token, cont MarshalProc) MarshalProc {
 	}
 }
 
-func MarshalAny(value any, cont MarshalProc) MarshalProc {
+func MarshalAny(value any, cont Proc) Proc {
 	return MarshalValue(reflect.ValueOf(value), cont)
 }
 
-func MarshalValue(value reflect.Value, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func MarshalValue(value reflect.Value, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 
 		if value.IsValid() {
 			i := value.Interface()
@@ -204,8 +202,8 @@ func MarshalValue(value reflect.Value, cont MarshalProc) MarshalProc {
 	}
 }
 
-func MarshalArray(value reflect.Value, index int, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func MarshalArray(value reflect.Value, index int, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		if index >= value.Len() {
 			return &Token{
 				Kind: KindArrayEnd,
@@ -220,7 +218,7 @@ func MarshalArray(value reflect.Value, index int, cont MarshalProc) MarshalProc 
 
 var structFields sync.Map
 
-func MarshalStruct(value reflect.Value, cont MarshalProc) MarshalProc {
+func MarshalStruct(value reflect.Value, cont Proc) Proc {
 	var fields []reflect.StructField
 	valueType := value.Type()
 	if v, ok := structFields.Load(valueType); ok {
@@ -238,8 +236,8 @@ func MarshalStruct(value reflect.Value, cont MarshalProc) MarshalProc {
 	return MarshalStructFields(value, fields, cont)
 }
 
-func MarshalStructFields(value reflect.Value, fields []reflect.StructField, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func MarshalStructFields(value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		if len(fields) == 0 {
 			return &Token{
 				Kind: KindObjectEnd,
@@ -261,7 +259,7 @@ type MapTuple struct {
 	Value     reflect.Value
 }
 
-func MarshalMap(value reflect.Value, cont MarshalProc) MarshalProc {
+func MarshalMap(value reflect.Value, cont Proc) Proc {
 	return MarshalMapIter(
 		value,
 		value.MapRange(),
@@ -270,8 +268,8 @@ func MarshalMap(value reflect.Value, cont MarshalProc) MarshalProc {
 	)
 }
 
-func MarshalMapIter(value reflect.Value, iter *reflect.MapIter, tuples []*MapTuple, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func MarshalMapIter(value reflect.Value, iter *reflect.MapIter, tuples []*MapTuple, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		if !iter.Next() {
 			// done
 			sort.Slice(tuples, func(i, j int) bool {
@@ -302,8 +300,8 @@ func MarshalMapIter(value reflect.Value, iter *reflect.MapIter, tuples []*MapTup
 	}
 }
 
-func MarshalMapValue(tuples []*MapTuple, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func MarshalMapValue(tuples []*MapTuple, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		if len(tuples) == 0 {
 			return &Token{
 				Kind: KindMapEnd,
@@ -320,8 +318,8 @@ func MarshalMapValue(tuples []*MapTuple, cont MarshalProc) MarshalProc {
 	}
 }
 
-func MarshalTuple(items []reflect.Value, cont MarshalProc) MarshalProc {
-	return func() (*Token, MarshalProc, error) {
+func MarshalTuple(items []reflect.Value, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
 		if len(items) == 0 {
 			return &Token{
 				Kind: KindTupleEnd,
@@ -334,22 +332,6 @@ func MarshalTuple(items []reflect.Value, cont MarshalProc) MarshalProc {
 					cont,
 				),
 			), nil
-		}
-	}
-}
-
-var _ Stream = (*MarshalProc)(nil)
-
-func (p *MarshalProc) Next() (*Token, error) {
-	for {
-		if p == nil || *p == nil {
-			return nil, nil
-		}
-		var ret *Token
-		var err error
-		ret, *p, err = (*p)()
-		if ret != nil || err != nil {
-			return ret, err
 		}
 	}
 }
