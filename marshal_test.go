@@ -21,7 +21,7 @@ var marshalTestCases = []MarshalTestCase{
 	{
 		int(42),
 		[]Token{
-			{KindInt, int(42)},
+			{Kind: KindInt, Value: int(42)},
 		},
 	},
 
@@ -31,28 +31,28 @@ var marshalTestCases = []MarshalTestCase{
 			return &i
 		}(),
 		[]Token{
-			{KindInt32, int32(42)},
+			{Kind: KindInt32, Value: int32(42)},
 		},
 	},
 
 	{
 		true,
 		[]Token{
-			{KindBool, true},
+			{Kind: KindBool, Value: true},
 		},
 	},
 
 	{
 		uint32(42),
 		[]Token{
-			{KindUint32, uint32(42)},
+			{Kind: KindUint32, Value: uint32(42)},
 		},
 	},
 
 	{
 		float32(42),
 		[]Token{
-			{KindFloat32, float32(42)},
+			{Kind: KindFloat32, Value: float32(42)},
 		},
 	},
 
@@ -60,9 +60,9 @@ var marshalTestCases = []MarshalTestCase{
 		[]int{42, 4, 2},
 		[]Token{
 			{Kind: KindArray},
-			{KindInt, int(42)},
-			{KindInt, int(4)},
-			{KindInt, int(2)},
+			{Kind: KindInt, Value: int(42)},
+			{Kind: KindInt, Value: int(4)},
+			{Kind: KindInt, Value: int(2)},
 			{Kind: KindArrayEnd},
 		},
 	},
@@ -75,14 +75,14 @@ var marshalTestCases = []MarshalTestCase{
 		[]Token{
 			{Kind: KindArray},
 			{Kind: KindArray},
-			{KindInt, int(42)},
-			{KindInt, int(4)},
-			{KindInt, int(2)},
+			{Kind: KindInt, Value: int(42)},
+			{Kind: KindInt, Value: int(4)},
+			{Kind: KindInt, Value: int(2)},
 			{Kind: KindArrayEnd},
 			{Kind: KindArray},
-			{KindInt, int(2)},
-			{KindInt, int(4)},
-			{KindInt, int(42)},
+			{Kind: KindInt, Value: int(2)},
+			{Kind: KindInt, Value: int(4)},
+			{Kind: KindInt, Value: int(42)},
 			{Kind: KindArrayEnd},
 			{Kind: KindArrayEnd},
 		},
@@ -91,7 +91,7 @@ var marshalTestCases = []MarshalTestCase{
 	{
 		"foo",
 		[]Token{
-			{KindString, "foo"},
+			{Kind: KindString, Value: "foo"},
 		},
 	},
 
@@ -109,14 +109,14 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindObject},
-			{KindString, "Bar"},
-			{KindFloat32, float32(42)},
-			{KindString, "Baz"},
-			{KindString, "42"},
-			{KindString, "Boo"},
-			{KindBool, false},
-			{KindString, "Foo"},
-			{KindInt, int(42)},
+			{Kind: KindString, Value: "Bar"},
+			{Kind: KindFloat32, Value: float32(42)},
+			{Kind: KindString, Value: "Baz"},
+			{Kind: KindString, Value: "42"},
+			{Kind: KindString, Value: "Boo"},
+			{Kind: KindBool, Value: false},
+			{Kind: KindString, Value: "Foo"},
+			{Kind: KindInt, Value: int(42)},
 			{Kind: KindObjectEnd},
 		},
 	},
@@ -135,7 +135,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindArray},
-			{KindInt, int(42)},
+			{Kind: KindInt, Value: int(42)},
 			{Kind: KindNil},
 			{Kind: KindNil},
 			{Kind: KindArrayEnd},
@@ -194,7 +194,7 @@ var marshalTestCases = []MarshalTestCase{
 		}(),
 		[]Token{
 			{Kind: KindArray},
-			{KindInt32, int32(42)},
+			{Kind: KindInt32, Value: int32(42)},
 			{Kind: KindArrayEnd},
 		},
 	},
@@ -222,7 +222,7 @@ var marshalTestCases = []MarshalTestCase{
 		return MarshalTestCase{
 			str,
 			[]Token{
-				{KindString, str},
+				{Kind: KindString, Value: str},
 			},
 		}
 	}(),
@@ -230,7 +230,7 @@ var marshalTestCases = []MarshalTestCase{
 	{
 		foo(42),
 		[]Token{
-			{KindInt, int(42)},
+			{Kind: KindInt, Value: int(42)},
 		},
 	},
 
@@ -240,7 +240,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindArray},
-			{KindInt, int(42)},
+			{Kind: KindInt, Value: int(42)},
 			{Kind: KindArrayEnd},
 		},
 	},
@@ -253,8 +253,8 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindObject},
-			{KindString, "Foo"},
-			{KindInt, int(42)},
+			{Kind: KindString, Value: "Foo"},
+			{Kind: KindInt, Value: int(42)},
 			{Kind: KindObjectEnd},
 		},
 	},
@@ -269,9 +269,9 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindObject},
-			{KindString, "Foo"},
+			{Kind: KindString, Value: "Foo"},
 			{Kind: KindArray},
-			{KindInt, int(42)},
+			{Kind: KindInt, Value: int(42)},
 			{Kind: KindArrayEnd},
 			{Kind: KindObjectEnd},
 		},
@@ -291,8 +291,8 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindMap},
-			{KindInt, 1},
-			{KindInt, 1},
+			{Kind: KindInt, Value: 1},
+			{Kind: KindInt, Value: 1},
 			{Kind: KindMapEnd},
 		},
 	},
@@ -304,10 +304,10 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindMap},
-			{KindInt, 1},
-			{KindInt, 1},
-			{KindInt, 42},
-			{KindInt, 42},
+			{Kind: KindInt, Value: 1},
+			{Kind: KindInt, Value: 1},
+			{Kind: KindInt, Value: 42},
+			{Kind: KindInt, Value: 42},
 			{Kind: KindMapEnd},
 		},
 	},
@@ -319,10 +319,10 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindMap},
-			{KindString, "foo"},
-			{KindString, "bar"},
-			{KindInt, 42},
-			{KindInt, 42},
+			{Kind: KindString, Value: "foo"},
+			{Kind: KindString, Value: "bar"},
+			{Kind: KindInt, Value: 42},
+			{Kind: KindInt, Value: 42},
 			{Kind: KindMapEnd},
 		},
 	},
@@ -333,8 +333,8 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindTuple},
-			{KindInt, 42},
-			{KindString, "42"},
+			{Kind: KindInt, Value: 42},
+			{Kind: KindString, Value: "42"},
 			{Kind: KindTupleEnd},
 		},
 	},
@@ -342,7 +342,7 @@ var marshalTestCases = []MarshalTestCase{
 	{
 		marshalStringAsInt("foo"),
 		[]Token{
-			{KindInt, int(3)},
+			{Kind: KindInt, Value: int(3)},
 		},
 	},
 }
