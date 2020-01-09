@@ -3,6 +3,7 @@ package sb
 import (
 	"bytes"
 	"crypto/md5"
+	"hash/fnv"
 	"io"
 )
 
@@ -67,6 +68,19 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 		if tokens[len(tokens)-1].Kind != KindHash {
 			panic("expecting hash token")
+		}
+
+		// sum
+		sum1, err := HashSum(NewMarshaler(obj2), fnv.New128)
+		if err != nil {
+			panic(err)
+		}
+		sum2, err := HashSum(NewMarshaler(obj2), fnv.New128a)
+		if err != nil {
+			panic(err)
+		}
+		if bytes.Equal(sum1, sum2) {
+			panic("should not equal")
 		}
 
 	}
