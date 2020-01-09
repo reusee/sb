@@ -20,6 +20,14 @@ func TestHasher(t *testing.T) {
 			t.Fatal("not hash")
 		}
 
+		// compare hashed and not hashed
+		if MustCompare(
+			tokens.Iter(),
+			NewMarshaler(c.value),
+		) != 0 {
+			t.Fatal("not equal")
+		}
+
 		// hash tokens will be ignore
 		hasher2 := NewHasher(tokens.Iter(), sha1.New)
 		tokens2, err := TokensFromStream(hasher2)

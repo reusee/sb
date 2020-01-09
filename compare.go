@@ -7,13 +7,21 @@ import (
 
 func Compare(stream1, stream2 Stream) (int, error) {
 	for {
+	read1:
 		t1, err := stream1.Next()
 		if err != nil {
 			return 0, err
 		}
+		if t1 != nil && t1.Kind == KindHash {
+			goto read1
+		}
+	read2:
 		t2, err := stream2.Next()
 		if err != nil {
 			return 0, err
+		}
+		if t2 != nil && t2.Kind == KindHash {
+			goto read2
 		}
 
 		if t1 == nil && t2 == nil {
