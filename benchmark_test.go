@@ -2,6 +2,7 @@ package sb
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"fmt"
 	"testing"
 )
@@ -9,6 +10,21 @@ import (
 func BenchmarkMarshalInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		m := NewMarshaler(42)
+		for {
+			token, err := m.Next()
+			if err != nil {
+				b.Fatal(err)
+			}
+			if token == nil {
+				break
+			}
+		}
+	}
+}
+
+func BenchmarkHashIntSha1(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		m := NewHasher(NewMarshaler(42), sha1.New)
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -51,6 +67,22 @@ func BenchmarkMarshalStruct(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		m := NewMarshaler(benchFoo)
+		for {
+			token, err := m.Next()
+			if err != nil {
+				b.Fatal(err)
+			}
+			if token == nil {
+				break
+			}
+		}
+	}
+}
+
+func BenchmarkHashStructSha1(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m := NewHasher(NewMarshaler(benchFoo), sha1.New)
 		for {
 			token, err := m.Next()
 			if err != nil {
