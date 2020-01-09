@@ -110,7 +110,7 @@ func HashStream(
 
 		case KindArray, KindObject, KindMap, KindTuple:
 			// push state
-			*states = append(*states, newState())
+			*states = append(*states, state)
 			return token, HashStream(stream, newState, states, cont), nil
 
 		case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
