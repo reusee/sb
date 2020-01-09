@@ -6,25 +6,25 @@ import (
 	"io"
 )
 
-type HashProc func() (*Token, HashProc, error)
+type PostHashProc func() (*Token, PostHashProc, error)
 
-func NewHasher(
+func NewPostHasher(
 	stream Stream,
 	newState func() hash.Hash,
-) *HashProc {
+) *PostHashProc {
 	states := []hash.Hash{
 		newState(),
 	}
-	hasher := HashStream(
+	hasher := PostHashStream(
 		stream,
 		newState,
 		&states,
-		func() (*Token, HashProc, error) {
+		func() (*Token, PostHashProc, error) {
 			if len(states) != 1 { // NOCOVER
 				panic("bad state")
 			}
 			return &Token{
-				Kind:  KindHash,
+				Kind:  KindPostHash,
 				Value: states[0].Sum(nil),
 			}, nil, nil
 		},
@@ -32,13 +32,13 @@ func NewHasher(
 	return &hasher
 }
 
-func HashStream(
+func PostHashStream(
 	stream Stream,
 	newState func() hash.Hash,
 	states *[]hash.Hash,
-	cont HashProc,
-) HashProc {
-	return func() (*Token, HashProc, error) {
+	cont PostHashProc,
+) PostHashProc {
+	return func() (*Token, PostHashProc, error) {
 		token, err := stream.Next()
 		if err != nil { // NOCOVER
 			return nil, nil, err
@@ -47,9 +47,9 @@ func HashStream(
 			// stop
 			return nil, cont, nil
 		}
-		if token.Kind == KindHash {
+		if token.Kind == KindPostHash {
 			// rip hash tokens
-			return nil, HashStream(stream, newState, states, cont), nil
+			return nil, PostHashStream(stream, newState, states, cont), nil
 		}
 
 		state := newState()
@@ -67,7 +67,7 @@ func HashStream(
 			sum := state.Sum(nil)
 			return token, emitHash(
 				sum, states,
-				HashStream(stream, newState, states, cont),
+				PostHashStream(stream, newState, states, cont),
 			), nil
 
 		case KindBool,
@@ -105,13 +105,13 @@ func HashStream(
 			sum := state.Sum(nil)
 			return token, emitHash(
 				sum, states,
-				HashStream(stream, newState, states, cont),
+				PostHashStream(stream, newState, states, cont),
 			), nil
 
 		case KindArray, KindObject, KindMap, KindTuple:
 			// push state
 			*states = append(*states, state)
-			return token, HashStream(stream, newState, states, cont), nil
+			return token, PostHashStream(stream, newState, states, cont), nil
 
 		case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
 			// pop state
@@ -119,7 +119,7 @@ func HashStream(
 			*states = (*states)[:len(*states)-1]
 			return token, emitHash(
 				sum, states,
-				HashStream(stream, newState, states, cont),
+				PostHashStream(stream, newState, states, cont),
 			), nil
 
 		}
@@ -128,22 +128,22 @@ func HashStream(
 	}
 }
 
-func emitHash(sum []byte, states *[]hash.Hash, cont HashProc) HashProc {
-	return func() (*Token, HashProc, error) {
+func emitHash(sum []byte, states *[]hash.Hash, cont PostHashProc) PostHashProc {
+	return func() (*Token, PostHashProc, error) {
 		// write to stack
 		if _, err := (*states)[len(*states)-1].Write(sum); err != nil { // NOCOVER
 			return nil, nil, err
 		}
 		return &Token{
-			Kind:  KindHash,
+			Kind:  KindPostHash,
 			Value: sum,
 		}, cont, nil
 	}
 }
 
-var _ Stream = (*HashProc)(nil)
+var _ Stream = (*PostHashProc)(nil)
 
-func (p *HashProc) Next() (*Token, error) {
+func (p *PostHashProc) Next() (*Token, error) {
 	for {
 		if p == nil || *p == nil {
 			return nil, nil
@@ -164,7 +164,7 @@ func HashSum(
 	sum []byte,
 	err error,
 ) {
-	hasher := NewHasher(stream, newState)
+	hasher := NewPostHasher(stream, newState)
 	var token, last *Token
 	for {
 		token, err = hasher.Next()
@@ -172,7 +172,7 @@ func HashSum(
 			return nil, err
 		}
 		if token == nil {
-			if last.Kind != KindHash {
+			if last.Kind != KindPostHash {
 				panic("bad hasher")
 			}
 			sum = last.Value.([]byte)

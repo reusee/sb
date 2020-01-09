@@ -12,7 +12,7 @@ func Compare(stream1, stream2 Stream) (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		if t1 != nil && t1.Kind == KindHash {
+		if t1 != nil && t1.Kind == KindPostHash {
 			goto read1
 		}
 	read2:
@@ -20,7 +20,7 @@ func Compare(stream1, stream2 Stream) (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		if t2 != nil && t2.Kind == KindHash {
+		if t2 != nil && t2.Kind == KindPostHash {
 			goto read2
 		}
 

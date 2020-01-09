@@ -61,12 +61,12 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// hash
-		hasher := NewHasher(NewMarshaler(obj2), md5.New)
+		hasher := NewPostHasher(NewMarshaler(obj2), md5.New)
 		tokens, err := TokensFromStream(hasher)
 		if err != nil {
 			panic(err)
 		}
-		if tokens[len(tokens)-1].Kind != KindHash {
+		if tokens[len(tokens)-1].Kind != KindPostHash {
 			panic("expecting hash token")
 		}
 

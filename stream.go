@@ -41,7 +41,7 @@ const (
 	KindMap    = 200
 	KindTuple  = 210
 
-	KindHash = 250
+	KindPostHash = 250
 
 	KindMax Kind = 0xFF
 )
