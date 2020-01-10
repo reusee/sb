@@ -34,7 +34,6 @@ func TreeFromStream(
 					KindObjectEnd,
 					KindMapEnd,
 					KindTupleEnd:
-					last.Hash = hash
 					last.Paired.Hash = hash
 				default:
 					last.Hash = hash
