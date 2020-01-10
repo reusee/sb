@@ -121,6 +121,8 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// random transform
 		transforms := []func(Stream) Stream{
+
+			// marshal and unmarshal
 			func(in Stream) Stream {
 				var v any
 				if err := Unmarshal(in, &v); err != nil {
@@ -128,6 +130,8 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 				return NewMarshaler(v)
 			},
+
+			// encode and decode
 			func(in Stream) Stream {
 				buf := new(bytes.Buffer)
 				if err := Encode(buf, in); err != nil {
@@ -135,24 +139,69 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 				return NewDecoder(buf)
 			},
+
+			// post hasher
 			func(in Stream) Stream {
 				return NewPostHasher(in, md5.New)
 			},
+
+			// tokens
 			func(in Stream) Stream {
 				return MustTokensFromStream(in).Iter()
 			},
+
+			// tree iter
 			func(in Stream) Stream {
 				return MustTreeFromStream(in).Iter()
 			},
+
+			// tree func iter
 			func(in Stream) Stream {
 				return MustTreeFromStream(in).IterFunc(func(*Tree) (*Token, error) {
 					return nil, nil
 				})
 			},
+
+			// ref and deref
+			func(in Stream) Stream {
+				type ref struct {
+					Hash []byte
+					Tree *Tree
+				}
+				var refs []ref
+				refed := MustTreeFromStream(in).IterFunc(func(tree *Tree) (*Token, error) {
+					if len(tree.Hash) == 0 {
+						return nil, nil
+					}
+					if rand.Intn(2) != 0 {
+						return nil, nil
+					}
+					refs = append(refs, ref{
+						Hash: tree.Hash,
+						Tree: tree,
+					})
+					return &Token{
+						Kind:  KindRef,
+						Value: tree.Hash,
+					}, nil
+				})
+				return Deref(refed, func(hash []byte) (Stream, error) {
+					for _, ref := range refs {
+						if bytes.Equal(ref.Hash, hash) {
+							return ref.Tree.Iter(), nil
+						}
+					}
+					panic("bad ref")
+				})
+			},
+
+			// stream iter
 			func(in Stream) Stream {
 				proc := IterStream(in, nil)
 				return &proc
 			},
+
+			// random filter post hash
 			func(in Stream) Stream {
 				return Filter(in, func(token *Token) bool {
 					return token.Kind == KindPostHash &&
