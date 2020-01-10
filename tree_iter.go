@@ -9,10 +9,19 @@ func IterTree(
 	tree *Tree,
 	cont Proc,
 ) Proc {
-	return func() (token *Token, next Proc, err error) {
-		token = tree.Token
-		next = IterSubTrees(tree.Subs, 0, cont)
-		return
+	return func() (*Token, Proc, error) {
+		return tree.Token, IterSubTrees(
+			tree.Subs, 0,
+			func() (*Token, Proc, error) {
+				if len(tree.Hash) > 0 {
+					return &Token{
+						Kind:  KindPostHash,
+						Value: tree.Hash,
+					}, cont, nil
+				}
+				return nil, cont, nil
+			},
+		), nil
 	}
 }
 
