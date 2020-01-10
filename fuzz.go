@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"hash/fnv"
 	"io"
+	"math/rand"
 )
 
 func Fuzz(data []byte) int { // NOCOVER
@@ -24,6 +25,12 @@ func Fuzz(data []byte) int { // NOCOVER
 			return 0
 		}
 		teeBytes := tee.Bytes()
+
+		// tree
+		_, err := TreeFromStream(NewDecoder(bytes.NewReader(teeBytes)))
+		if err != nil {
+			return 0
+		}
 
 		// marshal and encode
 		buf := new(bytes.Buffer)
@@ -110,6 +117,47 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 		if !bytes.Equal(hashedTree.Hash, sum1) {
 			panic("hash not match")
+		}
+
+		// random transform
+		transforms := []func(Stream) Stream{
+			func(in Stream) Stream {
+				var v any
+				if err := Unmarshal(in, &v); err != nil {
+					panic(err)
+				}
+				return NewMarshaler(v)
+			},
+			func(in Stream) Stream {
+				buf := new(bytes.Buffer)
+				if err := Encode(buf, in); err != nil {
+					panic(err)
+				}
+				return NewDecoder(buf)
+			},
+			func(in Stream) Stream {
+				return NewPostHasher(in, md5.New)
+			},
+			func(in Stream) Stream {
+				return MustTokensFromStream(in).Iter()
+			},
+			func(in Stream) Stream {
+				return MustTreeFromStream(in).Iter()
+			},
+		}
+		fn := func(in Stream) Stream {
+			return in
+		}
+		for _, i := range rand.Perm(len(transforms) * 8) {
+			i := i % len(transforms)
+			f := fn
+			fn = func(in Stream) Stream {
+				return f(transforms[i](in))
+			}
+		}
+		s := fn(tree.Iter())
+		if MustCompare(s, tree.Iter()) != 0 {
+			panic("not equal")
 		}
 
 	}
