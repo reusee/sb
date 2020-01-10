@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"math"
 )
@@ -154,7 +155,7 @@ func (d *Decoder) Next() (token *Token, err error) {
 		}
 		value = string(bs)
 
-	case KindBytes:
+	case KindBytes, KindPostHash:
 		var length uint64
 		if _, err := io.ReadFull(d.r, d.buf[:1]); err != nil {
 			return nil, err
@@ -183,6 +184,15 @@ func (d *Decoder) Next() (token *Token, err error) {
 			return nil, err
 		}
 		value = bs
+
+	case KindMin,
+		KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd,
+		KindNil, KindNaN,
+		KindArray, KindObject, KindMap, KindTuple,
+		KindMax:
+
+	default:
+		return nil, fmt.Errorf("%w: %d", BadTokenKind, kind)
 
 	}
 
