@@ -144,6 +144,12 @@ func Fuzz(data []byte) int { // NOCOVER
 			func(in Stream) Stream {
 				return MustTreeFromStream(in).Iter()
 			},
+			func(in Stream) Stream {
+				return Filter(in, func(token *Token) bool {
+					return token.Kind == KindPostHash &&
+						rand.Intn(2) == 0
+				})
+			},
 		}
 		fn := func(in Stream) Stream {
 			return in
@@ -158,6 +164,17 @@ func Fuzz(data []byte) int { // NOCOVER
 		s := fn(tree.Iter())
 		if MustCompare(s, tree.Iter()) != 0 {
 			panic("not equal")
+		}
+		sum1, err = HashSum(tree.Iter(), md5.New)
+		if err != nil {
+			panic(err)
+		}
+		sum2, err = HashSum(fn(tree.Iter()), md5.New)
+		if err != nil {
+			panic(err)
+		}
+		if !bytes.Equal(sum1, sum2) {
+			panic("hash not equal")
 		}
 
 	}
