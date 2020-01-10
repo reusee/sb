@@ -25,6 +25,9 @@ func TreeFromStream(
 		}
 		if token.Kind == KindPostHash {
 			// set hash to last node
+			if last.Token == nil {
+				return nil, UnexpectedHashToken
+			}
 			if hash, ok := token.Value.([]byte); ok {
 				switch last.Kind {
 				case KindArrayEnd,
