@@ -25,15 +25,17 @@ func TreeFromStream(
 		}
 		if token.Kind == KindPostHash {
 			// set hash to last node
-			switch last.Kind {
-			case KindArrayEnd,
-				KindObjectEnd,
-				KindMapEnd,
-				KindTupleEnd:
-				last.Hash = token.Value.([]byte)
-				last.Paired.Hash = token.Value.([]byte)
-			default:
-				last.Hash = token.Value.([]byte)
+			if hash, ok := token.Value.([]byte); ok {
+				switch last.Kind {
+				case KindArrayEnd,
+					KindObjectEnd,
+					KindMapEnd,
+					KindTupleEnd:
+					last.Hash = hash
+					last.Paired.Hash = hash
+				default:
+					last.Hash = hash
+				}
 			}
 		} else {
 			node := &Tree{
@@ -46,6 +48,9 @@ func TreeFromStream(
 			case KindArray, KindObject, KindMap, KindTuple:
 				stack = append(stack, node)
 			case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
+				if len(stack) == 1 {
+					return nil, UnexpectedEndToken
+				}
 				node.Paired = parent
 				stack = stack[:len(stack)-1]
 			}

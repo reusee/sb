@@ -69,4 +69,5 @@ var (
 	BadTokenKind        = fmt.Errorf("bad token kind")
 	BadTupleType        = fmt.Errorf("bad tuple type")
 	BadTargetType       = fmt.Errorf("bad target type")
+	UnexpectedEndToken  = fmt.Errorf("unexpected end token")
 )
