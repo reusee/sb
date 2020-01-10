@@ -1,24 +1,19 @@
 package sb
 
-type TokensIter struct {
-	tokens Tokens
-	index  int
+func (t Tokens) Iter() *Proc {
+	proc := IterTokens(t, 0, nil)
+	return &proc
 }
 
-func (t Tokens) Iter() *TokensIter {
-	return &TokensIter{
-		tokens: t,
-		index:  0,
+func IterTokens(
+	tokens Tokens,
+	index int,
+	cont Proc,
+) Proc {
+	return func() (*Token, Proc, error) {
+		if index >= len(tokens) {
+			return nil, cont, nil
+		}
+		return &tokens[index], IterTokens(tokens, index+1, cont), nil
 	}
-}
-
-var _ Stream = new(TokensIter)
-
-func (t *TokensIter) Next() (ret *Token, err error) {
-	if t.index >= len(t.tokens) {
-		return nil, nil
-	}
-	ret = &t.tokens[t.index]
-	t.index++
-	return
 }
