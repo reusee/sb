@@ -99,9 +99,10 @@ func IterSubTreesFunc(
 		return nil, IterTreeFunc(
 			subs[index],
 			fn,
-			IterSubTrees(
+			IterSubTreesFunc(
 				subs,
 				index+1,
+				fn,
 				cont,
 			),
 		), nil
