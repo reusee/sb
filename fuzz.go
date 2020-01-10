@@ -145,6 +145,15 @@ func Fuzz(data []byte) int { // NOCOVER
 				return MustTreeFromStream(in).Iter()
 			},
 			func(in Stream) Stream {
+				return MustTreeFromStream(in).IterFunc(func(*Tree) (*Token, error) {
+					return nil, nil
+				})
+			},
+			func(in Stream) Stream {
+				proc := IterStream(in, nil)
+				return &proc
+			},
+			func(in Stream) Stream {
 				return Filter(in, func(token *Token) bool {
 					return token.Kind == KindPostHash &&
 						rand.Intn(2) == 0
