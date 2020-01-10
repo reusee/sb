@@ -17,6 +17,10 @@ type SBUnmarshaler interface {
 
 func UnmarshalValue(stream Stream, target reflect.Value) error {
 
+	stream = Filter(stream, func(token *Token) bool {
+		return token.Kind == KindPostHash
+	})
+
 	if target.IsValid() {
 		i := target.Interface()
 		if v, ok := i.(SBUnmarshaler); ok {
