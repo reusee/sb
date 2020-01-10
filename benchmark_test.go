@@ -22,6 +22,21 @@ func BenchmarkMarshalInt(b *testing.B) {
 	}
 }
 
+func BenchmarkTreeFromMarshalInt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		m := MustTreeFromStream(NewMarshaler(42)).Iter()
+		for {
+			token, err := m.Next()
+			if err != nil {
+				b.Fatal(err)
+			}
+			if token == nil {
+				break
+			}
+		}
+	}
+}
+
 func BenchmarkHashIntSha1(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		m := NewPostHasher(NewMarshaler(42), sha1.New)
@@ -67,6 +82,22 @@ func BenchmarkMarshalStruct(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		m := NewMarshaler(benchFoo)
+		for {
+			token, err := m.Next()
+			if err != nil {
+				b.Fatal(err)
+			}
+			if token == nil {
+				break
+			}
+		}
+	}
+}
+
+func BenchmarkTreeFromMarshalStruct(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m := MustTreeFromStream(NewMarshaler(benchFoo)).Iter()
 		for {
 			token, err := m.Next()
 			if err != nil {

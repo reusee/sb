@@ -56,3 +56,11 @@ func TreeFromStream(
 	}
 	return root, nil
 }
+
+func MustTreeFromStream(stream Stream) *Tree {
+	t, err := TreeFromStream(stream)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
