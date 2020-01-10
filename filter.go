@@ -18,8 +18,8 @@ func filter(
 		if err != nil {
 			return nil, nil, err
 		}
-		if predict(token) {
-			return nil, filter(stream, predict, cont), nil
+		if token != nil && predict(token) {
+			token = nil
 		}
 		return token, filter(stream, predict, cont), nil
 	}
