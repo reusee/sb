@@ -62,11 +62,11 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// hash
 		hasher := NewPostHasher(NewMarshaler(obj2), md5.New)
-		tokens, err := TokensFromStream(hasher)
+		hashedTokens, err := TokensFromStream(hasher)
 		if err != nil {
 			panic(err)
 		}
-		if tokens[len(tokens)-1].Kind != KindPostHash {
+		if hashedTokens[len(hashedTokens)-1].Kind != KindPostHash {
 			panic("expecting hash token")
 		}
 
@@ -81,6 +81,35 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 		if bytes.Equal(sum1, sum2) {
 			panic("should not equal")
+		}
+
+		// tree
+		tree, err := TreeFromStream(NewDecoder(bytes.NewReader(bs)))
+		if err != nil {
+			panic(err)
+		}
+		if MustCompare(
+			NewMarshaler(obj2),
+			tree.Iter(),
+		) != 0 {
+			panic("not equal")
+		}
+
+		// hashed tree
+		hashedTree, err := TreeFromStream(
+			NewPostHasher(NewMarshaler(obj2), fnv.New128),
+		)
+		if err != nil {
+			panic(err)
+		}
+		if MustCompare(
+			hashedTree.Iter(),
+			tree.Iter(),
+		) != 0 {
+			panic("not equal")
+		}
+		if !bytes.Equal(hashedTree.Hash, sum1) {
+			panic("hash not match")
 		}
 
 	}
