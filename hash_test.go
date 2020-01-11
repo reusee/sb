@@ -2,7 +2,6 @@ package sb
 
 import (
 	"bytes"
-	"crypto/sha1"
 	"hash/fnv"
 	"testing"
 )
@@ -10,7 +9,7 @@ import (
 func TestHasher(t *testing.T) {
 	for _, c := range marshalTestCases {
 		marshaler := NewMarshaler(c.value)
-		hasher := NewPostHasher(marshaler, sha1.New)
+		hasher := NewPostHasher(marshaler, newMapHashState)
 		tokens, err := TokensFromStream(hasher)
 		if err != nil {
 			t.Fatal(err)
@@ -29,7 +28,7 @@ func TestHasher(t *testing.T) {
 		}
 
 		// hash tokens will be ignore
-		hasher2 := NewPostHasher(tokens.Iter(), sha1.New)
+		hasher2 := NewPostHasher(tokens.Iter(), newMapHashState)
 		tokens2, err := TokensFromStream(hasher2)
 		if err != nil {
 			t.Fatal(err)

@@ -2,7 +2,6 @@ package sb
 
 import (
 	"bytes"
-	"crypto/sha1"
 	"testing"
 )
 
@@ -17,7 +16,7 @@ func TestRef(t *testing.T) {
 				I: 42,
 				S: "42",
 			}),
-			sha1.New,
+			newMapHashState,
 		),
 	)
 

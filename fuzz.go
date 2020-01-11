@@ -2,7 +2,6 @@ package sb
 
 import (
 	"bytes"
-	"crypto/md5"
 	"hash/fnv"
 	"io"
 	"math/rand"
@@ -68,7 +67,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// hash
-		hasher := NewPostHasher(NewMarshaler(obj2), md5.New)
+		hasher := NewPostHasher(NewMarshaler(obj2), newMapHashState)
 		hashedTokens, err := TokensFromStream(hasher)
 		if err != nil {
 			panic(err)
@@ -142,7 +141,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 			// post hasher
 			func(in Stream) Stream {
-				return NewPostHasher(in, md5.New)
+				return NewPostHasher(in, newMapHashState)
 			},
 
 			// tokens
@@ -223,11 +222,11 @@ func Fuzz(data []byte) int { // NOCOVER
 		if MustCompare(s, tree.Iter()) != 0 {
 			panic("not equal")
 		}
-		sum1, err = HashSum(tree.Iter(), md5.New)
+		sum1, err = HashSum(tree.Iter(), newMapHashState)
 		if err != nil {
 			panic(err)
 		}
-		sum2, err = HashSum(fn(tree.Iter()), md5.New)
+		sum2, err = HashSum(fn(tree.Iter()), newMapHashState)
 		if err != nil {
 			panic(err)
 		}

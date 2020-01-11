@@ -2,7 +2,6 @@ package sb
 
 import (
 	"bytes"
-	"crypto/sha1"
 	"fmt"
 	"testing"
 )
@@ -39,7 +38,7 @@ func BenchmarkTreeFromMarshalInt(b *testing.B) {
 
 func BenchmarkHashIntSha1(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := NewPostHasher(NewMarshaler(42), sha1.New)
+		m := NewPostHasher(NewMarshaler(42), newMapHashState)
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -113,7 +112,7 @@ func BenchmarkTreeFromMarshalStruct(b *testing.B) {
 func BenchmarkHashStructSha1(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := NewPostHasher(NewMarshaler(benchFoo), sha1.New)
+		m := NewPostHasher(NewMarshaler(benchFoo), newMapHashState)
 		for {
 			token, err := m.Next()
 			if err != nil {
