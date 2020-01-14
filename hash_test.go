@@ -55,3 +55,19 @@ func TestHasher(t *testing.T) {
 		}
 	}
 }
+
+func TestIntHash(t *testing.T) {
+	tokens, err := TokensFromStream(
+		NewPostHasher(
+			NewMarshaler(42),
+			newMapHashState,
+		),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(tokens) != 2 {
+		dumpStream(tokens.Iter(), "->")
+		t.Fatalf("got %d\n", len(tokens))
+	}
+}
