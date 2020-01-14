@@ -118,6 +118,14 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("hash not match")
 		}
 
+		mapHashSum, err := HashSum(
+			NewMarshaler(obj2),
+			newMapHashState,
+		)
+		if err != nil {
+			panic(err)
+		}
+
 		// random transform
 		transforms := []func(Stream) Stream{
 
@@ -206,6 +214,15 @@ func Fuzz(data []byte) int { // NOCOVER
 					return token.Kind == KindPostHash &&
 						rand.Intn(2) == 0
 				})
+			},
+
+			// find
+			func(in Stream) Stream {
+				sub, err := FindByHash(in, mapHashSum, newMapHashState)
+				if err != nil {
+					panic(err)
+				}
+				return sub
 			},
 		}
 		fn := func(in Stream) Stream {
