@@ -3,6 +3,7 @@ package sb
 import (
 	crand "crypto/rand"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"hash"
 	"hash/maphash"
@@ -16,6 +17,7 @@ type (
 
 var (
 	pt = fmt.Printf
+	is = errors.Is
 
 	anyType   = reflect.TypeOf((*any)(nil)).Elem()
 	errorType = reflect.TypeOf((*error)(nil)).Elem()

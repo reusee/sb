@@ -21,3 +21,14 @@ func TestTree(t *testing.T) {
 		}
 	}
 }
+
+func TestMoreThanOneValue(t *testing.T) {
+	str := Tokens{
+		{Kind: KindInt, Value: 42},
+		{Kind: KindInt, Value: 42},
+	}.Iter()
+	_, err := TreeFromStream(str)
+	if !is(err, MoreThanOneValue) {
+		t.Fatal()
+	}
+}
