@@ -6,16 +6,6 @@ import (
 	"hash"
 )
 
-type HashFinder interface {
-	FindByHash(
-		hash []byte,
-		newState func() hash.Hash,
-	) (
-		subStream Stream,
-		err error,
-	)
-}
-
 func FindByHash(
 	stream Stream,
 	hash []byte,
@@ -25,11 +15,6 @@ func FindByHash(
 	err error,
 ) {
 
-	if finder, ok := stream.(HashFinder); ok {
-		return finder.FindByHash(hash, newState)
-	}
-
-	// build tree
 	root := new(Tree)
 	anchor := root
 	stack := []*Tree{
