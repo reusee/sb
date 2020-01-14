@@ -58,6 +58,9 @@ func TreeFromStream(
 			}
 		}
 	}
+	if len(root.Subs) > 1 {
+		return nil, MoreThanOneValue
+	}
 	if len(root.Subs) == 1 {
 		root = root.Subs[0]
 	}

@@ -71,4 +71,6 @@ var (
 	BadTargetType       = fmt.Errorf("bad target type")
 	UnexpectedEndToken  = fmt.Errorf("unexpected end token")
 	UnexpectedHashToken = fmt.Errorf("unexpected hash token")
+	NotFound            = fmt.Errorf("not found")
+	MoreThanOneValue    = fmt.Errorf("more than one value in stream")
 )
