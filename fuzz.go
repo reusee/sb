@@ -25,7 +25,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 		teeBytes := tee.Bytes()
 
-		// tree
+		// validate tree
 		_, err := TreeFromStream(NewDecoder(bytes.NewReader(teeBytes)))
 		if err != nil {
 			return 0
