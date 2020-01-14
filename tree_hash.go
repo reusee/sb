@@ -2,6 +2,7 @@ package sb
 
 import (
 	"encoding/binary"
+	"fmt"
 	"hash"
 	"io"
 )
@@ -39,7 +40,11 @@ func TreeHashSum(
 		KindMin,
 		KindNil,
 		KindNaN,
-		KindMax:
+		KindMax,
+		KindArrayEnd,
+		KindObjectEnd,
+		KindMapEnd,
+		KindTupleEnd:
 		sum = state.Sum(nil)
 		return
 
@@ -79,8 +84,8 @@ func TreeHashSum(
 		return
 
 	case KindArray, KindObject, KindMap, KindTuple:
-		// write sub hashes except last *End token
-		for _, sub := range tree.Subs[:len(tree.Subs)-1] {
+		// write sub hashes
+		for _, sub := range tree.Subs {
 			var subHash []byte
 			subHash, err = TreeHashSum(sub, newState)
 			if err != nil {
@@ -92,6 +97,9 @@ func TreeHashSum(
 		}
 		sum = state.Sum(nil)
 		return
+
+	default:
+		panic(fmt.Errorf("unexpected token: %+v", token))
 
 	}
 

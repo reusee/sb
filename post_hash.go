@@ -102,7 +102,12 @@ func PostHashStream(
 
 		case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
 			// pop state
-			sum := (*states)[len(*states)-1].Sum(nil)
+			endSum := state.Sum(nil)
+			state := (*states)[len(*states)-1]
+			if _, err := state.Write(endSum); err != nil {
+				return nil, nil, err
+			}
+			sum := state.Sum(nil)
 			*states = (*states)[:len(*states)-1]
 			return token, emitHash(
 				sum, states,
