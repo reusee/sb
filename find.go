@@ -31,11 +31,13 @@ func FindByHash(
 
 	// build tree
 	root := new(Tree)
-	last := root
+	anchor := root
 	stack := []*Tree{
 		root,
 	}
 	var token *Token
+	var noHashNodes []*Tree
+
 	for {
 		token, err = stream.Next()
 		if err != nil {
@@ -46,20 +48,20 @@ func FindByHash(
 		}
 
 		if token.Kind == KindPostHash {
-			// set hash to last node
-			if last.Token == nil {
+			// set hash to anchor node
+			if anchor.Token == nil {
 				return nil, UnexpectedHashToken
 			}
 			if h, ok := token.Value.([]byte); ok {
 				var node *Tree
-				switch last.Kind {
+				switch anchor.Kind {
 				case KindArrayEnd,
 					KindObjectEnd,
 					KindMapEnd,
 					KindTupleEnd:
-					node = last.Paired
+					node = anchor.Paired
 				default:
-					node = last
+					node = anchor
 				}
 				node.Hash = h
 				if bytes.Equal(h, hash) {
@@ -69,10 +71,14 @@ func FindByHash(
 			}
 
 		} else {
+			if anchor != root && len(anchor.Hash) == 0 {
+				// save for later rehash
+				noHashNodes = append(noHashNodes, anchor)
+			}
 			node := &Tree{
 				Token: token,
 			}
-			last = node
+			anchor = node
 			parent := stack[len(stack)-1]
 			parent.Subs = append(parent.Subs, node)
 			switch token.Kind {
@@ -91,6 +97,22 @@ func FindByHash(
 
 	if len(root.Subs) > 1 {
 		return nil, MoreThanOneValue
+	}
+
+	// rehash
+	if anchor != root && len(anchor.Hash) == 0 {
+		noHashNodes = append(noHashNodes, anchor)
+	}
+	for _, node := range noHashNodes {
+		var sum []byte
+		sum, err = TreeHashSum(node, newState)
+		if err != nil {
+			return nil, err
+		}
+		if bytes.Equal(sum, hash) {
+			subStream = node.Iter()
+			return
+		}
 	}
 
 	if subStream == nil {
