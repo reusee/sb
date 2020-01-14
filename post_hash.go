@@ -10,22 +10,11 @@ func NewPostHasher(
 	stream Stream,
 	newState func() hash.Hash,
 ) *Proc {
-	states := []hash.Hash{
-		newState(),
-	}
 	hasher := PostHashStream(
 		stream,
 		newState,
-		&states,
-		func() (*Token, Proc, error) {
-			if len(states) != 1 { // NOCOVER
-				panic("bad state")
-			}
-			return &Token{
-				Kind:  KindPostHash,
-				Value: states[0].Sum(nil),
-			}, nil, nil
-		},
+		&[]hash.Hash{},
+		nil,
 	)
 	return &hasher
 }
@@ -129,8 +118,10 @@ func PostHashStream(
 func emitHash(sum []byte, states *[]hash.Hash, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 		// write to stack
-		if _, err := (*states)[len(*states)-1].Write(sum); err != nil { // NOCOVER
-			return nil, nil, err
+		if len(*states) > 0 {
+			if _, err := (*states)[len(*states)-1].Write(sum); err != nil { // NOCOVER
+				return nil, nil, err
+			}
 		}
 		return &Token{
 			Kind:  KindPostHash,
