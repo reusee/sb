@@ -103,5 +103,4 @@ func TreeHashSum(
 
 	}
 
-	return
 }
