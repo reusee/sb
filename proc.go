@@ -6,7 +6,7 @@ var _ Stream = (*Proc)(nil)
 
 func (p *Proc) Next() (*Token, error) {
 	for {
-		if p == nil || *p == nil {
+		if *p == nil {
 			return nil, nil
 		}
 		var ret *Token
