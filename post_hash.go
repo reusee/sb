@@ -104,7 +104,7 @@ func PostHashStream(
 			// pop state
 			endSum := state.Sum(nil)
 			state := (*states)[len(*states)-1]
-			if _, err := state.Write(endSum); err != nil {
+			if _, err := state.Write(endSum); err != nil { // NOCOVER
 				return nil, nil, err
 			}
 			sum := state.Sum(nil)

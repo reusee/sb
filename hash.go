@@ -9,21 +9,12 @@ func HashSum(
 	sum []byte,
 	err error,
 ) {
-	hasher := NewPostHasher(stream, newState)
-	var token, last *Token
-	for {
-		token, err = hasher.Next()
-		if err != nil {
-			return nil, err
-		}
-		if token == nil {
-			if last.Kind != KindPostHash {
-				panic("bad hasher")
-			}
-			sum = last.Value.([]byte)
-			break
-		}
-		last = token
+	tree, err := TreeFromStream(stream)
+	if err != nil { // NOCOVER
+		return nil, err
 	}
-	return
+	if err := tree.FillHash(newState); err != nil { // NOCOVER
+		return nil, err
+	}
+	return tree.Hash, nil
 }

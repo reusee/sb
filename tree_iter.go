@@ -62,7 +62,7 @@ func IterTreeFunc(
 ) Proc {
 	return func() (*Token, Proc, error) {
 		token, err := fn(tree)
-		if err != nil {
+		if err != nil { // NOCOVER
 			return nil, nil, err
 		}
 		if token != nil {

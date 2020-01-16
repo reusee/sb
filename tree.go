@@ -69,7 +69,7 @@ func TreeFromStream(
 
 func MustTreeFromStream(stream Stream) *Tree {
 	t, err := TreeFromStream(stream)
-	if err != nil {
+	if err != nil { // NOCOVER
 		panic(err)
 	}
 	return t

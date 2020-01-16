@@ -63,3 +63,50 @@ func TestFindByHash(t *testing.T) {
 	}
 
 }
+
+func TestBadFind(t *testing.T) {
+	_, err := FindByHash(
+		Tokens{
+			{
+				Kind:  KindPostHash,
+				Value: []byte("foo"),
+			},
+		}.Iter(),
+		[]byte("foo"),
+		newMapHashState,
+	)
+	if !is(err, UnexpectedHashToken) {
+		t.Fatal()
+	}
+
+	_, err = FindByHash(
+		Tokens{
+			{
+				Kind: KindArrayEnd,
+			},
+		}.Iter(),
+		[]byte("foo"),
+		newMapHashState,
+	)
+	if !is(err, UnexpectedEndToken) {
+		t.Fatal()
+	}
+
+	_, err = FindByHash(
+		Tokens{
+			{
+				Kind:  KindInt,
+				Value: 42,
+			},
+			{
+				Kind:  KindInt,
+				Value: 42,
+			},
+		}.Iter(),
+		[]byte("foo"),
+		newMapHashState,
+	)
+	if !is(err, MoreThanOneValue) {
+		t.Fatal()
+	}
+}

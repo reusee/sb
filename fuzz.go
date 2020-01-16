@@ -58,12 +58,12 @@ func Fuzz(data []byte) int { // NOCOVER
 			tokens2 := MustTokensFromStream(
 				NewDecoder(bytes.NewReader(bs)),
 			)
-			for i, token := range tokens1 {
-				if i < len(tokens2) {
+			for i, token := range tokens1 { // NOCOVER
+				if i < len(tokens2) { // NOCOVER
 					pt("%+v\n%+v\n\n", token, tokens2[i])
 				}
 			}
-			panic("not equal")
+			panic("not equal") // NOCOVER
 		}
 
 		// hash

@@ -32,3 +32,14 @@ func TestMoreThanOneValue(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestBadTreeFromStream(t *testing.T) {
+	_, err := TreeFromStream(Tokens{
+		{
+			Kind: KindArrayEnd,
+		},
+	}.Iter())
+	if !is(err, UnexpectedEndToken) {
+		t.Fatal()
+	}
+}

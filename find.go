@@ -25,7 +25,7 @@ func FindByHash(
 
 	for {
 		token, err = stream.Next()
-		if err != nil {
+		if err != nil { // NOCOVER
 			return nil, err
 		}
 		if token == nil {
@@ -89,7 +89,7 @@ func FindByHash(
 		noHashNodes = append(noHashNodes, anchor)
 	}
 	for _, node := range noHashNodes {
-		if err = node.FillHash(newState); err != nil {
+		if err = node.FillHash(newState); err != nil { // NOCOVER
 			return
 		}
 		if bytes.Equal(node.Hash, hash) {
