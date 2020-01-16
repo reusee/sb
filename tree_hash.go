@@ -7,23 +7,20 @@ import (
 	"io"
 )
 
-func TreeHashSum(
-	tree *Tree,
+func (t *Tree) FillHash(
 	newState func() hash.Hash,
 ) (
-	sum []byte,
 	err error,
 ) {
 
-	if len(tree.Hash) > 0 {
-		sum = tree.Hash
+	if len(t.Hash) > 0 {
 		return
 	}
 
-	if tree.Token == nil {
+	if t.Token == nil {
 		panic("empty tree")
 	}
-	token := tree.Token
+	token := t.Token
 
 	if token.Kind == KindPostHash {
 		panic("unexpected KindPostHash token")
@@ -45,8 +42,7 @@ func TreeHashSum(
 		KindObjectEnd,
 		KindMapEnd,
 		KindTupleEnd:
-		sum = state.Sum(nil)
-		return
+		t.Hash = state.Sum(nil)
 
 	case KindBool,
 		KindString,
@@ -80,27 +76,24 @@ func TreeHashSum(
 				return
 			}
 		}
-		sum = state.Sum(nil)
-		return
+		t.Hash = state.Sum(nil)
 
 	case KindArray, KindObject, KindMap, KindTuple:
 		// write sub hashes
-		for _, sub := range tree.Subs {
-			var subHash []byte
-			subHash, err = TreeHashSum(sub, newState)
-			if err != nil {
+		for _, sub := range t.Subs {
+			if err = sub.FillHash(newState); err != nil {
 				return
 			}
-			if _, err = state.Write(subHash); err != nil {
+			if _, err = state.Write(sub.Hash); err != nil {
 				return
 			}
 		}
-		sum = state.Sum(nil)
-		return
+		t.Hash = state.Sum(nil)
 
 	default:
 		panic(fmt.Errorf("unexpected token: %+v", token))
 
 	}
 
+	return
 }

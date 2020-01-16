@@ -89,12 +89,10 @@ func FindByHash(
 		noHashNodes = append(noHashNodes, anchor)
 	}
 	for _, node := range noHashNodes {
-		var sum []byte
-		sum, err = TreeHashSum(node, newState)
-		if err != nil {
-			return nil, err
+		if err = node.FillHash(newState); err != nil {
+			return
 		}
-		if bytes.Equal(sum, hash) {
+		if bytes.Equal(node.Hash, hash) {
 			subStream = node.Iter()
 			return
 		}
