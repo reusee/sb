@@ -178,7 +178,7 @@ func Compare(stream1, stream2 Stream) (int, error) {
 
 func MustCompare(stream1, stream2 Stream) int {
 	res, err := Compare(stream1, stream2)
-	if err != nil {
+	if err != nil { // NOCOVER
 		panic(err)
 	}
 	return res

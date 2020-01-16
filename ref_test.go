@@ -2,6 +2,7 @@ package sb
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -55,5 +56,21 @@ func TestRef(t *testing.T) {
 	}
 	if n != 4 {
 		t.Fatal("bad deref count")
+	}
+}
+
+func TestBadDeref(t *testing.T) {
+	tokens := Tokens{
+		{
+			Kind:  KindRef,
+			Value: []byte{},
+		},
+	}
+	s := Deref(tokens.Iter(), func(hash []byte) (Stream, error) {
+		return nil, fmt.Errorf("foo")
+	})
+	_, err := TokensFromStream(s)
+	if err.Error() != "foo" {
+		t.Fatal()
 	}
 }

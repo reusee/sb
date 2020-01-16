@@ -33,7 +33,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// marshal and encode
 		buf := new(bytes.Buffer)
-		if err := Encode(buf, NewMarshaler(obj)); err != nil {
+		if err := Encode(buf, NewMarshaler(obj)); err != nil { // NOCOVER
 			panic(err)
 		}
 		bs := buf.Bytes()
@@ -43,7 +43,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		if err := Unmarshal(
 			NewDecoder(bytes.NewReader(teeBytes)),
 			&obj2,
-		); err != nil {
+		); err != nil { // NOCOVER
 			panic(err)
 		}
 
@@ -51,7 +51,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		if MustCompare(
 			NewDecoder(bytes.NewReader(bs)),
 			NewMarshaler(obj2),
-		) != 0 {
+		) != 0 { // NOCOVER
 			tokens1 := MustTokensFromStream(
 				NewDecoder(bytes.NewReader(teeBytes)),
 			)
@@ -69,35 +69,35 @@ func Fuzz(data []byte) int { // NOCOVER
 		// hash
 		hasher := NewPostHasher(NewMarshaler(obj2), newMapHashState)
 		hashedTokens, err := TokensFromStream(hasher)
-		if err != nil {
+		if err != nil { // NOCOVER
 			panic(err)
 		}
-		if hashedTokens[len(hashedTokens)-1].Kind != KindPostHash {
+		if hashedTokens[len(hashedTokens)-1].Kind != KindPostHash { // NOCOVER
 			panic("expecting hash token")
 		}
 
 		// sum
 		sum1, err := HashSum(NewMarshaler(obj2), fnv.New128)
-		if err != nil {
+		if err != nil { // NOCOVER
 			panic(err)
 		}
 		sum2, err := HashSum(NewMarshaler(obj2), fnv.New128a)
-		if err != nil {
+		if err != nil { // NOCOVER
 			panic(err)
 		}
-		if bytes.Equal(sum1, sum2) {
+		if bytes.Equal(sum1, sum2) { // NOCOVER
 			panic("should not equal")
 		}
 
 		// tree
 		tree, err := TreeFromStream(NewDecoder(bytes.NewReader(bs)))
-		if err != nil {
+		if err != nil { // NOCOVER
 			panic(err)
 		}
 		if MustCompare(
 			NewMarshaler(obj2),
 			tree.Iter(),
-		) != 0 {
+		) != 0 { // NOCOVER
 			panic("not equal")
 		}
 
@@ -105,16 +105,16 @@ func Fuzz(data []byte) int { // NOCOVER
 		hashedTree, err := TreeFromStream(
 			NewPostHasher(NewMarshaler(obj2), fnv.New128),
 		)
-		if err != nil {
+		if err != nil { // NOCOVER
 			panic(err)
 		}
 		if MustCompare(
 			hashedTree.Iter(),
 			tree.Iter(),
-		) != 0 {
+		) != 0 { // NOCOVER
 			panic("not equal")
 		}
-		if !bytes.Equal(hashedTree.Hash, sum1) {
+		if !bytes.Equal(hashedTree.Hash, sum1) { // NOCOVER
 			panic("hash not match")
 		}
 
@@ -122,7 +122,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			NewMarshaler(obj2),
 			newMapHashState,
 		)
-		if err != nil {
+		if err != nil { // NOCOVER
 			panic(err)
 		}
 
@@ -132,7 +132,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// marshal and unmarshal
 			func(in Stream) Stream {
 				var v any
-				if err := Unmarshal(in, &v); err != nil {
+				if err := Unmarshal(in, &v); err != nil { // NOCOVER
 					panic(err)
 				}
 				return NewMarshaler(v)
@@ -141,7 +141,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// encode and decode
 			func(in Stream) Stream {
 				buf := new(bytes.Buffer)
-				if err := Encode(buf, in); err != nil {
+				if err := Encode(buf, in); err != nil { // NOCOVER
 					panic(err)
 				}
 				return NewDecoder(buf)
@@ -198,7 +198,7 @@ func Fuzz(data []byte) int { // NOCOVER
 							return ref.Tree.Iter(), nil
 						}
 					}
-					panic("bad ref")
+					panic("bad ref") // NOCOVER
 				})
 			},
 
@@ -219,7 +219,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// find
 			func(in Stream) Stream {
 				sub, err := FindByHash(in, mapHashSum, newMapHashState)
-				if err != nil {
+				if err != nil { // NOCOVER
 					panic(err)
 				}
 				return sub
@@ -236,18 +236,18 @@ func Fuzz(data []byte) int { // NOCOVER
 			}
 		}
 		s := fn(tree.Iter())
-		if MustCompare(s, tree.Iter()) != 0 {
+		if MustCompare(s, tree.Iter()) != 0 { // NOCOVER
 			panic("not equal")
 		}
 		sum1, err = HashSum(tree.Iter(), newMapHashState)
-		if err != nil {
+		if err != nil { // NOCOVER
 			panic(err)
 		}
 		sum2, err = HashSum(fn(tree.Iter()), newMapHashState)
-		if err != nil {
+		if err != nil { // NOCOVER
 			panic(err)
 		}
-		if !bytes.Equal(sum1, sum2) {
+		if !bytes.Equal(sum1, sum2) { // NOCOVER
 			panic("hash not equal")
 		}
 

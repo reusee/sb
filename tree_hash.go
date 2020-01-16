@@ -81,10 +81,10 @@ func (t *Tree) FillHash(
 	case KindArray, KindObject, KindMap, KindTuple:
 		// write sub hashes
 		for _, sub := range t.Subs {
-			if err = sub.FillHash(newState); err != nil {
+			if err = sub.FillHash(newState); err != nil { // NOCOVER
 				return
 			}
-			if _, err = state.Write(sub.Hash); err != nil {
+			if _, err = state.Write(sub.Hash); err != nil { // NOCOVER
 				return
 			}
 		}

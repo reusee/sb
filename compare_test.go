@@ -102,11 +102,20 @@ func TestCompare(t *testing.T) {
 	}.Iter()) != 1 {
 		t.Fatal()
 	}
+
 	if MustCompare(Tokens{
 		{Kind: KindMax},
 	}.Iter(), Tokens{
 		{Kind: KindMax},
 	}.Iter()) != 0 {
+		t.Fatal()
+	}
+
+	if MustCompare(Tokens{}.Iter(), NewMarshaler(42)) != -1 {
+		t.Fatal()
+	}
+
+	if MustCompare(NewMarshaler(42), Tokens{}.Iter()) != 1 {
 		t.Fatal()
 	}
 

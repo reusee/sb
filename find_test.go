@@ -51,6 +51,15 @@ func TestFindByHash(t *testing.T) {
 			t.Fatal("bad hash")
 		}
 
+		_, err = FindByHash(
+			NewMarshaler(v),
+			[]byte{},
+			newMapHashState,
+		)
+		if !is(err, NotFound) {
+			t.Fatal()
+		}
+
 	}
 
 }
