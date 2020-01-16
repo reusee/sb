@@ -13,7 +13,7 @@ func IterTree(
 		return tree.Token, IterSubTrees(
 			tree.Subs, 0,
 			func() (*Token, Proc, error) {
-				if len(tree.Hash) > 0 {
+				if !isEnd(tree.Kind) && len(tree.Hash) > 0 {
 					return &Token{
 						Kind:  KindPostHash,
 						Value: tree.Hash,
@@ -71,7 +71,7 @@ func IterTreeFunc(
 		return tree.Token, IterSubTreesFunc(
 			tree.Subs, 0, fn,
 			func() (*Token, Proc, error) {
-				if len(tree.Hash) > 0 {
+				if !isEnd(tree.Kind) && len(tree.Hash) > 0 {
 					return &Token{
 						Kind:  KindPostHash,
 						Value: tree.Hash,

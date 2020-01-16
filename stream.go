@@ -79,3 +79,14 @@ func (_ max) MarshalSB(cont Proc) Proc {
 }
 
 var Max = max{}
+
+func isEnd(k Kind) bool {
+	switch k {
+	case KindArrayEnd,
+		KindObjectEnd,
+		KindMapEnd,
+		KindTupleEnd:
+		return true
+	}
+	return false
+}
