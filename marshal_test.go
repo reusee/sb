@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -556,5 +557,19 @@ var _ SBMarshaler = marshalStringAsInt("")
 func (m marshalStringAsInt) MarshalSB(cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 		return nil, MarshalAny(MarshalValue, len(m), cont), nil
+	}
+}
+
+func TestValueMarshalFunc(t *testing.T) {
+	var fn ValueMarshalFunc
+	fn = func(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+		return MarshalValue(fn, value, cont)
+	}
+	for _, c := range marshalTestCases {
+		proc := MarshalValue(fn, reflect.ValueOf(c.value), nil)
+		stream := &proc
+		if MustCompare(stream, Tokens(c.expected).Iter()) != 0 {
+			t.Fatal("not equal")
+		}
 	}
 }
