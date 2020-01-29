@@ -32,12 +32,12 @@ func FindByHash(
 			break
 		}
 
-		if token.Kind == KindPostHash {
-			// set hash to anchor node
+		if token.Kind == KindPostTag {
+			// set to anchor node
 			if anchor.Token == nil {
 				return nil, UnexpectedHashToken
 			}
-			if h, ok := token.Value.([]byte); ok {
+			if tag, ok := token.Value.([]byte); ok {
 				var node *Tree
 				switch anchor.Kind {
 				case KindArrayEnd,
@@ -48,17 +48,21 @@ func FindByHash(
 				default:
 					node = anchor
 				}
-				node.Hash = h
-				if bytes.Equal(h, hash) {
-					subStream = node.Iter()
-					return
+				node.Tags.Add(tag)
+				if bytes.HasPrefix(tag, []byte("hash:")) {
+					if bytes.Equal(bytes.TrimPrefix(tag, []byte("hash:")), hash) {
+						subStream = node.Iter()
+						return
+					}
 				}
 			}
 
 		} else {
-			if anchor != root && len(anchor.Hash) == 0 {
-				// save for later rehash
-				noHashNodes = append(noHashNodes, anchor)
+			if anchor != root {
+				if _, ok := anchor.Tags.Get("hash"); !ok {
+					// save for later rehash
+					noHashNodes = append(noHashNodes, anchor)
+				}
 			}
 			node := &Tree{
 				Token: token,
@@ -85,14 +89,20 @@ func FindByHash(
 	}
 
 	// rehash
-	if anchor != root && len(anchor.Hash) == 0 {
-		noHashNodes = append(noHashNodes, anchor)
+	if anchor != root {
+		if _, ok := anchor.Tags.Get("hash"); !ok {
+			noHashNodes = append(noHashNodes, anchor)
+		}
 	}
 	for _, node := range noHashNodes {
 		if err = node.FillHash(newState); err != nil { // NOCOVER
 			return
 		}
-		if bytes.Equal(node.Hash, hash) {
+		h, ok := node.Tags.Get("hash")
+		if !ok {
+			panic("impossible")
+		}
+		if bytes.Equal(h, hash) {
 			subStream = node.Iter()
 			return
 		}

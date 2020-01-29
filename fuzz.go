@@ -72,8 +72,8 @@ func Fuzz(data []byte) int { // NOCOVER
 		if err != nil { // NOCOVER
 			panic(err)
 		}
-		if hashedTokens[len(hashedTokens)-1].Kind != KindPostHash { // NOCOVER
-			panic("expecting hash token")
+		if hashedTokens[len(hashedTokens)-1].Kind != KindPostTag { // NOCOVER
+			panic("expecting tag token")
 		}
 
 		// sum
@@ -114,7 +114,11 @@ func Fuzz(data []byte) int { // NOCOVER
 		) != 0 { // NOCOVER
 			panic("not equal")
 		}
-		if !bytes.Equal(hashedTree.Hash, sum1) { // NOCOVER
+		h, ok := hashedTree.Tags.Get("hash")
+		if !ok {
+			panic("no hash")
+		}
+		if !bytes.Equal(h, sum1) { // NOCOVER
 			panic("hash not match")
 		}
 
@@ -177,19 +181,20 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 				var refs []ref
 				refed := MustTreeFromStream(in).IterFunc(func(tree *Tree) (*Token, error) {
-					if len(tree.Hash) == 0 {
+					h, ok := tree.Tags.Get("hash")
+					if !ok {
 						return nil, nil
 					}
 					if rand.Intn(2) != 0 {
 						return nil, nil
 					}
 					refs = append(refs, ref{
-						Hash: tree.Hash,
+						Hash: h,
 						Tree: tree,
 					})
 					return &Token{
 						Kind:  KindRef,
-						Value: tree.Hash,
+						Value: h,
 					}, nil
 				})
 				return Deref(refed, func(hash []byte) (Stream, error) {
@@ -211,7 +216,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// random filter post hash
 			func(in Stream) Stream {
 				return Filter(in, func(token *Token) bool {
-					return token.Kind == KindPostHash &&
+					return token.Kind == KindPostTag &&
 						rand.Intn(2) == 0
 				})
 			},

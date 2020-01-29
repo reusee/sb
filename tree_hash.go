@@ -13,7 +13,7 @@ func (t *Tree) FillHash(
 	err error,
 ) {
 
-	if len(t.Hash) > 0 {
+	if _, ok := t.Tags.Get("hash"); ok {
 		return
 	}
 
@@ -22,8 +22,8 @@ func (t *Tree) FillHash(
 	}
 	token := t.Token
 
-	if token.Kind == KindPostHash {
-		panic("unexpected KindPostHash token")
+	if token.Kind == KindPostTag {
+		panic("unexpected KindPostTag token")
 	}
 
 	state := newState()
@@ -42,7 +42,7 @@ func (t *Tree) FillHash(
 		KindObjectEnd,
 		KindMapEnd,
 		KindTupleEnd:
-		t.Hash = state.Sum(nil)
+		t.Tags.Set("hash", state.Sum(nil))
 
 	case KindBool,
 		KindString,
@@ -76,7 +76,7 @@ func (t *Tree) FillHash(
 				return
 			}
 		}
-		t.Hash = state.Sum(nil)
+		t.Tags.Set("hash", state.Sum(nil))
 
 	case KindArray, KindObject, KindMap, KindTuple:
 		// write sub hashes
@@ -84,11 +84,15 @@ func (t *Tree) FillHash(
 			if err = sub.FillHash(newState); err != nil { // NOCOVER
 				return
 			}
-			if _, err = state.Write(sub.Hash); err != nil { // NOCOVER
+			subHash, ok := sub.Tags.Get("hash")
+			if !ok {
+				panic("impossible")
+			}
+			if _, err = state.Write(subHash); err != nil { // NOCOVER
 				return
 			}
 		}
-		t.Hash = state.Sum(nil)
+		t.Tags.Set("hash", state.Sum(nil))
 
 	default:
 		panic(fmt.Errorf("unexpected token: %+v", token))

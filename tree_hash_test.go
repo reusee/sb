@@ -26,13 +26,13 @@ func TestBadTreeFillHash(t *testing.T) {
 			if p == nil {
 				t.Fatal("should panic")
 			}
-			if p != "unexpected KindPostHash token" {
+			if p != "unexpected KindPostTag token" {
 				t.Fatal("not match")
 			}
 		}()
 		(&Tree{
 			Token: &Token{
-				Kind: KindPostHash,
+				Kind: KindPostTag,
 			},
 		}).FillHash(newMapHashState)
 	}()

@@ -16,5 +16,9 @@ func HashSum(
 	if err := tree.FillHash(newState); err != nil { // NOCOVER
 		return nil, err
 	}
-	return tree.Hash, nil
+	h, ok := tree.Tags.Get("hash")
+	if !ok {
+		panic("impossible")
+	}
+	return h, nil
 }

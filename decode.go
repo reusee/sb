@@ -155,7 +155,7 @@ func (d *Decoder) Next() (token *Token, err error) {
 		}
 		value = string(bs)
 
-	case KindBytes, KindPostHash:
+	case KindBytes, KindPostTag:
 		var length uint64
 		if _, err := io.ReadFull(d.r, d.buf[:1]); err != nil {
 			return nil, err

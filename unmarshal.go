@@ -18,7 +18,7 @@ type SBUnmarshaler interface {
 func UnmarshalValue(stream Stream, target reflect.Value) error {
 
 	stream = Filter(stream, func(token *Token) bool {
-		return token.Kind == KindPostHash
+		return token.Kind == KindPostTag
 	})
 
 	if target.IsValid() {

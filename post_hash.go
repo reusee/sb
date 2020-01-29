@@ -34,8 +34,8 @@ func PostHashStream(
 			// stop
 			return nil, cont, nil
 		}
-		if token.Kind == KindPostHash {
-			// rip hash tokens
+		if token.Kind == KindPostTag {
+			// rip tag tokens
 			return nil, PostHashStream(stream, newState, states, cont), nil
 		}
 
@@ -129,8 +129,8 @@ func emitHash(sum []byte, states *[]hash.Hash, cont Proc) Proc {
 			}
 		}
 		return &Token{
-			Kind:  KindPostHash,
-			Value: sum,
+			Kind:  KindPostTag,
+			Value: append([]byte("hash:"), sum...),
 		}, cont, nil
 	}
 }

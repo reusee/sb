@@ -68,7 +68,7 @@ func TestBadFind(t *testing.T) {
 	_, err := FindByHash(
 		Tokens{
 			{
-				Kind:  KindPostHash,
+				Kind:  KindPostTag,
 				Value: []byte("foo"),
 			},
 		}.Iter(),

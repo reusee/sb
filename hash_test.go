@@ -16,7 +16,7 @@ func TestHasher(t *testing.T) {
 			t.Fatal(err)
 		}
 		hashToken := tokens[len(tokens)-1]
-		if hashToken.Kind != KindPostHash {
+		if hashToken.Kind != KindPostTag {
 			t.Fatal("not hash")
 		}
 
@@ -35,7 +35,7 @@ func TestHasher(t *testing.T) {
 			t.Fatal(err)
 		}
 		hashToken2 := tokens2[len(tokens2)-1]
-		if hashToken2.Kind != KindPostHash {
+		if hashToken2.Kind != KindPostTag {
 			t.Fatal("not hash")
 		}
 		if !bytes.Equal(hashToken.Value.([]byte), hashToken2.Value.([]byte)) {

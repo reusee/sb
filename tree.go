@@ -2,7 +2,7 @@ package sb
 
 type Tree struct {
 	*Token
-	Hash   []byte
+	Tags   Tags
 	Subs   []*Tree
 	Paired *Tree
 }
@@ -23,20 +23,20 @@ func TreeFromStream(
 		if token == nil {
 			break
 		}
-		if token.Kind == KindPostHash {
-			// set hash to last node
+		if token.Kind == KindPostTag {
+			// set tag to last node
 			if last.Token == nil {
 				return nil, UnexpectedHashToken
 			}
-			if hash, ok := token.Value.([]byte); ok {
+			if tag, ok := token.Value.([]byte); ok {
 				switch last.Kind {
 				case KindArrayEnd,
 					KindObjectEnd,
 					KindMapEnd,
 					KindTupleEnd:
-					last.Paired.Hash = hash
+					last.Paired.Tags.Add(tag)
 				default:
-					last.Hash = hash
+					last.Tags.Add(tag)
 				}
 			}
 		} else {
