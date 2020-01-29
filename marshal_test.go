@@ -566,10 +566,37 @@ func TestValueMarshalFunc(t *testing.T) {
 		return MarshalValue(fn, value, cont)
 	}
 	for _, c := range marshalTestCases {
-		proc := MarshalValue(fn, reflect.ValueOf(c.value), nil)
+		proc := fn(fn, reflect.ValueOf(c.value), nil)
 		stream := &proc
 		if MustCompare(stream, Tokens(c.expected).Iter()) != 0 {
 			t.Fatal("not equal")
 		}
+	}
+}
+
+func TestValueMarshalFunc2(t *testing.T) {
+	var fn ValueMarshalFunc
+	n := 0
+	fn = func(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+		if value.Kind() == reflect.Struct {
+			n++
+		}
+		return MarshalValue(fn, value, cont)
+	}
+	proc := fn(fn, reflect.ValueOf(
+		struct {
+			Foo struct {
+				Bar struct {
+				}
+			}
+		}{},
+	), nil)
+	stream := &proc
+	_, err := TokensFromStream(stream)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 3 {
+		t.Fatal()
 	}
 }
