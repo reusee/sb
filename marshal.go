@@ -13,7 +13,7 @@ type SBMarshaler interface {
 }
 
 func NewMarshaler(value any) *Proc {
-	marshaler := MarshalValue(reflect.ValueOf(value), nil)
+	marshaler := MarshalValue(MarshalValue, reflect.ValueOf(value), nil)
 	return &marshaler
 }
 
@@ -26,11 +26,19 @@ func MarshalTokens(tokens []Token, cont Proc) Proc {
 	}
 }
 
-func MarshalAny(value any, cont Proc) Proc {
-	return MarshalValue(reflect.ValueOf(value), cont)
+type ValueMarshalFunc func(
+	fn ValueMarshalFunc,
+	value reflect.Value,
+	cont Proc,
+) (
+	proc Proc,
+)
+
+func MarshalAny(vm ValueMarshalFunc, value any, cont Proc) Proc {
+	return vm(vm, reflect.ValueOf(value), cont)
 }
 
-func MarshalValue(value reflect.Value, cont Proc) Proc {
+func MarshalValue(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 
 		if value.IsValid() {
@@ -65,7 +73,7 @@ func MarshalValue(value reflect.Value, cont Proc) Proc {
 					Kind: KindNil,
 				}, cont, nil
 			} else {
-				return nil, MarshalValue(value.Elem(), cont), nil
+				return nil, vm(vm, value.Elem(), cont), nil
 			}
 
 		case reflect.Bool:
@@ -167,7 +175,7 @@ func MarshalValue(value reflect.Value, cont Proc) Proc {
 			} else {
 				return &Token{
 					Kind: KindArray,
-				}, MarshalArray(value, 0, cont), nil
+				}, MarshalArray(vm, value, 0, cont), nil
 			}
 
 		case reflect.String:
@@ -179,18 +187,19 @@ func MarshalValue(value reflect.Value, cont Proc) Proc {
 		case reflect.Struct:
 			return &Token{
 				Kind: KindObject,
-			}, MarshalStruct(value, cont), nil
+			}, MarshalStruct(vm, value, cont), nil
 
 		case reflect.Map:
 			return &Token{
 				Kind: KindMap,
-			}, MarshalMap(value, cont), nil
+			}, MarshalMap(vm, value, cont), nil
 
 		case reflect.Func:
 			items := value.Call([]reflect.Value{})
 			return &Token{
 					Kind: KindTuple,
 				}, MarshalTuple(
+					vm,
 					items,
 					cont,
 				), nil
@@ -202,23 +211,24 @@ func MarshalValue(value reflect.Value, cont Proc) Proc {
 	}
 }
 
-func MarshalArray(value reflect.Value, index int, cont Proc) Proc {
+func MarshalArray(vm ValueMarshalFunc, value reflect.Value, index int, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 		if index >= value.Len() {
 			return &Token{
 				Kind: KindArrayEnd,
 			}, cont, nil
 		}
-		return nil, MarshalValue(
+		return nil, vm(
+			vm,
 			value.Index(index),
-			MarshalArray(value, index+1, cont),
+			MarshalArray(vm, value, index+1, cont),
 		), nil
 	}
 }
 
 var structFields sync.Map
 
-func MarshalStruct(value reflect.Value, cont Proc) Proc {
+func MarshalStruct(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 	var fields []reflect.StructField
 	valueType := value.Type()
 	if v, ok := structFields.Load(valueType); ok {
@@ -233,10 +243,10 @@ func MarshalStruct(value reflect.Value, cont Proc) Proc {
 		})
 		structFields.Store(valueType, fields)
 	}
-	return MarshalStructFields(value, fields, cont)
+	return MarshalStructFields(vm, value, fields, cont)
 }
 
-func MarshalStructFields(value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
+func MarshalStructFields(vm ValueMarshalFunc, value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 		if len(fields) == 0 {
 			return &Token{
@@ -247,9 +257,10 @@ func MarshalStructFields(value reflect.Value, fields []reflect.StructField, cont
 		return &Token{
 				Kind:  KindString,
 				Value: field.Name,
-			}, MarshalValue(
+			}, vm(
+				vm,
 				value.FieldByIndex(field.Index),
-				MarshalStructFields(value, fields[1:], cont),
+				MarshalStructFields(vm, value, fields[1:], cont),
 			), nil
 	}
 }
@@ -259,8 +270,9 @@ type MapTuple struct {
 	Value     reflect.Value
 }
 
-func MarshalMap(value reflect.Value, cont Proc) Proc {
+func MarshalMap(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 	return MarshalMapIter(
+		vm,
 		value,
 		value.MapRange(),
 		make([]*MapTuple, 0, value.Len()),
@@ -268,7 +280,7 @@ func MarshalMap(value reflect.Value, cont Proc) Proc {
 	)
 }
 
-func MarshalMapIter(value reflect.Value, iter *reflect.MapIter, tuples []*MapTuple, cont Proc) Proc {
+func MarshalMapIter(vm ValueMarshalFunc, value reflect.Value, iter *reflect.MapIter, tuples []*MapTuple, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 		if !iter.Next() {
 			// done
@@ -278,9 +290,9 @@ func MarshalMapIter(value reflect.Value, iter *reflect.MapIter, tuples []*MapTup
 					tuples[j].KeyTokens.Iter(),
 				) < 0
 			})
-			return nil, MarshalMapValue(tuples, cont), nil
+			return nil, MarshalMapValue(vm, tuples, cont), nil
 		}
-		marshaler := MarshalValue(iter.Key(), nil)
+		marshaler := vm(vm, iter.Key(), nil)
 		tokens, err := TokensFromStream(&marshaler)
 		if err != nil {
 			return nil, nil, err
@@ -289,6 +301,7 @@ func MarshalMapIter(value reflect.Value, iter *reflect.MapIter, tuples []*MapTup
 			return nil, nil, MarshalError{BadMapKey}
 		}
 		return nil, MarshalMapIter(
+			vm,
 			value,
 			iter,
 			append(tuples, &MapTuple{
@@ -300,7 +313,7 @@ func MarshalMapIter(value reflect.Value, iter *reflect.MapIter, tuples []*MapTup
 	}
 }
 
-func MarshalMapValue(tuples []*MapTuple, cont Proc) Proc {
+func MarshalMapValue(vm ValueMarshalFunc, tuples []*MapTuple, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 		if len(tuples) == 0 {
 			return &Token{
@@ -310,24 +323,27 @@ func MarshalMapValue(tuples []*MapTuple, cont Proc) Proc {
 		tuple := tuples[0]
 		return nil, MarshalTokens(
 			tuple.KeyTokens,
-			MarshalValue(
+			vm(
+				vm,
 				tuple.Value,
-				MarshalMapValue(tuples[1:], cont),
+				MarshalMapValue(vm, tuples[1:], cont),
 			),
 		), nil
 	}
 }
 
-func MarshalTuple(items []reflect.Value, cont Proc) Proc {
+func MarshalTuple(vm ValueMarshalFunc, items []reflect.Value, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 		if len(items) == 0 {
 			return &Token{
 				Kind: KindTupleEnd,
 			}, cont, nil
 		} else {
-			return nil, MarshalValue(
+			return nil, vm(
+				vm,
 				items[0],
 				MarshalTuple(
+					vm,
 					items[1:],
 					cont,
 				),
