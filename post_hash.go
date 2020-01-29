@@ -1,6 +1,7 @@
 package sb
 
 import (
+	"bytes"
 	"encoding/binary"
 	"hash"
 	"io"
@@ -35,8 +36,16 @@ func PostHashStream(
 			return nil, cont, nil
 		}
 		if token.Kind == KindPostTag {
-			// rip tag tokens
-			return nil, PostHashStream(stream, newState, states, cont), nil
+			if value, ok := token.Value.([]byte); !ok {
+				panic("bad token")
+			} else {
+				if bytes.HasPrefix(value, []byte("hash:")) {
+					// rip hash tokens
+					return nil, PostHashStream(stream, newState, states, cont), nil
+				} else {
+					return token, PostHashStream(stream, newState, states, cont), nil
+				}
+			}
 		}
 
 		state := newState()
