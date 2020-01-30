@@ -73,4 +73,5 @@ var (
 	UnexpectedHashToken = fmt.Errorf("unexpected hash token")
 	NotFound            = fmt.Errorf("not found")
 	MoreThanOneValue    = fmt.Errorf("more than one value in stream")
+	EmptySink           = fmt.Errorf("empty sink")
 )

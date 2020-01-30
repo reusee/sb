@@ -416,20 +416,18 @@ func (c Custom) MarshalSB(cont Proc) Proc {
 	}
 }
 
-func (c *Custom) UnmarshalSB(stream Stream) (err error) {
-	p, err := stream.Next()
-	if err != nil {
-		return err
+func (c *Custom) UnmarshalSB(cont Sink) Sink {
+	return func(p *Token) (Sink, error) {
+		if p == nil {
+			return cont, nil
+		}
+		token := *p
+		if token.Kind != KindInt {
+			return cont, nil
+		}
+		c.Foo = token.Value.(int)
+		return cont, nil
 	}
-	if p == nil {
-		return
-	}
-	token := *p
-	if token.Kind != KindInt {
-		return
-	}
-	c.Foo = token.Value.(int)
-	return
 }
 
 func TestCustomType(t *testing.T) {

@@ -195,11 +195,11 @@ func TestUnmarshalIncompleteStream(t *testing.T) {
 		},
 	}
 
-	for _, c := range cases {
+	for i, c := range cases {
 		var v any
 		err := Unmarshal(c.Iter(), &v)
 		if err == nil {
-			t.Fatal()
+			t.Fatalf("shoud error: %d", i)
 		}
 	}
 
