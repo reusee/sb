@@ -85,7 +85,7 @@ func (t *Tree) FillHash(
 				return
 			}
 			subHash, ok := sub.Tags.Get("hash")
-			if !ok {
+			if !ok { // NOCOVER
 				panic("impossible")
 			}
 			if _, err = state.Write(subHash); err != nil { // NOCOVER

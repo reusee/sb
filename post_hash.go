@@ -36,7 +36,7 @@ func PostHashStream(
 			return nil, cont, nil
 		}
 		if token.Kind == KindPostTag {
-			if value, ok := token.Value.([]byte); !ok {
+			if value, ok := token.Value.([]byte); !ok { // NOCOVER
 				panic("bad token")
 			} else {
 				if bytes.HasPrefix(value, []byte("hash:")) {

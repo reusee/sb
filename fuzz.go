@@ -115,7 +115,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("not equal")
 		}
 		h, ok := hashedTree.Tags.Get("hash")
-		if !ok {
+		if !ok { // NOCOVER
 			panic("no hash")
 		}
 		if !bytes.Equal(h, sum1) { // NOCOVER

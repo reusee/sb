@@ -99,7 +99,7 @@ func FindByHash(
 			return
 		}
 		h, ok := node.Tags.Get("hash")
-		if !ok {
+		if !ok { // NOCOVER
 			panic("impossible")
 		}
 		if bytes.Equal(h, hash) {

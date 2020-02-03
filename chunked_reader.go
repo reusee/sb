@@ -36,7 +36,7 @@ func (c ChunkedReader) marshal(vm ValueMarshalFunc, cont Proc) Proc {
 				N: c.N,
 			},
 		)
-		if err != nil {
+		if err != nil { // NOCOVER
 			return nil, nil, err
 		}
 		if len(bs) > 0 {

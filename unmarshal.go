@@ -756,9 +756,6 @@ func UnmarshalGenericMap(
 		)(p)
 	}
 
-	for {
-		// value
-	}
 }
 
 func UnmarshalTuple(
