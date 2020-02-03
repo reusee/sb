@@ -50,13 +50,13 @@ func MarshalValue(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 				if err != nil {
 					return nil, nil, err
 				}
-				return &Token{KindString, string(bs)}, cont, nil
+				return nil, vm(vm, reflect.ValueOf(string(bs)), cont), nil
 			} else if v, ok := i.(encoding.TextMarshaler); ok {
 				bs, err := v.MarshalText()
 				if err != nil {
 					return nil, nil, err
 				}
-				return &Token{KindString, string(bs)}, cont, nil
+				return nil, vm(vm, reflect.ValueOf(string(bs)), cont), nil
 			}
 		}
 
