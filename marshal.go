@@ -9,7 +9,7 @@ import (
 )
 
 type SBMarshaler interface {
-	MarshalSB(cont Proc) Proc
+	MarshalSB(vm ValueMarshalFunc, cont Proc) Proc
 }
 
 func NewMarshaler(value any) *Proc {
@@ -44,7 +44,7 @@ func MarshalValue(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 		if value.IsValid() {
 			i := value.Interface()
 			if v, ok := i.(SBMarshaler); ok {
-				return nil, v.MarshalSB(cont), nil
+				return nil, v.MarshalSB(vm, cont), nil
 			} else if v, ok := i.(encoding.BinaryMarshaler); ok {
 				bs, err := v.MarshalBinary()
 				if err != nil {

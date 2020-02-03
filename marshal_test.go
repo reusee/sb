@@ -407,13 +407,8 @@ var _ SBMarshaler = Custom{}
 
 var _ SBUnmarshaler = new(Custom)
 
-func (c Custom) MarshalSB(cont Proc) Proc {
-	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind:  KindInt,
-			Value: c.Foo,
-		}, cont, nil
-	}
+func (c Custom) MarshalSB(vm ValueMarshalFunc, cont Proc) Proc {
+	return vm(vm, reflect.ValueOf(c.Foo), cont)
 }
 
 func (c *Custom) UnmarshalSB(cont Sink) Sink {
@@ -552,9 +547,9 @@ type marshalStringAsInt string
 
 var _ SBMarshaler = marshalStringAsInt("")
 
-func (m marshalStringAsInt) MarshalSB(cont Proc) Proc {
+func (m marshalStringAsInt) MarshalSB(vm ValueMarshalFunc, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
-		return nil, MarshalAny(MarshalValue, len(m), cont), nil
+		return nil, MarshalAny(vm, len(m), cont), nil
 	}
 }
 
