@@ -7,11 +7,17 @@ import (
 	"reflect"
 )
 
-func Unmarshal(stream Stream, target any) error {
+func Unmarshal(stream Stream, targets ...any) error {
 	stream = Filter(stream, func(token *Token) bool {
 		return token.Kind == KindPostTag
 	})
-	sink := UnmarshalValue(reflect.ValueOf(target), nil)
+	sinks := make([]Sink, 0, len(targets))
+	for _, target := range targets {
+		target := target
+		sinks = append(sinks, UnmarshalValue(reflect.ValueOf(target), nil))
+	}
+
+	var err error
 	for {
 		token, err := stream.Next()
 		if err != nil {
@@ -20,21 +26,38 @@ func Unmarshal(stream Stream, target any) error {
 		if token == nil {
 			break
 		}
-		if sink == nil {
+		if len(sinks) == 0 {
 			return UnmarshalError{EmptySink}
 		}
-		sink, err = sink(token)
-		if err != nil {
-			return err
+		for i := 0; i < len(sinks); {
+			if sinks[i] == nil {
+				sinks[i] = sinks[len(sinks)-1]
+				sinks = sinks[:len(sinks)-1]
+				continue
+			}
+			sinks[i], err = sinks[i](token)
+			if err != nil {
+				return err
+			}
+			i++
 		}
 	}
-	var err error
-	for sink != nil {
-		sink, err = sink(nil)
-		if err != nil {
-			return err
+
+	for len(sinks) > 0 {
+		for i := 0; i < len(sinks); {
+			if sinks[i] == nil {
+				sinks[i] = sinks[len(sinks)-1]
+				sinks = sinks[:len(sinks)-1]
+				continue
+			}
+			sinks[i], err = sinks[i](nil)
+			if err != nil {
+				return err
+			}
+			i++
 		}
 	}
+
 	return nil
 }
 

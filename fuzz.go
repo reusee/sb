@@ -229,6 +229,15 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 				return sub
 			},
+
+			// unmarshal to multiple
+			func(in Stream) Stream {
+				var ts [3]any
+				if err := Unmarshal(in, &ts[0], &ts[1], &ts[2]); err != nil {
+					panic(err)
+				}
+				return NewMarshaler(ts[rand.Intn(len(ts))])
+			},
 		}
 		fn := func(in Stream) Stream {
 			return in
