@@ -7,6 +7,10 @@ import (
 	"reflect"
 )
 
+type SBUnmarshaler interface {
+	UnmarshalSB(cont Sink) Sink
+}
+
 func Unmarshal(stream Stream, targets ...any) error {
 	stream = Filter(stream, func(token *Token) bool {
 		return token.Kind == KindPostTag
@@ -16,7 +20,10 @@ func Unmarshal(stream Stream, targets ...any) error {
 		target := target
 		sinks = append(sinks, UnmarshalValue(reflect.ValueOf(target), nil))
 	}
+	return Pipe(stream, sinks...)
+}
 
+func Pipe(stream Stream, sinks ...Sink) error {
 	var err error
 	for {
 		token, err := stream.Next()
@@ -59,10 +66,6 @@ func Unmarshal(stream Stream, targets ...any) error {
 	}
 
 	return nil
-}
-
-type SBUnmarshaler interface {
-	UnmarshalSB(cont Sink) Sink
 }
 
 func UnmarshalValue(target reflect.Value, cont Sink) Sink {
