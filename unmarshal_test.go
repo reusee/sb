@@ -1083,3 +1083,17 @@ func TestUnmarshalTupleToCallerNoError(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestUnmarshalToPointer(t *testing.T) {
+	var i *int
+	err := Unmarshal(
+		NewMarshaler(true),
+		&i,
+	)
+	if err == nil {
+		t.Fatal()
+	}
+	if i != nil {
+		t.Fatal()
+	}
+}

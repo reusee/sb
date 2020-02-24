@@ -141,12 +141,17 @@ func UnmarshalValue(target reflect.Value, cont Sink) Sink {
 		hasConcreteType := false
 		if valueKind == reflect.Ptr {
 			// deref
-			if target.Elem().IsNil() {
-				target.Elem().Set(reflect.New(valueType.Elem()))
-			}
+			t := reflect.New(valueType.Elem())
 			return UnmarshalValue(
-				target.Elem(),
-				cont,
+				t,
+				func(token *Token) (Sink, error) {
+					// target will not set unless no error
+					target.Elem().Set(t)
+					if cont != nil {
+						return cont(token)
+					}
+					return nil, nil
+				},
 			)(token)
 		} else if valueKind != reflect.Interface {
 			hasConcreteType = true
