@@ -75,3 +75,25 @@ var (
 	MoreThanOneValue    = fmt.Errorf("more than one value in stream")
 	EmptySink           = fmt.Errorf("empty sink")
 )
+
+var kindToExpectingErr = map[Kind]error{
+	KindString:  ExpectingString,
+	KindBytes:   ExpectingBytes,
+	KindBool:    ExpectingBool,
+	KindInt:     ExpectingInt,
+	KindInt8:    ExpectingInt8,
+	KindInt16:   ExpectingInt16,
+	KindInt32:   ExpectingInt32,
+	KindInt64:   ExpectingInt64,
+	KindUint:    ExpectingUint,
+	KindUint8:   ExpectingUint8,
+	KindUint16:  ExpectingUint16,
+	KindUint32:  ExpectingUint32,
+	KindUint64:  ExpectingUint64,
+	KindFloat32: ExpectingFloat32,
+	KindFloat64: ExpectingFloat64,
+	KindArray:   ExpectingSequence,
+	KindObject:  ExpectingStruct,
+	KindMap:     ExpectingMap,
+	KindTuple:   ExpectingTuple,
+}
