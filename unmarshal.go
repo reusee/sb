@@ -17,8 +17,11 @@ func Unmarshal(stream Stream, targets ...any) error {
 	})
 	sinks := make([]Sink, 0, len(targets))
 	for _, target := range targets {
-		target := target
-		sinks = append(sinks, UnmarshalValue(reflect.ValueOf(target), nil))
+		if sink, ok := target.(Sink); ok {
+			sinks = append(sinks, sink)
+		} else {
+			sinks = append(sinks, UnmarshalValue(reflect.ValueOf(target), nil))
+		}
 	}
 	return Pipe(stream, sinks...)
 }
