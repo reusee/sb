@@ -89,6 +89,15 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("should not equal")
 		}
 
+		// sink hash
+		var sum3 []byte
+		if err := Unmarshal(NewMarshaler(obj2), Hasher(fnv.New128, &sum3, nil)); err != nil {
+			panic(err)
+		}
+		if !bytes.Equal(sum1, sum3) {
+			panic("should equal")
+		}
+
 		// tree
 		tree, err := TreeFromStream(NewDecoder(bytes.NewReader(bs)))
 		if err != nil { // NOCOVER
