@@ -43,12 +43,11 @@ func TestHasher(t *testing.T) {
 		}
 
 		// sum
-		sum1, err := HashSum(NewMarshaler(c.value), fnv.New128)
-		if err != nil {
+		var sum1, sum2 []byte
+		if err := Unmarshal(NewMarshaler(c.value), Hasher(fnv.New128, &sum1, nil)); err != nil {
 			t.Fatal(err)
 		}
-		sum2, err := HashSum(NewMarshaler(c.value), fnv.New128a)
-		if err != nil {
+		if err := Unmarshal(NewMarshaler(c.value), Hasher(fnv.New128a, &sum2, nil)); err != nil {
 			t.Fatal(err)
 		}
 		if bytes.Equal(sum1, sum2) {

@@ -77,11 +77,11 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// sum
-		sum1, err := HashSum(NewMarshaler(obj2), fnv.New128)
+		sum1, err := MustTreeFromStream(NewMarshaler(obj2)).HashSum(fnv.New128)
 		if err != nil { // NOCOVER
 			panic(err)
 		}
-		sum2, err := HashSum(NewMarshaler(obj2), fnv.New128a)
+		sum2, err := MustTreeFromStream(NewMarshaler(obj2)).HashSum(fnv.New128a)
 		if err != nil { // NOCOVER
 			panic(err)
 		}
@@ -131,8 +131,9 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("hash not match")
 		}
 
-		mapHashSum, err := HashSum(
+		mapHashSum, err := MustTreeFromStream(
 			NewMarshaler(obj2),
+		).HashSum(
 			newMapHashState,
 		)
 		if err != nil { // NOCOVER
@@ -262,11 +263,11 @@ func Fuzz(data []byte) int { // NOCOVER
 		if MustCompare(s, tree.Iter()) != 0 { // NOCOVER
 			panic("not equal")
 		}
-		sum1, err = HashSum(tree.Iter(), newMapHashState)
+		sum1, err = MustTreeFromStream(tree.Iter()).HashSum(newMapHashState)
 		if err != nil { // NOCOVER
 			panic(err)
 		}
-		sum2, err = HashSum(fn(tree.Iter()), newMapHashState)
+		sum2, err = MustTreeFromStream(fn(tree.Iter())).HashSum(newMapHashState)
 		if err != nil { // NOCOVER
 			panic(err)
 		}

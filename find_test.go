@@ -6,7 +6,8 @@ import (
 )
 
 func TestFindByHash(t *testing.T) {
-	h, err := HashSum(NewMarshaler(42), newMapHashState)
+	var h []byte
+	err := Unmarshal(NewMarshaler(42), Hasher(newMapHashState, &h, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +28,8 @@ func TestFindByHash(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		subHash, err := HashSum(sub, newMapHashState)
+		var subHash []byte
+		err = Unmarshal(sub, Hasher(newMapHashState, &subHash, nil))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -43,7 +45,7 @@ func TestFindByHash(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		subHash, err = HashSum(sub, newMapHashState)
+		err = Unmarshal(sub, Hasher(newMapHashState, &subHash, nil))
 		if err != nil {
 			t.Fatal(err)
 		}

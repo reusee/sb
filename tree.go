@@ -1,5 +1,7 @@
 package sb
 
+import "hash"
+
 type Tree struct {
 	*Token
 	Tags   Tags
@@ -73,4 +75,20 @@ func MustTreeFromStream(stream Stream) *Tree {
 		panic(err)
 	}
 	return t
+}
+
+func (t *Tree) HashSum(
+	newState func() hash.Hash,
+) (
+	sum []byte,
+	err error,
+) {
+	if err := t.FillHash(newState); err != nil { // NOCOVER
+		return nil, err
+	}
+	h, ok := t.Tags.Get("hash")
+	if !ok { // NOCOVER
+		panic("impossible")
+	}
+	return h, nil
 }
