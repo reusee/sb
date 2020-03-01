@@ -136,9 +136,6 @@ func filterProc(
 }
 
 func FilterSink(sink Sink, fn func(*Token) bool) Sink {
-	if sink == nil {
-		return nil
-	}
 	return func(token *Token) (Sink, error) {
 		var err error
 		if token == nil || !fn(token) {
@@ -146,6 +143,9 @@ func FilterSink(sink Sink, fn func(*Token) bool) Sink {
 			if err != nil {
 				return nil, err
 			}
+		}
+		if sink == nil {
+			return nil, nil
 		}
 		return FilterSink(sink, fn), nil
 	}
