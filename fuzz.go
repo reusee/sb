@@ -33,7 +33,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// marshal and encode
 		buf := new(bytes.Buffer)
-		if err := Copy(NewMarshaler(obj), Encode(buf, nil)); err != nil { // NOCOVER
+		if err := Copy(Marshal(obj), Encode(buf, nil)); err != nil { // NOCOVER
 			panic(err)
 		}
 		bs := buf.Bytes()
@@ -50,7 +50,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		// compare
 		if MustCompare(
 			Decode(bytes.NewReader(bs)),
-			NewMarshaler(obj2),
+			Marshal(obj2),
 		) != 0 { // NOCOVER
 			tokens1 := MustTokensFromStream(
 				Decode(bytes.NewReader(teeBytes)),
@@ -67,7 +67,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// hash
-		hasher := NewPostHasher(NewMarshaler(obj2), newMapHashState)
+		hasher := NewPostHasher(Marshal(obj2), newMapHashState)
 		hashedTokens, err := TokensFromStream(hasher)
 		if err != nil { // NOCOVER
 			panic(err)
@@ -77,11 +77,11 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// sum
-		sum1, err := MustTreeFromStream(NewMarshaler(obj2)).HashSum(fnv.New128)
+		sum1, err := MustTreeFromStream(Marshal(obj2)).HashSum(fnv.New128)
 		if err != nil { // NOCOVER
 			panic(err)
 		}
-		sum2, err := MustTreeFromStream(NewMarshaler(obj2)).HashSum(fnv.New128a)
+		sum2, err := MustTreeFromStream(Marshal(obj2)).HashSum(fnv.New128a)
 		if err != nil { // NOCOVER
 			panic(err)
 		}
@@ -91,7 +91,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// sink hash
 		var sum3 []byte
-		if err := Unmarshal(NewMarshaler(obj2), Hasher(fnv.New128, &sum3, nil)); err != nil { // NOCOVER
+		if err := Unmarshal(Marshal(obj2), Hasher(fnv.New128, &sum3, nil)); err != nil { // NOCOVER
 			panic(err)
 		}
 		if !bytes.Equal(sum1, sum3) { // NOCOVER
@@ -104,7 +104,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic(err)
 		}
 		if MustCompare(
-			NewMarshaler(obj2),
+			Marshal(obj2),
 			tree.Iter(),
 		) != 0 { // NOCOVER
 			panic("not equal")
@@ -112,7 +112,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// hashed tree
 		hashedTree, err := TreeFromStream(
-			NewPostHasher(NewMarshaler(obj2), fnv.New128),
+			NewPostHasher(Marshal(obj2), fnv.New128),
 		)
 		if err != nil { // NOCOVER
 			panic(err)
@@ -132,7 +132,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		mapHashSum, err := MustTreeFromStream(
-			NewMarshaler(obj2),
+			Marshal(obj2),
 		).HashSum(
 			newMapHashState,
 		)
@@ -149,7 +149,7 @@ func Fuzz(data []byte) int { // NOCOVER
 				if err := Unmarshal(in, &v); err != nil { // NOCOVER
 					panic(err)
 				}
-				return NewMarshaler(v)
+				return Marshal(v)
 			},
 
 			// encode and decode
@@ -246,7 +246,7 @@ func Fuzz(data []byte) int { // NOCOVER
 				if err := Unmarshal(in, &ts[0], &ts[1], &ts[2]); err != nil { // NOCOVER
 					panic(err)
 				}
-				return NewMarshaler(ts[rand.Intn(len(ts))])
+				return Marshal(ts[rand.Intn(len(ts))])
 			},
 
 			// tee

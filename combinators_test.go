@@ -10,7 +10,7 @@ func TestAltSink(t *testing.T) {
 	var b bool
 
 	if err := Copy(
-		NewMarshaler(42),
+		Marshal(42),
 		AltSink(
 			UnmarshalValue(reflect.ValueOf(&i), nil),
 			UnmarshalValue(reflect.ValueOf(&b), nil),
@@ -22,7 +22,7 @@ func TestAltSink(t *testing.T) {
 		t.Fatal()
 	}
 	if err := Copy(
-		NewMarshaler(24),
+		Marshal(24),
 		AltSink(
 			UnmarshalValue(reflect.ValueOf(&b), nil),
 			UnmarshalValue(reflect.ValueOf(&i), nil),
@@ -35,7 +35,7 @@ func TestAltSink(t *testing.T) {
 	}
 
 	if err := Copy(
-		NewMarshaler(true),
+		Marshal(true),
 		AltSink(
 			UnmarshalValue(reflect.ValueOf(&i), nil),
 			UnmarshalValue(reflect.ValueOf(&b), nil),
@@ -47,7 +47,7 @@ func TestAltSink(t *testing.T) {
 		t.Fatal()
 	}
 	if err := Copy(
-		NewMarshaler(false),
+		Marshal(false),
 		AltSink(
 			UnmarshalValue(reflect.ValueOf(&b), nil),
 			UnmarshalValue(reflect.ValueOf(&i), nil),
@@ -60,7 +60,7 @@ func TestAltSink(t *testing.T) {
 	}
 
 	err := Copy(
-		NewMarshaler("foo"),
+		Marshal("foo"),
 		AltSink(
 			UnmarshalValue(reflect.ValueOf(&i), nil),
 			UnmarshalValue(reflect.ValueOf(&b), nil),
@@ -72,7 +72,7 @@ func TestAltSink(t *testing.T) {
 
 	var s string
 	if err := Copy(
-		NewMarshaler("foo"),
+		Marshal("foo"),
 		AltSink(
 			UnmarshalValue(reflect.ValueOf(&b), nil),
 			UnmarshalValue(reflect.ValueOf(&i), nil),
@@ -87,7 +87,7 @@ func TestAltSink(t *testing.T) {
 
 	var ss []string
 	if err := Copy(
-		NewMarshaler(
+		Marshal(
 			[]string{"foo", "bar"},
 		),
 		AltSink(
@@ -108,7 +108,7 @@ func TestAltSink(t *testing.T) {
 	}
 	var s2 struct{}
 	if err := Copy(
-		NewMarshaler(
+		Marshal(
 			struct {
 				I int
 			}{42},

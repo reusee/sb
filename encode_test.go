@@ -31,7 +31,7 @@ func (b badWriter) Write(data []byte) (int, error) {
 
 func TestEncodeToBadWriter(t *testing.T) {
 	if err := Copy(
-		NewMarshaler(42),
+		Marshal(42),
 		Encode(badWriter{}, nil),
 	); err == nil {
 		t.Fatal()

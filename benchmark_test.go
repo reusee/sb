@@ -8,7 +8,7 @@ import (
 
 func BenchmarkMarshalInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := NewMarshaler(42)
+		m := Marshal(42)
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -23,7 +23,7 @@ func BenchmarkMarshalInt(b *testing.B) {
 
 func BenchmarkTreeFromMarshalInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := MustTreeFromStream(NewMarshaler(42)).Iter()
+		m := MustTreeFromStream(Marshal(42)).Iter()
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -38,7 +38,7 @@ func BenchmarkTreeFromMarshalInt(b *testing.B) {
 
 func BenchmarkHashIntSha1(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := NewPostHasher(NewMarshaler(42), newMapHashState)
+		m := NewPostHasher(Marshal(42), newMapHashState)
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -52,7 +52,7 @@ func BenchmarkHashIntSha1(b *testing.B) {
 }
 
 func BenchmarkUnmarshalInt(b *testing.B) {
-	tokens := MustTokensFromStream(NewMarshaler(42))
+	tokens := MustTokensFromStream(Marshal(42))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var n int
@@ -80,7 +80,7 @@ var benchFoo = BenchFoo{
 func BenchmarkMarshalStruct(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := NewMarshaler(benchFoo)
+		m := Marshal(benchFoo)
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -96,7 +96,7 @@ func BenchmarkMarshalStruct(b *testing.B) {
 func BenchmarkTreeFromMarshalStruct(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := MustTreeFromStream(NewMarshaler(benchFoo)).Iter()
+		m := MustTreeFromStream(Marshal(benchFoo)).Iter()
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -112,7 +112,7 @@ func BenchmarkTreeFromMarshalStruct(b *testing.B) {
 func BenchmarkHashStructSha1(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := NewPostHasher(NewMarshaler(benchFoo), newMapHashState)
+		m := NewPostHasher(Marshal(benchFoo), newMapHashState)
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -126,7 +126,7 @@ func BenchmarkHashStructSha1(b *testing.B) {
 }
 
 func BenchmarkUnmarshalStruct(b *testing.B) {
-	tokens := MustTokensFromStream(NewMarshaler(benchFoo))
+	tokens := MustTokensFromStream(Marshal(benchFoo))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var foo BenchFoo
@@ -143,7 +143,7 @@ func BenchmarkMarshalMap(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := NewMarshaler(m)
+		m := Marshal(m)
 		for {
 			token, err := m.Next()
 			if err != nil {
@@ -158,7 +158,7 @@ func BenchmarkMarshalMap(b *testing.B) {
 
 func BenchmarkMarshalTuple(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := NewMarshaler(func() int {
+		m := Marshal(func() int {
 			return 42
 		})
 		for {
@@ -174,7 +174,7 @@ func BenchmarkMarshalTuple(b *testing.B) {
 }
 
 func BenchmarkUnarshalTuple(b *testing.B) {
-	tokens := MustTokensFromStream(NewMarshaler(
+	tokens := MustTokensFromStream(Marshal(
 		func() int {
 			return 42
 		},
@@ -189,7 +189,7 @@ func BenchmarkUnarshalTuple(b *testing.B) {
 }
 
 func BenchmarkUnarshalTupleCall(b *testing.B) {
-	tokens := MustTokensFromStream(NewMarshaler(
+	tokens := MustTokensFromStream(Marshal(
 		func() int {
 			return 42
 		},
@@ -206,7 +206,7 @@ func BenchmarkUnarshalTupleCall(b *testing.B) {
 
 func BenchmarkCompareTokens(b *testing.B) {
 	tokens := MustTokensFromStream(
-		NewMarshaler(benchFoo),
+		Marshal(benchFoo),
 	)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -223,8 +223,8 @@ func BenchmarkCompareTokens(b *testing.B) {
 func BenchmarkCompareMarshaler(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := Compare(
-			NewMarshaler(benchFoo),
-			NewMarshaler(benchFoo),
+			Marshal(benchFoo),
+			Marshal(benchFoo),
 		)
 		if err != nil {
 			b.Fatal(err)
@@ -234,13 +234,13 @@ func BenchmarkCompareMarshaler(b *testing.B) {
 
 func BenchmarkCompareMarshalerAndTokens(b *testing.B) {
 	tokens := MustTokensFromStream(
-		NewMarshaler(benchFoo),
+		Marshal(benchFoo),
 	)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := Compare(
 			tokens.Iter(),
-			NewMarshaler(benchFoo),
+			Marshal(benchFoo),
 		)
 		if err != nil {
 			b.Fatal(err)
@@ -250,7 +250,7 @@ func BenchmarkCompareMarshalerAndTokens(b *testing.B) {
 
 func BenchmarkCompareDecoders(b *testing.B) {
 	buf := new(bytes.Buffer)
-	if err := Copy(NewMarshaler(benchFoo), Encode(buf, nil)); err != nil {
+	if err := Copy(Marshal(benchFoo), Encode(buf, nil)); err != nil {
 		b.Fatal(err)
 	}
 	data := buf.Bytes()
@@ -268,12 +268,12 @@ func BenchmarkCompareDecoders(b *testing.B) {
 
 func BenchmarkCompareDecodersAndTokens(b *testing.B) {
 	buf := new(bytes.Buffer)
-	if err := Copy(NewMarshaler(benchFoo), Encode(buf, nil)); err != nil {
+	if err := Copy(Marshal(benchFoo), Encode(buf, nil)); err != nil {
 		b.Fatal(err)
 	}
 	data := buf.Bytes()
 	tokens := MustTokensFromStream(
-		NewMarshaler(benchFoo),
+		Marshal(benchFoo),
 	)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

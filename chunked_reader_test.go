@@ -8,7 +8,7 @@ import (
 func TestChunkedReader(t *testing.T) {
 	buf := new(bytes.Buffer)
 	if err := Copy(
-		NewMarshaler(
+		Marshal(
 			ChunkedReader{
 				R: bytes.NewReader([]byte("foobarbaz")),
 				N: 3,

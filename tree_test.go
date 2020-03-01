@@ -4,7 +4,7 @@ import "testing"
 
 func TestTree(t *testing.T) {
 	for _, c := range marshalTestCases {
-		tokens, err := TokensFromStream(NewMarshaler(c.value))
+		tokens, err := TokensFromStream(Marshal(c.value))
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -10,7 +10,7 @@ func TestTime(t *testing.T) {
 	buf := new(bytes.Buffer)
 	now := time.Now()
 	if err := Copy(
-		NewMarshaler(now),
+		Marshal(now),
 		Encode(buf, nil),
 	); err != nil {
 		t.Fatal(err)

@@ -32,7 +32,7 @@ func TestCompare(t *testing.T) {
 		{nil, nil},
 	}
 	for _, c := range equalCases {
-		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != 0 {
+		if MustCompare(Marshal(c[0]), Marshal(c[1])) != 0 {
 			t.Fatal()
 		}
 	}
@@ -87,10 +87,10 @@ func TestCompare(t *testing.T) {
 	}
 
 	for _, c := range notEqualCases {
-		if MustCompare(NewMarshaler(c[0]), NewMarshaler(c[1])) != -1 {
+		if MustCompare(Marshal(c[0]), Marshal(c[1])) != -1 {
 			t.Fatal()
 		}
-		if MustCompare(NewMarshaler(c[1]), NewMarshaler(c[0])) != 1 {
+		if MustCompare(Marshal(c[1]), Marshal(c[0])) != 1 {
 			t.Fatal()
 		}
 	}
@@ -111,26 +111,26 @@ func TestCompare(t *testing.T) {
 		t.Fatal()
 	}
 
-	if MustCompare(Tokens{}.Iter(), NewMarshaler(42)) != -1 {
+	if MustCompare(Tokens{}.Iter(), Marshal(42)) != -1 {
 		t.Fatal()
 	}
 
-	if MustCompare(NewMarshaler(42), Tokens{}.Iter()) != 1 {
+	if MustCompare(Marshal(42), Tokens{}.Iter()) != 1 {
 		t.Fatal()
 	}
 
 }
 
 func TestCompareBadStream(t *testing.T) {
-	s1 := NewMarshaler(new(badTextMarshaler))
-	s2 := NewMarshaler(42)
+	s1 := Marshal(new(badTextMarshaler))
+	s2 := Marshal(42)
 	_, err := Compare(s1, s2)
 	if err == nil {
 		t.Fatal()
 	}
 
-	s1 = NewMarshaler(new(badTextMarshaler))
-	s2 = NewMarshaler(42)
+	s1 = Marshal(new(badTextMarshaler))
+	s2 = Marshal(42)
 	_, err = Compare(s2, s1)
 	if err == nil {
 		t.Fatal()

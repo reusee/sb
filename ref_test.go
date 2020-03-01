@@ -13,7 +13,7 @@ func TestRef(t *testing.T) {
 	}
 	tree := MustTreeFromStream(
 		NewPostHasher(
-			NewMarshaler(foo{
+			Marshal(foo{
 				I: 42,
 				S: "42",
 			}),
@@ -50,7 +50,7 @@ func TestRef(t *testing.T) {
 		for _, ref := range refs {
 			if bytes.Equal(ref.Hash, hash) {
 				n++
-				return NewMarshaler(ref.Value), nil
+				return Marshal(ref.Value), nil
 			}
 		}
 		panic("ref not found")

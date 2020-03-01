@@ -77,7 +77,7 @@ var unmarshalTestCases = []UnmarshalTestCase{
 
 func TestUnmarshal(t *testing.T) {
 	for _, c := range unmarshalTestCases {
-		stream := NewMarshaler(c.value)
+		stream := Marshal(c.value)
 		ptr := reflect.New(reflect.TypeOf(c.target))
 		err := Unmarshal(stream, ptr.Interface())
 		if !errors.Is(err, c.err) {
@@ -107,7 +107,7 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestUnmarshalNaN(t *testing.T) {
-	stream := NewMarshaler(math.NaN())
+	stream := Marshal(math.NaN())
 	var f float64
 	if err := Unmarshal(stream, &f); err != nil {
 		t.Fatal(err)
@@ -124,7 +124,7 @@ func TestUnmarshalArray(t *testing.T) {
 	}
 	buf := new(bytes.Buffer)
 	if err := Copy(
-		NewMarshaler(S{
+		Marshal(S{
 			Foos: []foo{
 				foo{1},
 				foo{2},
@@ -144,7 +144,7 @@ func TestUnmarshalNamedUint(t *testing.T) {
 	type Foo uint32
 	buf := new(bytes.Buffer)
 	if err := Copy(
-		NewMarshaler(Foo(42)),
+		Marshal(Foo(42)),
 		Encode(buf, nil),
 	); err != nil {
 		t.Fatal(err)
@@ -162,7 +162,7 @@ func TestUnmarshalStructWithPrivateField(t *testing.T) {
 	}
 	buf := new(bytes.Buffer)
 	if err := Copy(
-		NewMarshaler(Foo{42, 42}),
+		Marshal(Foo{42, 42}),
 		Encode(buf, nil),
 	); err != nil {
 		t.Fatal(err)
@@ -754,7 +754,7 @@ func TestBadTuple(t *testing.T) {
 
 	// too few items
 	err = Unmarshal(
-		NewMarshaler(func() {}),
+		Marshal(func() {}),
 		&tuple,
 	)
 	if !errors.Is(err, ExpectingValue) {
@@ -763,7 +763,7 @@ func TestBadTuple(t *testing.T) {
 
 	// too many items
 	err = Unmarshal(
-		NewMarshaler(func() (int, int) {
+		Marshal(func() (int, int) {
 			return 42, 42
 		}),
 		&tuple,
@@ -774,7 +774,7 @@ func TestBadTuple(t *testing.T) {
 
 	// bad item
 	err = Unmarshal(
-		NewMarshaler(func() string {
+		Marshal(func() string {
 			return "42"
 		}),
 		&tuple,
@@ -826,7 +826,7 @@ func TestBadTupleCall(t *testing.T) {
 
 	// too few items
 	err = Unmarshal(
-		NewMarshaler(func() {}),
+		Marshal(func() {}),
 		tuple,
 	)
 	if !errors.Is(err, ExpectingValue) {
@@ -835,7 +835,7 @@ func TestBadTupleCall(t *testing.T) {
 
 	// too many items
 	err = Unmarshal(
-		NewMarshaler(func() (int, int) {
+		Marshal(func() (int, int) {
 			return 42, 42
 		}),
 		tuple,
@@ -846,7 +846,7 @@ func TestBadTupleCall(t *testing.T) {
 
 	// bad item
 	err = Unmarshal(
-		NewMarshaler(func() string {
+		Marshal(func() string {
 			return "42"
 		}),
 		tuple,
@@ -898,7 +898,7 @@ func TestBadTupleCallVariadic(t *testing.T) {
 
 	// bad item
 	err = Unmarshal(
-		NewMarshaler(func() string {
+		Marshal(func() string {
 			return "42"
 		}),
 		tuple,
@@ -985,7 +985,7 @@ func TestUnmarshalTupleCall(t *testing.T) {
 		}
 	}
 	if err := Unmarshal(
-		NewMarshaler(
+		Marshal(
 			func() (int, int) {
 				return 42, 1
 			},
@@ -1009,7 +1009,7 @@ func TestUnmarshalTupleCallVariadic(t *testing.T) {
 		}
 	}
 	if err := Unmarshal(
-		NewMarshaler(
+		Marshal(
 			func() (int, int) {
 				return 42, 1
 			},
@@ -1022,7 +1022,7 @@ func TestUnmarshalTupleCallVariadic(t *testing.T) {
 
 func TestBadUnmarshalTarget(t *testing.T) {
 	err := Unmarshal(
-		NewMarshaler(42),
+		Marshal(42),
 		42,
 	)
 	if !errors.Is(err, BadTargetType) {
@@ -1032,7 +1032,7 @@ func TestBadUnmarshalTarget(t *testing.T) {
 
 func TestUnmarshalTupleToErrCaller(t *testing.T) {
 	err := Unmarshal(
-		NewMarshaler(func() int {
+		Marshal(func() int {
 			return 42
 		}),
 		func(i int) error {
@@ -1049,7 +1049,7 @@ func TestUnmarshalTupleToErrCaller(t *testing.T) {
 
 func TestUnmarshalTupleToErrVariadicCaller(t *testing.T) {
 	err := Unmarshal(
-		NewMarshaler(func() int {
+		Marshal(func() int {
 			return 42
 		}),
 		func(args ...any) error {
@@ -1069,7 +1069,7 @@ func TestUnmarshalTupleToErrVariadicCaller(t *testing.T) {
 
 func TestUnmarshalTupleToCallerNoError(t *testing.T) {
 	err := Unmarshal(
-		NewMarshaler(func() int {
+		Marshal(func() int {
 			return 42
 		}),
 		func(args ...any) error {
@@ -1081,7 +1081,7 @@ func TestUnmarshalTupleToCallerNoError(t *testing.T) {
 	}
 
 	err = Unmarshal(
-		NewMarshaler(func() int {
+		Marshal(func() int {
 			return 42
 		}),
 		func(i int) error {
@@ -1096,7 +1096,7 @@ func TestUnmarshalTupleToCallerNoError(t *testing.T) {
 func TestUnmarshalToPointer(t *testing.T) {
 	var i *int
 	err := Unmarshal(
-		NewMarshaler(true),
+		Marshal(true),
 		&i,
 	)
 	if err == nil {

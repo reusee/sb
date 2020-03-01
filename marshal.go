@@ -12,7 +12,7 @@ type SBMarshaler interface {
 	MarshalSB(vm ValueMarshalFunc, cont Proc) Proc
 }
 
-func NewMarshaler(value any) *Proc {
+func Marshal(value any) *Proc {
 	marshaler := MarshalValue(MarshalValue, reflect.ValueOf(value), nil)
 	return &marshaler
 }

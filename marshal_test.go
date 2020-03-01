@@ -353,7 +353,7 @@ func TestMarshaler(t *testing.T) {
 	for i, c := range marshalTestCases {
 
 		// marshal
-		tokens, err := TokensFromStream(NewMarshaler(c.value))
+		tokens, err := TokensFromStream(Marshal(c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -375,7 +375,7 @@ func TestMarshaler(t *testing.T) {
 		// encode
 		buf := new(bytes.Buffer)
 		if err := Copy(
-			NewMarshaler(c.value),
+			Marshal(c.value),
 			Encode(buf, nil),
 		); err != nil {
 			t.Fatal(err)
@@ -386,7 +386,7 @@ func TestMarshaler(t *testing.T) {
 		}
 
 		// compare
-		tokens, err = TokensFromStream(NewMarshaler(c.value))
+		tokens, err = TokensFromStream(Marshal(c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -394,7 +394,7 @@ func TestMarshaler(t *testing.T) {
 		if err := Unmarshal(tokens.Iter(), &obj); err != nil {
 			t.Fatal(err)
 		}
-		if MustCompare(NewMarshaler(obj), NewMarshaler(c.value)) != 0 {
+		if MustCompare(Marshal(obj), Marshal(c.value)) != 0 {
 			t.Fatalf("not equal, got %#v, expected %#v", obj, c.value)
 		}
 
@@ -431,7 +431,7 @@ func (c *Custom) UnmarshalSB(cont Sink) Sink {
 func TestCustomType(t *testing.T) {
 	buf := new(bytes.Buffer)
 	if err := Copy(
-		NewMarshaler(Custom{42}),
+		Marshal(Custom{42}),
 		Encode(buf, nil),
 	); err != nil {
 		t.Fatal(err)
@@ -455,7 +455,7 @@ func (_ badBinaryMarshaler) MarshalBinary() ([]byte, error) {
 
 func TestBadBinaryMarshaler(t *testing.T) {
 	v := new(badBinaryMarshaler)
-	m := NewMarshaler(v)
+	m := Marshal(v)
 	_, err := TokensFromStream(m)
 	if err == nil {
 		t.Fatal()
@@ -472,7 +472,7 @@ func (_ badTextMarshaler) MarshalText() ([]byte, error) {
 
 func TestBadTextMarshaler(t *testing.T) {
 	v := new(badTextMarshaler)
-	m := NewMarshaler(v)
+	m := Marshal(v)
 	_, err := TokensFromStream(m)
 	if err == nil {
 		t.Fatal()
@@ -497,7 +497,7 @@ func (t *timeTextMarshaler) UnmarshalText(data []byte) error {
 
 func TestTimeMarshalText(t *testing.T) {
 	now := timeTextMarshaler{time.Now()}
-	m := NewMarshaler(now)
+	m := Marshal(now)
 	tokens, err := TokensFromStream(m)
 	if err != nil {
 		t.Fatal(err)
@@ -513,7 +513,7 @@ func TestTimeMarshalText(t *testing.T) {
 
 func TestMarshalIgnoreUnsupportedType(t *testing.T) {
 	tokens, err := TokensFromStream(
-		NewMarshaler(
+		Marshal(
 			make(chan int),
 		),
 	)
@@ -527,7 +527,7 @@ func TestMarshalIgnoreUnsupportedType(t *testing.T) {
 
 func TestBadMapKey(t *testing.T) {
 	_, err := TokensFromStream(
-		NewMarshaler(
+		Marshal(
 			map[any]any{
 				badBinaryMarshaler{}: true,
 			},
@@ -538,7 +538,7 @@ func TestBadMapKey(t *testing.T) {
 	}
 
 	_, err = TokensFromStream(
-		NewMarshaler(
+		Marshal(
 			map[any]any{
 				unsafe.Pointer(nil): true,
 			},

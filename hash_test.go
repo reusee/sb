@@ -9,7 +9,7 @@ import (
 
 func TestHasher(t *testing.T) {
 	for _, c := range marshalTestCases {
-		marshaler := NewMarshaler(c.value)
+		marshaler := Marshal(c.value)
 		hasher := NewPostHasher(marshaler, newMapHashState)
 		tokens, err := TokensFromStream(hasher)
 		if err != nil {
@@ -23,7 +23,7 @@ func TestHasher(t *testing.T) {
 		// compare hashed and not hashed
 		if MustCompare(
 			tokens.Iter(),
-			NewMarshaler(c.value),
+			Marshal(c.value),
 		) != 0 {
 			t.Fatal("not equal")
 		}
@@ -44,10 +44,10 @@ func TestHasher(t *testing.T) {
 
 		// sum
 		var sum1, sum2 []byte
-		if err := Unmarshal(NewMarshaler(c.value), Hasher(fnv.New128, &sum1, nil)); err != nil {
+		if err := Unmarshal(Marshal(c.value), Hasher(fnv.New128, &sum1, nil)); err != nil {
 			t.Fatal(err)
 		}
-		if err := Unmarshal(NewMarshaler(c.value), Hasher(fnv.New128a, &sum2, nil)); err != nil {
+		if err := Unmarshal(Marshal(c.value), Hasher(fnv.New128a, &sum2, nil)); err != nil {
 			t.Fatal(err)
 		}
 		if bytes.Equal(sum1, sum2) {
@@ -59,7 +59,7 @@ func TestHasher(t *testing.T) {
 func TestIntHash(t *testing.T) {
 	tokens, err := TokensFromStream(
 		NewPostHasher(
-			NewMarshaler(42),
+			Marshal(42),
 			newMapHashState,
 		),
 	)

@@ -7,7 +7,7 @@ import (
 
 func TestFindByHash(t *testing.T) {
 	var h []byte
-	err := Unmarshal(NewMarshaler(42), Hasher(newMapHashState, &h, nil))
+	err := Unmarshal(Marshal(42), Hasher(newMapHashState, &h, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +21,7 @@ func TestFindByHash(t *testing.T) {
 	} {
 
 		sub, err := FindByHash(
-			NewPostHasher(NewMarshaler(v), newMapHashState),
+			NewPostHasher(Marshal(v), newMapHashState),
 			h,
 			newMapHashState,
 		)
@@ -38,7 +38,7 @@ func TestFindByHash(t *testing.T) {
 		}
 
 		sub, err = FindByHash(
-			NewMarshaler(v), // no post hash
+			Marshal(v), // no post hash
 			h,
 			newMapHashState,
 		)
@@ -54,7 +54,7 @@ func TestFindByHash(t *testing.T) {
 		}
 
 		_, err = FindByHash(
-			NewMarshaler(v),
+			Marshal(v),
 			[]byte{},
 			newMapHashState,
 		)

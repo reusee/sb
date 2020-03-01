@@ -3,7 +3,7 @@ package sb
 import "testing"
 
 func TestTuple(t *testing.T) {
-	s := NewMarshaler(Tuple{
+	s := Marshal(Tuple{
 		42, true, "foo",
 	})
 	if err := Unmarshal(s, func(i int, b bool, s string) {
@@ -25,7 +25,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 
 	var tuple Tuple
 	if err := Copy(
-		NewMarshaler(Tuple{
+		Marshal(Tuple{
 			42, true, "foo",
 		}),
 		UnmarshalTupleTyped(func(int, bool, string) {}, &tuple, nil),
@@ -43,7 +43,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 	}
 
 	if err := Copy(
-		NewMarshaler(Tuple{
+		Marshal(Tuple{
 			1, false, "bar",
 		}),
 		UnmarshalTupleTyped(struct {
@@ -94,7 +94,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 	}
 
 	if err := Copy(
-		NewMarshaler(Tuple{
+		Marshal(Tuple{
 			42, true, "foo",
 		}),
 		UnmarshalTupleTyped(func(int, bool) {}, &tuple, nil),
@@ -103,7 +103,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 	}
 
 	if err := Copy(
-		NewMarshaler(Tuple{
+		Marshal(Tuple{
 			42, true,
 		}),
 		UnmarshalTupleTyped(func(int, bool, string) {}, &tuple, nil),
