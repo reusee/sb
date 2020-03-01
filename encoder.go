@@ -99,5 +99,8 @@ func encoder(w io.Writer, buf []byte, cont Sink) Sink {
 }
 
 func Encode(w io.Writer, stream Stream) error {
-	return Pipe(stream, Encoder(w, nil))
+	return Copy(
+		stream,
+		Encoder(w, nil),
+	)
 }

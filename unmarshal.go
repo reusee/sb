@@ -23,7 +23,10 @@ func Unmarshal(stream Stream, targets ...any) error {
 			sinks = append(sinks, UnmarshalValue(reflect.ValueOf(target), nil))
 		}
 	}
-	return Pipe(stream, sinks...)
+	return Copy(
+		Tee(stream, sinks...),
+		Discard,
+	)
 }
 
 func UnmarshalValue(target reflect.Value, cont Sink) Sink {

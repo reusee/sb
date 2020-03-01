@@ -26,7 +26,7 @@ func AltSink(sinks ...Sink) Sink {
 	}
 }
 
-func Consume(stream Stream, sink Sink) error {
+func Copy(stream Stream, sink Sink) error {
 	var token *Token
 	var err error
 	for {
@@ -50,13 +50,6 @@ func Consume(stream Stream, sink Sink) error {
 		}
 	}
 	return nil
-}
-
-func Pipe(stream Stream, sinks ...Sink) error {
-	return Consume(
-		Tee(stream, sinks...),
-		Discard,
-	)
 }
 
 func ExpectKind(kind Kind, cont Sink) Sink {

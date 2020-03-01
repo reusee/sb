@@ -24,7 +24,7 @@ func TestTuple(t *testing.T) {
 func TestTupleUnmarshalTyped(t *testing.T) {
 
 	var tuple Tuple
-	if err := Pipe(
+	if err := Copy(
 		NewMarshaler(Tuple{
 			42, true, "foo",
 		}),
@@ -42,7 +42,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		t.Fatal()
 	}
 
-	if err := Pipe(
+	if err := Copy(
 		NewMarshaler(Tuple{
 			1, false, "bar",
 		}),
@@ -64,14 +64,14 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		t.Fatal()
 	}
 
-	if err := Pipe(
+	if err := Copy(
 		Tokens{}.Iter(),
 		UnmarshalTupleTyped(func(int, bool, string) {}, &tuple, nil),
 	); !is(err, ExpectingTuple) {
 		t.Fatal(err)
 	}
 
-	if err := Pipe(
+	if err := Copy(
 		Tokens{
 			Token{
 				Kind: KindString,
@@ -82,7 +82,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Pipe(
+	if err := Copy(
 		Tokens{
 			Token{
 				Kind: KindTuple,
@@ -93,7 +93,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Pipe(
+	if err := Copy(
 		NewMarshaler(Tuple{
 			42, true, "foo",
 		}),
@@ -102,7 +102,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Pipe(
+	if err := Copy(
 		NewMarshaler(Tuple{
 			42, true,
 		}),

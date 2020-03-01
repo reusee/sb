@@ -257,7 +257,10 @@ func Fuzz(data []byte) int { // NOCOVER
 			// tee 2
 			func(in Stream) Stream {
 				buf := new(bytes.Buffer)
-				if err := Pipe(Tee(in, Encoder(buf, nil)), Discard); err != nil {
+				if err := Copy(
+					Tee(in, Encoder(buf, nil)),
+					Discard,
+				); err != nil {
 					panic(err)
 				}
 				return NewDecoder(buf)
