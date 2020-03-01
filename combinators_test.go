@@ -151,3 +151,23 @@ func TestExpectKind(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestFilterSink(t *testing.T) {
+	var tokens Tokens
+	if err := Copy(
+		Marshal([]any{
+			1, 2, 3, true, false, "foo", "bar",
+		}),
+		FilterSink(
+			CollectTokens(&tokens),
+			func(token *Token) bool {
+				return token.Kind != KindBool
+			},
+		),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if len(tokens) != 7 {
+		t.Fatal()
+	}
+}

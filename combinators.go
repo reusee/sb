@@ -106,3 +106,47 @@ func Discard(token *Token) (Sink, error) {
 	}
 	return Discard, nil
 }
+
+func FilterProc(
+	stream Stream,
+	predict func(*Token) bool,
+) *Proc {
+	proc := filterProc(stream, predict, nil)
+	return &proc
+}
+
+func filterProc(
+	stream Stream,
+	predict func(*Token) bool,
+	cont Proc,
+) Proc {
+	return func() (*Token, Proc, error) {
+		token, err := stream.Next()
+		if err != nil {
+			return nil, nil, err
+		}
+		if token == nil {
+			return nil, cont, nil
+		}
+		if predict(token) {
+			token = nil
+		}
+		return token, filterProc(stream, predict, cont), nil
+	}
+}
+
+func FilterSink(sink Sink, fn func(*Token) bool) Sink {
+	if sink == nil {
+		return nil
+	}
+	return func(token *Token) (Sink, error) {
+		var err error
+		if token == nil || fn(token) {
+			sink, err = sink(token)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return FilterSink(sink, fn), nil
+	}
+}
