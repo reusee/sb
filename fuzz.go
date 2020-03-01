@@ -225,7 +225,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 			// random filter post hash
 			func(in Stream) Stream {
-				return Filter(in, func(token *Token) bool {
+				return FilterProc(in, func(token *Token) bool {
 					return token.Kind == KindPostTag &&
 						rand.Intn(2) == 0
 				})

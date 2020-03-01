@@ -12,7 +12,7 @@ type SBUnmarshaler interface {
 }
 
 func Unmarshal(stream Stream, targets ...any) error {
-	stream = Filter(stream, func(token *Token) bool {
+	stream = FilterProc(stream, func(token *Token) bool {
 		return token.Kind == KindPostTag
 	})
 	sinks := make([]Sink, 0, len(targets))

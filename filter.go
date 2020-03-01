@@ -1,14 +1,14 @@
 package sb
 
-func Filter(
+func FilterProc(
 	stream Stream,
 	predict func(*Token) bool,
 ) *Proc {
-	proc := filter(stream, predict, nil)
+	proc := filterProc(stream, predict, nil)
 	return &proc
 }
 
-func filter(
+func filterProc(
 	stream Stream,
 	predict func(*Token) bool,
 	cont Proc,
@@ -24,6 +24,6 @@ func filter(
 		if predict(token) {
 			token = nil
 		}
-		return token, filter(stream, predict, cont), nil
+		return token, filterProc(stream, predict, cont), nil
 	}
 }
