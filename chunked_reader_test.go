@@ -7,13 +7,14 @@ import (
 
 func TestChunkedReader(t *testing.T) {
 	buf := new(bytes.Buffer)
-	if err := Encode(buf,
+	if err := Copy(
 		NewMarshaler(
 			ChunkedReader{
 				R: bytes.NewReader([]byte("foobarbaz")),
 				N: 3,
 			},
 		),
+		Encode(buf, nil),
 	); err != nil {
 		t.Fatal(err)
 	}

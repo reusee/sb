@@ -123,12 +123,15 @@ func TestUnmarshalArray(t *testing.T) {
 		Foos []foo
 	}
 	buf := new(bytes.Buffer)
-	if err := Encode(buf, NewMarshaler(S{
-		Foos: []foo{
-			foo{1},
-			foo{2},
-		},
-	})); err != nil {
+	if err := Copy(
+		NewMarshaler(S{
+			Foos: []foo{
+				foo{1},
+				foo{2},
+			},
+		}),
+		Encode(buf, nil),
+	); err != nil {
 		t.Fatal(err)
 	}
 	var s S
@@ -140,7 +143,10 @@ func TestUnmarshalArray(t *testing.T) {
 func TestUnmarshalNamedUint(t *testing.T) {
 	type Foo uint32
 	buf := new(bytes.Buffer)
-	if err := Encode(buf, NewMarshaler(Foo(42))); err != nil {
+	if err := Copy(
+		NewMarshaler(Foo(42)),
+		Encode(buf, nil),
+	); err != nil {
 		t.Fatal(err)
 	}
 	var foo Foo
@@ -155,7 +161,10 @@ func TestUnmarshalStructWithPrivateField(t *testing.T) {
 		Foo int
 	}
 	buf := new(bytes.Buffer)
-	if err := Encode(buf, NewMarshaler(Foo{42, 42})); err != nil {
+	if err := Copy(
+		NewMarshaler(Foo{42, 42}),
+		Encode(buf, nil),
+	); err != nil {
 		t.Fatal(err)
 	}
 	type Bar struct {

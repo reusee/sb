@@ -6,12 +6,12 @@ import (
 	"io"
 )
 
-func Encoder(w io.Writer, cont Sink) Sink {
+func Encode(w io.Writer, cont Sink) Sink {
 	buf := make([]byte, 8)
-	return encoder(w, buf, cont)
+	return EncodeBuffer(w, buf, cont)
 }
 
-func encoder(w io.Writer, buf []byte, cont Sink) Sink {
+func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return cont, nil
@@ -94,13 +94,6 @@ func encoder(w io.Writer, buf []byte, cont Sink) Sink {
 			}
 		}
 
-		return encoder(w, buf, cont), nil
+		return EncodeBuffer(w, buf, cont), nil
 	}
-}
-
-func Encode(w io.Writer, stream Stream) error {
-	return Copy(
-		stream,
-		Encoder(w, nil),
-	)
 }

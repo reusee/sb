@@ -250,7 +250,7 @@ func BenchmarkCompareMarshalerAndTokens(b *testing.B) {
 
 func BenchmarkCompareDecoders(b *testing.B) {
 	buf := new(bytes.Buffer)
-	if err := Encode(buf, NewMarshaler(benchFoo)); err != nil {
+	if err := Copy(NewMarshaler(benchFoo), Encode(buf, nil)); err != nil {
 		b.Fatal(err)
 	}
 	data := buf.Bytes()
@@ -268,7 +268,7 @@ func BenchmarkCompareDecoders(b *testing.B) {
 
 func BenchmarkCompareDecodersAndTokens(b *testing.B) {
 	buf := new(bytes.Buffer)
-	if err := Encode(buf, NewMarshaler(benchFoo)); err != nil {
+	if err := Copy(NewMarshaler(benchFoo), Encode(buf, nil)); err != nil {
 		b.Fatal(err)
 	}
 	data := buf.Bytes()

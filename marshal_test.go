@@ -374,7 +374,10 @@ func TestMarshaler(t *testing.T) {
 
 		// encode
 		buf := new(bytes.Buffer)
-		if err := Encode(buf, NewMarshaler(c.value)); err != nil {
+		if err := Copy(
+			NewMarshaler(c.value),
+			Encode(buf, nil),
+		); err != nil {
 			t.Fatal(err)
 		}
 		decoder := NewDecoder(buf)
@@ -427,7 +430,10 @@ func (c *Custom) UnmarshalSB(cont Sink) Sink {
 
 func TestCustomType(t *testing.T) {
 	buf := new(bytes.Buffer)
-	if err := Encode(buf, NewMarshaler(Custom{42})); err != nil {
+	if err := Copy(
+		NewMarshaler(Custom{42}),
+		Encode(buf, nil),
+	); err != nil {
 		t.Fatal(err)
 	}
 	var c Custom

@@ -9,12 +9,14 @@ import (
 )
 
 func TestEncodeBadStream(t *testing.T) {
-	err := Encode(ioutil.Discard, NewDecoder(
-		bytes.NewReader([]byte{
-			KindString, // incomplete
-		}),
-	))
-	if err == nil {
+	if err := Copy(
+		NewDecoder(
+			bytes.NewReader([]byte{
+				KindString, // incomplete
+			}),
+		),
+		Encode(ioutil.Discard, nil),
+	); err == nil {
 		t.Fatal()
 	}
 }
@@ -28,8 +30,10 @@ func (b badWriter) Write(data []byte) (int, error) {
 }
 
 func TestEncodeToBadWriter(t *testing.T) {
-	err := Encode(badWriter{}, NewMarshaler(42))
-	if err == nil {
+	if err := Copy(
+		NewMarshaler(42),
+		Encode(badWriter{}, nil),
+	); err == nil {
 		t.Fatal()
 	}
 }

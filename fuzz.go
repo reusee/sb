@@ -33,7 +33,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// marshal and encode
 		buf := new(bytes.Buffer)
-		if err := Encode(buf, NewMarshaler(obj)); err != nil { // NOCOVER
+		if err := Copy(NewMarshaler(obj), Encode(buf, nil)); err != nil { // NOCOVER
 			panic(err)
 		}
 		bs := buf.Bytes()
@@ -155,7 +155,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// encode and decode
 			func(in Stream) Stream {
 				buf := new(bytes.Buffer)
-				if err := Encode(buf, in); err != nil { // NOCOVER
+				if err := Copy(in, Encode(buf, nil)); err != nil { // NOCOVER
 					panic(err)
 				}
 				return NewDecoder(buf)
@@ -258,7 +258,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			func(in Stream) Stream {
 				buf := new(bytes.Buffer)
 				if err := Copy(
-					Tee(in, Encoder(buf, nil)),
+					Tee(in, Encode(buf, nil)),
 					Discard,
 				); err != nil { // NOCOVER
 					panic(err)
