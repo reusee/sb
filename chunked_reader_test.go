@@ -21,7 +21,7 @@ func TestChunkedReader(t *testing.T) {
 
 	var data [][]byte
 	if err := Unmarshal(
-		NewDecoder(buf),
+		Decode(buf),
 		&data,
 	); err != nil {
 		t.Fatal(err)

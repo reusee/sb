@@ -257,8 +257,8 @@ func BenchmarkCompareDecoders(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := Compare(
-			NewDecoder(bytes.NewReader(data)),
-			NewDecoder(bytes.NewReader(data)),
+			Decode(bytes.NewReader(data)),
+			Decode(bytes.NewReader(data)),
 		)
 		if err != nil {
 			b.Fatal(err)
@@ -279,7 +279,7 @@ func BenchmarkCompareDecodersAndTokens(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := Compare(
 			tokens.Iter(),
-			NewDecoder(bytes.NewReader(data)),
+			Decode(bytes.NewReader(data)),
 		)
 		if err != nil {
 			b.Fatal(err)

@@ -15,7 +15,7 @@ func (r badReader) Read(_ []byte) (int, error) {
 }
 
 func TestDecodeBadReader(t *testing.T) {
-	d := NewDecoder(badReader{})
+	d := Decode(badReader{})
 	_, err := d.Next()
 	if err == nil {
 		t.Fatal()

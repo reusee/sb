@@ -135,7 +135,7 @@ func TestUnmarshalArray(t *testing.T) {
 		t.Fatal(err)
 	}
 	var s S
-	if err := Unmarshal(NewDecoder(buf), &s); err != nil {
+	if err := Unmarshal(Decode(buf), &s); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -150,7 +150,7 @@ func TestUnmarshalNamedUint(t *testing.T) {
 		t.Fatal(err)
 	}
 	var foo Foo
-	if err := Unmarshal(NewDecoder(buf), &foo); err != nil {
+	if err := Unmarshal(Decode(buf), &foo); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -172,7 +172,7 @@ func TestUnmarshalStructWithPrivateField(t *testing.T) {
 		Foo int
 	}
 	var bar Bar
-	if err := Unmarshal(NewDecoder(buf), &bar); err != nil {
+	if err := Unmarshal(Decode(buf), &bar); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -226,14 +226,14 @@ func TestUnmarshalBadBinaryUnmarshaler(t *testing.T) {
 	var b badBinaryUnmarshaler
 
 	// bad decoder
-	if err := Unmarshal(NewDecoder(bytes.NewReader([]byte{
+	if err := Unmarshal(Decode(bytes.NewReader([]byte{
 		KindString,
 	})), &b); err == nil {
 		t.Fatal()
 	}
 
 	// no token
-	if err := Unmarshal(NewDecoder(bytes.NewReader(nil)), &b); err == nil {
+	if err := Unmarshal(Decode(bytes.NewReader(nil)), &b); err == nil {
 		t.Fatal()
 	}
 
@@ -265,14 +265,14 @@ func TestUnmarshalBadTextUnmarshaler(t *testing.T) {
 	var b badTextUnmarshaler
 
 	// bad decoder
-	if err := Unmarshal(NewDecoder(bytes.NewReader([]byte{
+	if err := Unmarshal(Decode(bytes.NewReader([]byte{
 		KindString,
 	})), &b); err == nil {
 		t.Fatal()
 	}
 
 	// no token
-	if err := Unmarshal(NewDecoder(bytes.NewReader(nil)), &b); err == nil {
+	if err := Unmarshal(Decode(bytes.NewReader(nil)), &b); err == nil {
 		t.Fatal()
 	}
 
@@ -305,7 +305,7 @@ func TestBadArray(t *testing.T) {
 
 	// bad decoder
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindArray,
 			KindString,
 		})),
@@ -317,7 +317,7 @@ func TestBadArray(t *testing.T) {
 
 	// short decoder
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindArray,
 		})),
 		&v,
@@ -360,7 +360,7 @@ func TestBadSlice(t *testing.T) {
 
 	// bad decoder
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindArray,
 			KindString,
 		})),
@@ -372,7 +372,7 @@ func TestBadSlice(t *testing.T) {
 
 	// short decoder
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindArray,
 		})),
 		&v,
@@ -402,7 +402,7 @@ func TestBadObject(t *testing.T) {
 
 	// bad decoder
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindObject,
 			KindString,
 		})),
@@ -414,7 +414,7 @@ func TestBadObject(t *testing.T) {
 
 	// short decoder
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindObject,
 		})),
 		&v,
@@ -450,7 +450,7 @@ func TestBadObject(t *testing.T) {
 
 	// bad skip
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindObject,
 			KindString, 0,
 			KindString,
@@ -463,7 +463,7 @@ func TestBadObject(t *testing.T) {
 
 	// bad value
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindObject,
 			KindString, 3, 'F', 'o', 'o',
 			KindString,
@@ -481,7 +481,7 @@ func TestBadMap(t *testing.T) {
 
 	// bad decoder
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString,
 		})),
@@ -493,7 +493,7 @@ func TestBadMap(t *testing.T) {
 
 	// short decoder
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 		})),
 		&m,
@@ -529,7 +529,7 @@ func TestBadMap(t *testing.T) {
 
 	// bad skip
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString, 0,
 			KindString,
@@ -542,7 +542,7 @@ func TestBadMap(t *testing.T) {
 
 	// bad value
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString, 3, 'F', 'o', 'o',
 			KindString,
@@ -555,7 +555,7 @@ func TestBadMap(t *testing.T) {
 
 	// bad value
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 1,
 			KindString,
@@ -573,7 +573,7 @@ func TestBadMapGeneric(t *testing.T) {
 
 	// bad decoder
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString,
 		})),
@@ -585,7 +585,7 @@ func TestBadMapGeneric(t *testing.T) {
 
 	// short decoder
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 		})),
 		&m,
@@ -596,7 +596,7 @@ func TestBadMapGeneric(t *testing.T) {
 
 	// short decoder
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindArray,
 		})),
@@ -633,7 +633,7 @@ func TestBadMapGeneric(t *testing.T) {
 
 	// bad skip
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString, 0,
 			KindString,
@@ -646,7 +646,7 @@ func TestBadMapGeneric(t *testing.T) {
 
 	// bad value
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString, 3, 'F', 'o', 'o',
 			KindString,
@@ -659,7 +659,7 @@ func TestBadMapGeneric(t *testing.T) {
 
 	// bad value
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 1,
 			KindString,
@@ -672,7 +672,7 @@ func TestBadMapGeneric(t *testing.T) {
 
 	// bad key
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindArray,
 			KindArrayEnd,
@@ -731,7 +731,7 @@ func TestBadTuple(t *testing.T) {
 
 	// bad token
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindString,
 		})),
@@ -743,7 +743,7 @@ func TestBadTuple(t *testing.T) {
 
 	// short token
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 		})),
 		&tuple,
@@ -785,7 +785,7 @@ func TestBadTuple(t *testing.T) {
 
 	// bad end
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
 			KindString, // incomplete string
@@ -803,7 +803,7 @@ func TestBadTupleCall(t *testing.T) {
 
 	// bad token
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindString,
 		})),
@@ -815,7 +815,7 @@ func TestBadTupleCall(t *testing.T) {
 
 	// short token
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 		})),
 		tuple,
@@ -857,7 +857,7 @@ func TestBadTupleCall(t *testing.T) {
 
 	// bad end
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
 			KindString, // incomplete string
@@ -875,7 +875,7 @@ func TestBadTupleCallVariadic(t *testing.T) {
 
 	// bad token
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindString,
 		})),
@@ -887,7 +887,7 @@ func TestBadTupleCallVariadic(t *testing.T) {
 
 	// short token
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 		})),
 		tuple,
@@ -909,7 +909,7 @@ func TestBadTupleCallVariadic(t *testing.T) {
 
 	// bad end
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
 			KindString, // incomplete string
@@ -927,7 +927,7 @@ func TestBadGenericTuple(t *testing.T) {
 
 	// bad token
 	err := Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindString,
 		})),
@@ -939,7 +939,7 @@ func TestBadGenericTuple(t *testing.T) {
 
 	// short token
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 		})),
 		&tuple,
@@ -950,7 +950,7 @@ func TestBadGenericTuple(t *testing.T) {
 
 	// bad end
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindBool, 1,
 			KindString, // incomplete string
@@ -963,7 +963,7 @@ func TestBadGenericTuple(t *testing.T) {
 
 	// bad item
 	err = Unmarshal(
-		NewDecoder(bytes.NewReader([]byte{
+		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindMapEnd,
 		})),

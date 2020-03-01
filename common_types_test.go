@@ -16,7 +16,7 @@ func TestTime(t *testing.T) {
 		t.Fatal(err)
 	}
 	var tt time.Time
-	if err := Unmarshal(NewDecoder(buf), &tt); err != nil {
+	if err := Unmarshal(Decode(buf), &tt); err != nil {
 		t.Fatal(err)
 	}
 	if !tt.Equal(now) {

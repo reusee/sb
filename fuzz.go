@@ -18,7 +18,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		var obj any
 		tee := new(bytes.Buffer)
 		if err := Unmarshal(
-			NewDecoder(io.TeeReader(r, tee)),
+			Decode(io.TeeReader(r, tee)),
 			&obj,
 		); err != nil {
 			return 0
@@ -26,7 +26,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		teeBytes := tee.Bytes()
 
 		// validate tree
-		_, err := TreeFromStream(NewDecoder(bytes.NewReader(teeBytes)))
+		_, err := TreeFromStream(Decode(bytes.NewReader(teeBytes)))
 		if err != nil {
 			return 0
 		}
@@ -41,7 +41,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		// decode and unmarshal
 		var obj2 any
 		if err := Unmarshal(
-			NewDecoder(bytes.NewReader(teeBytes)),
+			Decode(bytes.NewReader(teeBytes)),
 			&obj2,
 		); err != nil { // NOCOVER
 			panic(err)
@@ -49,14 +49,14 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// compare
 		if MustCompare(
-			NewDecoder(bytes.NewReader(bs)),
+			Decode(bytes.NewReader(bs)),
 			NewMarshaler(obj2),
 		) != 0 { // NOCOVER
 			tokens1 := MustTokensFromStream(
-				NewDecoder(bytes.NewReader(teeBytes)),
+				Decode(bytes.NewReader(teeBytes)),
 			)
 			tokens2 := MustTokensFromStream(
-				NewDecoder(bytes.NewReader(bs)),
+				Decode(bytes.NewReader(bs)),
 			)
 			for i, token := range tokens1 { // NOCOVER
 				if i < len(tokens2) { // NOCOVER
@@ -99,7 +99,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// tree
-		tree, err := TreeFromStream(NewDecoder(bytes.NewReader(bs)))
+		tree, err := TreeFromStream(Decode(bytes.NewReader(bs)))
 		if err != nil { // NOCOVER
 			panic(err)
 		}
@@ -158,7 +158,7 @@ func Fuzz(data []byte) int { // NOCOVER
 				if err := Copy(in, Encode(buf, nil)); err != nil { // NOCOVER
 					panic(err)
 				}
-				return NewDecoder(buf)
+				return Decode(buf)
 			},
 
 			// post hasher
@@ -263,7 +263,7 @@ func Fuzz(data []byte) int { // NOCOVER
 				); err != nil { // NOCOVER
 					panic(err)
 				}
-				return NewDecoder(buf)
+				return Decode(buf)
 			},
 
 			// collect tokens

@@ -10,7 +10,7 @@ import (
 
 func TestEncodeBadStream(t *testing.T) {
 	if err := Copy(
-		NewDecoder(
+		Decode(
 			bytes.NewReader([]byte{
 				KindString, // incomplete
 			}),

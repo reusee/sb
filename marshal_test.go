@@ -380,7 +380,7 @@ func TestMarshaler(t *testing.T) {
 		); err != nil {
 			t.Fatal(err)
 		}
-		decoder := NewDecoder(buf)
+		decoder := Decode(buf)
 		if MustCompare(decoder, Tokens(c.expected).Iter()) != 0 {
 			t.Fatalf("%d fail %+v", i, c)
 		}
@@ -437,7 +437,7 @@ func TestCustomType(t *testing.T) {
 		t.Fatal(err)
 	}
 	var c Custom
-	if err := Unmarshal(NewDecoder(buf), &c); err != nil {
+	if err := Unmarshal(Decode(buf), &c); err != nil {
 		t.Fatal(err)
 	}
 	if c.Foo != 42 {

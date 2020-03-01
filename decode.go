@@ -18,7 +18,7 @@ const (
 	decoderBufLen = 8
 )
 
-func NewDecoder(r io.Reader) *Decoder {
+func Decode(r io.Reader) *Decoder {
 	return &Decoder{
 		r: r,
 	}
