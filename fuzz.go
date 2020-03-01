@@ -91,10 +91,10 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// sink hash
 		var sum3 []byte
-		if err := Unmarshal(NewMarshaler(obj2), Hasher(fnv.New128, &sum3, nil)); err != nil {
+		if err := Unmarshal(NewMarshaler(obj2), Hasher(fnv.New128, &sum3, nil)); err != nil { // NOCOVER
 			panic(err)
 		}
-		if !bytes.Equal(sum1, sum3) {
+		if !bytes.Equal(sum1, sum3) { // NOCOVER
 			panic("should equal")
 		}
 
@@ -243,7 +243,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// unmarshal to multiple
 			func(in Stream) Stream {
 				var ts [3]any
-				if err := Unmarshal(in, &ts[0], &ts[1], &ts[2]); err != nil {
+				if err := Unmarshal(in, &ts[0], &ts[1], &ts[2]); err != nil { // NOCOVER
 					panic(err)
 				}
 				return NewMarshaler(ts[rand.Intn(len(ts))])
@@ -260,7 +260,7 @@ func Fuzz(data []byte) int { // NOCOVER
 				if err := Copy(
 					Tee(in, Encoder(buf, nil)),
 					Discard,
-				); err != nil {
+				); err != nil { // NOCOVER
 					panic(err)
 				}
 				return NewDecoder(buf)

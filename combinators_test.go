@@ -125,3 +125,29 @@ func TestAltSink(t *testing.T) {
 	}
 
 }
+
+func TestExpectKind(t *testing.T) {
+	err := Copy(
+		Tokens{
+			{
+				Kind: KindInt,
+			},
+		}.Iter(),
+		ExpectKind(KindString, nil),
+	)
+	if !is(err, ExpectingString) {
+		t.Fatal()
+	}
+
+	err = Copy(
+		Tokens{
+			{
+				Kind: KindInt,
+			},
+		}.Iter(),
+		ExpectKind(KindInvalid, nil),
+	)
+	if !is(err, ExpectingValue) {
+		t.Fatal()
+	}
+}
