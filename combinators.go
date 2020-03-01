@@ -139,6 +139,9 @@ func FilterSink(sink Sink, fn func(*Token) bool) Sink {
 	return func(token *Token) (Sink, error) {
 		var err error
 		if token == nil || !fn(token) {
+			if sink == nil {
+				return nil, nil
+			}
 			sink, err = sink(token)
 			if err != nil {
 				return nil, err
