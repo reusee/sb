@@ -12,7 +12,8 @@ func Encode(w io.Writer) Sink {
 }
 
 func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
-	return func(token *Token) (Sink, error) {
+	var sink Sink
+	sink = func(token *Token) (Sink, error) {
 		if token == nil {
 			return cont, nil
 		}
@@ -94,6 +95,8 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 			}
 		}
 
-		return EncodeBuffer(w, buf, cont), nil
+		return sink, nil
 	}
+
+	return sink
 }

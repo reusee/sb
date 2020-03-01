@@ -71,7 +71,8 @@ func Tee(stream Stream, sinks ...Sink) *Proc {
 }
 
 func TeeProc(stream Stream, sinks []Sink, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		var token *Token
 		var err error
 		if stream != nil {
@@ -96,8 +97,9 @@ func TeeProc(stream Stream, sinks []Sink, cont Proc) Proc {
 		if token == nil && len(sinks) == 0 {
 			return nil, cont, nil
 		}
-		return token, TeeProc(stream, sinks, cont), nil
+		return token, proc, nil
 	}
+	return proc
 }
 
 func Discard(token *Token) (Sink, error) {
@@ -120,7 +122,8 @@ func filterProc(
 	predict func(*Token) bool,
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		token, err := stream.Next()
 		if err != nil {
 			return nil, nil, err
@@ -131,12 +134,14 @@ func filterProc(
 		if predict(token) {
 			token = nil
 		}
-		return token, filterProc(stream, predict, cont), nil
+		return token, proc, nil
 	}
+	return proc
 }
 
 func FilterSink(sink Sink, fn func(*Token) bool) Sink {
-	return func(token *Token) (Sink, error) {
+	var s Sink
+	s = func(token *Token) (Sink, error) {
 		var err error
 		if token == nil || !fn(token) {
 			if sink == nil {
@@ -150,6 +155,7 @@ func FilterSink(sink Sink, fn func(*Token) bool) Sink {
 		if sink == nil {
 			return nil, nil
 		}
-		return FilterSink(sink, fn), nil
+		return s, nil
 	}
+	return s
 }
