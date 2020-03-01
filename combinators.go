@@ -26,49 +26,37 @@ func AltSink(sinks ...Sink) Sink {
 	}
 }
 
-func Pipe(stream Stream, sinks ...Sink) error {
+func Consume(stream Stream, sink Sink) error {
+	var token *Token
 	var err error
 	for {
-		token, err := stream.Next()
-		if err != nil {
-			return err
+		if stream != nil {
+			token, err = stream.Next()
+			if err != nil {
+				return err
+			}
+			if token == nil {
+				stream = nil
+			}
 		}
-		if token == nil {
+		if sink != nil {
+			sink, err = sink(token)
+			if err != nil {
+				return err
+			}
+		}
+		if sink == nil && stream == nil {
 			break
 		}
-		if len(sinks) == 0 {
-			return UnmarshalError{EmptySink}
-		}
-		for i := 0; i < len(sinks); {
-			if sinks[i] == nil {
-				sinks[i] = sinks[len(sinks)-1]
-				sinks = sinks[:len(sinks)-1]
-				continue
-			}
-			sinks[i], err = sinks[i](token)
-			if err != nil {
-				return err
-			}
-			i++
-		}
 	}
-
-	for len(sinks) > 0 {
-		for i := 0; i < len(sinks); {
-			if sinks[i] == nil {
-				sinks[i] = sinks[len(sinks)-1]
-				sinks = sinks[:len(sinks)-1]
-				continue
-			}
-			sinks[i], err = sinks[i](nil)
-			if err != nil {
-				return err
-			}
-			i++
-		}
-	}
-
 	return nil
+}
+
+func Pipe(stream Stream, sinks ...Sink) error {
+	return Consume(
+		Tee(stream, sinks...),
+		Discard,
+	)
 }
 
 func ExpectKind(kind Kind, cont Sink) Sink {
