@@ -23,3 +23,13 @@ func MustTokensFromStream(stream Stream) Tokens {
 	}
 	return tokens
 }
+
+func CollectTokens(tokens *Tokens) Sink {
+	return func(token *Token) (Sink, error) {
+		if token == nil {
+			return nil, nil
+		}
+		*tokens = append(*tokens, *token)
+		return CollectTokens(tokens), nil
+	}
+}

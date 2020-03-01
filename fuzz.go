@@ -265,6 +265,15 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 				return NewDecoder(buf)
 			},
+
+			// collect tokens
+			func(in Stream) Stream {
+				var tokens Tokens
+				if err := Copy(in, CollectTokens(&tokens)); err != nil {
+					panic(err)
+				}
+				return tokens.Iter()
+			},
 		}
 		fn := func(in Stream) Stream {
 			return in
