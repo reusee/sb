@@ -15,7 +15,7 @@ func TestEncodeBadStream(t *testing.T) {
 				KindString, // incomplete
 			}),
 		),
-		Encode(ioutil.Discard, nil),
+		Encode(ioutil.Discard),
 	); err == nil {
 		t.Fatal()
 	}
@@ -32,7 +32,7 @@ func (b badWriter) Write(data []byte) (int, error) {
 func TestEncodeToBadWriter(t *testing.T) {
 	if err := Copy(
 		Marshal(42),
-		Encode(badWriter{}, nil),
+		Encode(badWriter{}),
 	); err == nil {
 		t.Fatal()
 	}

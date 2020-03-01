@@ -9,7 +9,7 @@ func TestFindByHash(t *testing.T) {
 	var h []byte
 	err := Copy(
 		Marshal(42),
-		Hasher(newMapHashState, &h, nil),
+		Hash(newMapHashState, &h, nil),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -34,7 +34,7 @@ func TestFindByHash(t *testing.T) {
 		var subHash []byte
 		err = Copy(
 			sub,
-			Hasher(newMapHashState, &subHash, nil),
+			Hash(newMapHashState, &subHash, nil),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -53,7 +53,7 @@ func TestFindByHash(t *testing.T) {
 		}
 		err = Copy(
 			sub,
-			Hasher(newMapHashState, &subHash, nil),
+			Hash(newMapHashState, &subHash, nil),
 		)
 		if err != nil {
 			t.Fatal(err)

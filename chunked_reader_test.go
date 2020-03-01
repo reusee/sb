@@ -14,7 +14,7 @@ func TestChunkedReader(t *testing.T) {
 				N: 3,
 			},
 		),
-		Encode(buf, nil),
+		Encode(buf),
 	); err != nil {
 		t.Fatal(err)
 	}

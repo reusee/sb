@@ -130,7 +130,7 @@ func TestUnmarshalArray(t *testing.T) {
 				foo{2},
 			},
 		}),
-		Encode(buf, nil),
+		Encode(buf),
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +145,7 @@ func TestUnmarshalNamedUint(t *testing.T) {
 	buf := new(bytes.Buffer)
 	if err := Copy(
 		Marshal(Foo(42)),
-		Encode(buf, nil),
+		Encode(buf),
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +163,7 @@ func TestUnmarshalStructWithPrivateField(t *testing.T) {
 	buf := new(bytes.Buffer)
 	if err := Copy(
 		Marshal(Foo{42, 42}),
-		Encode(buf, nil),
+		Encode(buf),
 	); err != nil {
 		t.Fatal(err)
 	}

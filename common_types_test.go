@@ -11,7 +11,7 @@ func TestTime(t *testing.T) {
 	now := time.Now()
 	if err := Copy(
 		Marshal(now),
-		Encode(buf, nil),
+		Encode(buf),
 	); err != nil {
 		t.Fatal(err)
 	}

@@ -6,9 +6,9 @@ import (
 	"io"
 )
 
-func Encode(w io.Writer, cont Sink) Sink {
+func Encode(w io.Writer) Sink {
 	buf := make([]byte, 8)
-	return EncodeBuffer(w, buf, cont)
+	return EncodeBuffer(w, buf, nil)
 }
 
 func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {

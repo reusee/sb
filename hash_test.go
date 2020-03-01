@@ -46,13 +46,13 @@ func TestHasher(t *testing.T) {
 		var sum1, sum2 []byte
 		if err := Copy(
 			Marshal(c.value),
-			Hasher(fnv.New128, &sum1, nil),
+			Hash(fnv.New128, &sum1, nil),
 		); err != nil {
 			t.Fatal(err)
 		}
 		if err := Copy(
 			Marshal(c.value),
-			Hasher(fnv.New128a, &sum2, nil),
+			Hash(fnv.New128a, &sum2, nil),
 		); err != nil {
 			t.Fatal(err)
 		}

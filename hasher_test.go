@@ -26,7 +26,7 @@ func TestSinkHash(t *testing.T) {
 		var sum []byte
 		if err := Copy(
 			Marshal(c.value),
-			Hasher(fnv.New128, &sum, nil),
+			Hash(fnv.New128, &sum, nil),
 		); err != nil {
 			t.Fatal(err)
 		}

@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-func Hasher(
+func Hash(
 	newState func() hash.Hash,
 	sum *[]byte,
 	cont Sink,
@@ -18,7 +18,7 @@ func Hasher(
 		}
 		if token.Kind == KindPostTag {
 			// skip
-			return Hasher(newState, sum, cont), nil
+			return Hash(newState, sum, cont), nil
 		}
 
 		state := newState()
@@ -80,7 +80,7 @@ func Hasher(
 			return cont, nil
 
 		case KindArray, KindObject, KindMap, KindTuple:
-			return CompoundHasher(
+			return HashCompound(
 				newState,
 				state,
 				func(token *Token) (Sink, error) {
@@ -100,7 +100,7 @@ func Hasher(
 	}
 }
 
-func CompoundHasher(
+func HashCompound(
 	newState func() hash.Hash,
 	state hash.Hash,
 	cont Sink,
@@ -110,7 +110,7 @@ func CompoundHasher(
 			return nil, UnmarshalError{ExpectingValue}
 		}
 		if token.Kind == KindPostTag {
-			return CompoundHasher(newState, state, cont), nil
+			return HashCompound(newState, state, cont), nil
 		}
 
 		var subHash []byte
@@ -122,10 +122,10 @@ func CompoundHasher(
 			token.Kind == KindTupleEnd {
 			next = cont
 		} else {
-			next = CompoundHasher(newState, state, cont)
+			next = HashCompound(newState, state, cont)
 		}
 
-		return Hasher(
+		return Hash(
 			newState,
 			&subHash,
 			func(token *Token) (Sink, error) {

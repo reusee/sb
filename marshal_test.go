@@ -376,7 +376,7 @@ func TestMarshaler(t *testing.T) {
 		buf := new(bytes.Buffer)
 		if err := Copy(
 			Marshal(c.value),
-			Encode(buf, nil),
+			Encode(buf),
 		); err != nil {
 			t.Fatal(err)
 		}
@@ -432,7 +432,7 @@ func TestCustomType(t *testing.T) {
 	buf := new(bytes.Buffer)
 	if err := Copy(
 		Marshal(Custom{42}),
-		Encode(buf, nil),
+		Encode(buf),
 	); err != nil {
 		t.Fatal(err)
 	}
