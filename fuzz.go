@@ -248,6 +248,20 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 				return NewMarshaler(ts[rand.Intn(len(ts))])
 			},
+
+			// tee
+			func(in Stream) Stream {
+				return Tee(in)
+			},
+
+			// tee 2
+			func(in Stream) Stream {
+				buf := new(bytes.Buffer)
+				if err := Pipe(Tee(in, Encoder(buf, nil)), Discard); err != nil {
+					panic(err)
+				}
+				return NewDecoder(buf)
+			},
 		}
 		fn := func(in Stream) Stream {
 			return in
