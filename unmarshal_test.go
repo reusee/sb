@@ -79,7 +79,7 @@ func TestUnmarshal(t *testing.T) {
 	for _, c := range unmarshalTestCases {
 		stream := Marshal(c.value)
 		ptr := reflect.New(reflect.TypeOf(c.target))
-		err := Unmarshal(stream, ptr.Interface())
+		err := Copy(stream, Unmarshal(ptr.Interface()))
 		if !errors.Is(err, c.err) {
 			pt("%v\n", err)
 			t.Fatal()
@@ -109,7 +109,7 @@ func TestUnmarshal(t *testing.T) {
 func TestUnmarshalNaN(t *testing.T) {
 	stream := Marshal(math.NaN())
 	var f float64
-	if err := Unmarshal(stream, &f); err != nil {
+	if err := Copy(stream, Unmarshal(&f)); err != nil {
 		t.Fatal(err)
 	}
 	if !math.IsNaN(f) {
@@ -135,7 +135,7 @@ func TestUnmarshalArray(t *testing.T) {
 		t.Fatal(err)
 	}
 	var s S
-	if err := Unmarshal(Decode(buf), &s); err != nil {
+	if err := Copy(Decode(buf), Unmarshal(&s)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -150,7 +150,7 @@ func TestUnmarshalNamedUint(t *testing.T) {
 		t.Fatal(err)
 	}
 	var foo Foo
-	if err := Unmarshal(Decode(buf), &foo); err != nil {
+	if err := Copy(Decode(buf), Unmarshal(&foo)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -172,7 +172,7 @@ func TestUnmarshalStructWithPrivateField(t *testing.T) {
 		Foo int
 	}
 	var bar Bar
-	if err := Unmarshal(Decode(buf), &bar); err != nil {
+	if err := Copy(Decode(buf), Unmarshal(&bar)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -206,7 +206,7 @@ func TestUnmarshalIncompleteStream(t *testing.T) {
 
 	for i, c := range cases {
 		var v any
-		err := Unmarshal(c.Iter(), &v)
+		err := Copy(c.Iter(), Unmarshal(&v))
 		if err == nil {
 			t.Fatalf("shoud error: %d", i)
 		}
@@ -226,28 +226,40 @@ func TestUnmarshalBadBinaryUnmarshaler(t *testing.T) {
 	var b badBinaryUnmarshaler
 
 	// bad decoder
-	if err := Unmarshal(Decode(bytes.NewReader([]byte{
-		KindString,
-	})), &b); err == nil {
+	if err := Copy(
+		Decode(bytes.NewReader([]byte{
+			KindString,
+		})),
+		Unmarshal(&b),
+	); err == nil {
 		t.Fatal()
 	}
 
 	// no token
-	if err := Unmarshal(Decode(bytes.NewReader(nil)), &b); err == nil {
+	if err := Copy(
+		Decode(bytes.NewReader(nil)),
+		Unmarshal(&b),
+	); err == nil {
 		t.Fatal()
 	}
 
 	// bad token
-	if err := Unmarshal(Tokens{
-		{KindInt, 42},
-	}.Iter(), &b); err == nil {
+	if err := Copy(
+		Tokens{
+			{KindInt, 42},
+		}.Iter(),
+		Unmarshal(&b),
+	); err == nil {
 		t.Fatal()
 	}
 
 	// bad unmarshaler
-	if err := Unmarshal(Tokens{
-		{KindString, "foo"},
-	}.Iter(), &b); err == nil {
+	if err := Copy(
+		Tokens{
+			{KindString, "foo"},
+		}.Iter(),
+		Unmarshal(&b),
+	); err == nil {
 		t.Fatal()
 	}
 
@@ -265,37 +277,52 @@ func TestUnmarshalBadTextUnmarshaler(t *testing.T) {
 	var b badTextUnmarshaler
 
 	// bad decoder
-	if err := Unmarshal(Decode(bytes.NewReader([]byte{
-		KindString,
-	})), &b); err == nil {
+	if err := Copy(
+		Decode(bytes.NewReader([]byte{
+			KindString,
+		})),
+		Unmarshal(&b),
+	); err == nil {
 		t.Fatal()
 	}
 
 	// no token
-	if err := Unmarshal(Decode(bytes.NewReader(nil)), &b); err == nil {
+	if err := Copy(
+		Decode(bytes.NewReader(nil)),
+		Unmarshal(&b),
+	); err == nil {
 		t.Fatal()
 	}
 
 	// bad token
-	if err := Unmarshal(Tokens{
-		{KindInt, 42},
-	}.Iter(), &b); err == nil {
+	if err := Copy(
+		Tokens{
+			{KindInt, 42},
+		}.Iter(),
+		Unmarshal(&b),
+	); err == nil {
 		t.Fatal()
 	}
 
 	// bad unmarshaler
-	if err := Unmarshal(Tokens{
-		{KindString, "foo"},
-	}.Iter(), &b); err == nil {
+	if err := Copy(
+		Tokens{
+			{KindString, "foo"},
+		}.Iter(),
+		Unmarshal(&b),
+	); err == nil {
 		t.Fatal()
 	}
 
 }
 
 func TestUnmarshalToNilPtr(t *testing.T) {
-	if err := Unmarshal(Tokens{
-		{KindInt, 42},
-	}.Iter(), (*int)(nil)); err != nil {
+	if err := Copy(
+		Tokens{
+			{KindInt, 42},
+		}.Iter(),
+		Unmarshal((*int)(nil)),
+	); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -304,30 +331,30 @@ func TestBadArray(t *testing.T) {
 	var v [2]int
 
 	// bad decoder
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindArray,
 			KindString,
 		})),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// short decoder
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindArray,
 		})),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// too many element
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindArray},
 			{KindInt, 42},
@@ -335,20 +362,20 @@ func TestBadArray(t *testing.T) {
 			{KindInt, 42},
 			{KindInt, 42},
 		}.Iter(),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad type
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindArray},
 			{KindInt, 42},
 			{KindInt8, int8(42)},
 		}.Iter(),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
@@ -359,36 +386,36 @@ func TestBadSlice(t *testing.T) {
 	var v []int
 
 	// bad decoder
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindArray,
 			KindString,
 		})),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// short decoder
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindArray,
 		})),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad type
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindArray},
 			{KindInt, 42},
 			{KindInt8, int8(42)},
 		}.Iter(),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
@@ -401,74 +428,74 @@ func TestBadObject(t *testing.T) {
 	}
 
 	// bad decoder
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindObject,
 			KindString,
 		})),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// short decoder
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindObject,
 		})),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad type
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindObject},
 			{KindInt, 42},
 		}.Iter(),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad type
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindObject},
 			{KindString, "42"},
 			{KindInt8, int8(42)},
 		}.Iter(),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad skip
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindObject,
 			KindString, 0,
 			KindString,
 		})),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad value
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindObject,
 			KindString, 3, 'F', 'o', 'o',
 			KindString,
 		})),
-		&v,
+		Unmarshal(&v),
 	)
 	if err == nil {
 		t.Fatal(err)
@@ -480,88 +507,90 @@ func TestBadMap(t *testing.T) {
 	var m map[int]int
 
 	// bad decoder
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString,
 		})),
-		&m,
+		Unmarshal(&m),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// short decoder
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 		})),
-		&m,
+		Unmarshal(&m),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad type
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindMap},
 			{KindString, "foo"},
 		}.Iter(),
-		&m,
+		Unmarshal(&m),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad type
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindMap},
 			{KindString, "42"},
 			{KindInt8, int8(42)},
 		}.Iter(),
-		&m,
+		Unmarshal(&m),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad skip
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString, 0,
 			KindString,
 		})),
-		&m,
+		Unmarshal(&m),
 	)
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad value
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString, 3, 'F', 'o', 'o',
 			KindString,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad value
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 1,
 			KindString,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -572,113 +601,122 @@ func TestBadMapGeneric(t *testing.T) {
 	var m any
 
 	// bad decoder
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// short decoder
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// short decoder
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindArray,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// short
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindMap},
 			{KindString, "foo"},
-		}.Iter(),
-		&m,
-	)
+		}.Iter(), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// short
-	err = Unmarshal(
+	err = Copy(
 		Tokens{
 			{Kind: KindMap},
 			{KindString, "42"},
 			{KindInt8, int8(42)},
-		}.Iter(),
-		&m,
-	)
+		}.Iter(), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad skip
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString, 0,
 			KindString,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad value
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindString, 3, 'F', 'o', 'o',
 			KindString,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad value
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 1,
 			KindString,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
 
 	// bad key
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindMap,
 			KindArray,
 			KindArrayEnd,
-		})),
-		&m,
-	)
+		})), Unmarshal(
+
+			&m))
+
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -687,9 +725,12 @@ func TestBadMapGeneric(t *testing.T) {
 
 func TestUnmarshalDeepRef(t *testing.T) {
 	var p ****int
-	err := Unmarshal(Tokens{
+	err := Copy(Tokens{
 		{KindInt, 42},
-	}.Iter(), &p)
+	}.Iter(), Unmarshal(
+
+		&p))
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -701,9 +742,12 @@ func TestUnmarshalDeepRef(t *testing.T) {
 	}
 
 	var p2 *int
-	err = Unmarshal(Tokens{
+	err = Copy(Tokens{
 		{KindInt, 42},
-	}.Iter(), &p2)
+	}.Iter(), Unmarshal(
+
+		&p2))
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -715,9 +759,12 @@ func TestUnmarshalDeepRef(t *testing.T) {
 	}
 
 	var p3 **int
-	err = Unmarshal(Tokens{
+	err = Copy(Tokens{
 		{Kind: KindNil},
-	}.Iter(), &p3)
+	}.Iter(), Unmarshal(
+
+		&p3))
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -730,68 +777,74 @@ func TestBadTuple(t *testing.T) {
 	var tuple func() int
 
 	// bad token
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindString,
-		})),
-		&tuple,
-	)
+		})), Unmarshal(
+
+			&tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// short token
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
-		})),
-		&tuple,
-	)
+		})), Unmarshal(
+
+			&tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// too few items
-	err = Unmarshal(
-		Marshal(func() {}),
-		&tuple,
-	)
+	err = Copy(
+		Marshal(func() {}), Unmarshal(
+
+			&tuple))
+
 	if !errors.Is(err, ExpectingValue) {
 		t.Fatal()
 	}
 
 	// too many items
-	err = Unmarshal(
+	err = Copy(
 		Marshal(func() (int, int) {
 			return 42, 42
-		}),
-		&tuple,
-	)
+		}), Unmarshal(
+
+			&tuple))
+
 	if !errors.Is(err, TooManyElement) {
 		t.Fatal()
 	}
 
 	// bad item
-	err = Unmarshal(
+	err = Copy(
 		Marshal(func() string {
 			return "42"
-		}),
-		&tuple,
-	)
+		}), Unmarshal(
+
+			&tuple))
+
 	if !errors.Is(err, ExpectingString) {
 		t.Fatal()
 	}
 
 	// bad end
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
-			KindString, // incomplete string
-		})),
-		&tuple,
-	)
+			KindString,
+		})), Unmarshal(
+
+			&tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
@@ -802,68 +855,74 @@ func TestBadTupleCall(t *testing.T) {
 	var tuple func(int)
 
 	// bad token
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindString,
-		})),
-		tuple,
-	)
+		})), Unmarshal(
+
+			tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// short token
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
-		})),
-		tuple,
-	)
+		})), Unmarshal(
+
+			tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// too few items
-	err = Unmarshal(
-		Marshal(func() {}),
-		tuple,
-	)
+	err = Copy(
+		Marshal(func() {}), Unmarshal(
+
+			tuple))
+
 	if !errors.Is(err, ExpectingValue) {
 		t.Fatal()
 	}
 
 	// too many items
-	err = Unmarshal(
+	err = Copy(
 		Marshal(func() (int, int) {
 			return 42, 42
-		}),
-		tuple,
-	)
+		}), Unmarshal(
+
+			tuple))
+
 	if !errors.Is(err, TooManyElement) {
 		t.Fatal()
 	}
 
 	// bad item
-	err = Unmarshal(
+	err = Copy(
 		Marshal(func() string {
 			return "42"
-		}),
-		tuple,
-	)
+		}), Unmarshal(
+
+			tuple))
+
 	if !errors.Is(err, ExpectingString) {
 		t.Fatal()
 	}
 
 	// bad end
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
-			KindString, // incomplete string
-		})),
-		tuple,
-	)
+			KindString,
+		})), Unmarshal(
+
+			tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
@@ -874,48 +933,52 @@ func TestBadTupleCallVariadic(t *testing.T) {
 	var tuple func(args ...int)
 
 	// bad token
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindString,
-		})),
-		tuple,
-	)
+		})), Unmarshal(
+
+			tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// short token
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
-		})),
-		tuple,
-	)
+		})), Unmarshal(
+
+			tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// bad item
-	err = Unmarshal(
+	err = Copy(
 		Marshal(func() string {
 			return "42"
-		}),
-		tuple,
-	)
+		}), Unmarshal(
+
+			tuple))
+
 	if !errors.Is(err, ExpectingString) {
 		t.Fatal()
 	}
 
 	// bad end
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindInt, 0, 0, 0, 0, 0, 0, 0, 42,
-			KindString, // incomplete string
-		})),
-		tuple,
-	)
+			KindString,
+		})), Unmarshal(
+
+			tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
@@ -926,49 +989,53 @@ func TestBadGenericTuple(t *testing.T) {
 	var tuple any
 
 	// bad token
-	err := Unmarshal(
+	err := Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindString,
-		})),
-		&tuple,
-	)
+		})), Unmarshal(
+
+			&tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// short token
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
-		})),
-		&tuple,
-	)
+		})), Unmarshal(
+
+			&tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// bad end
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindBool, 1,
-			KindString, // incomplete string
-		})),
-		&tuple,
-	)
+			KindString,
+		})), Unmarshal(
+
+			&tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
 
 	// bad item
-	err = Unmarshal(
+	err = Copy(
 		Decode(bytes.NewReader([]byte{
 			KindTuple,
 			KindMapEnd,
-		})),
-		&tuple,
-	)
+		})), Unmarshal(
+
+			&tuple))
+
 	if err == nil {
 		t.Fatal()
 	}
@@ -984,14 +1051,14 @@ func TestUnmarshalTupleCall(t *testing.T) {
 			t.Fatal()
 		}
 	}
-	if err := Unmarshal(
+	if err := Copy(
 		Marshal(
 			func() (int, int) {
 				return 42, 1
 			},
-		),
-		fn,
-	); err != nil {
+		), Unmarshal(
+
+			fn)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -1008,86 +1075,91 @@ func TestUnmarshalTupleCallVariadic(t *testing.T) {
 			t.Fatal()
 		}
 	}
-	if err := Unmarshal(
+	if err := Copy(
 		Marshal(
 			func() (int, int) {
 				return 42, 1
 			},
-		),
-		fn,
-	); err != nil {
+		), Unmarshal(
+
+			fn)); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestBadUnmarshalTarget(t *testing.T) {
-	err := Unmarshal(
-		Marshal(42),
-		42,
-	)
+	err := Copy(
+		Marshal(42), Unmarshal(
+
+			42))
+
 	if !errors.Is(err, BadTargetType) {
 		t.Fatal()
 	}
 }
 
 func TestUnmarshalTupleToErrCaller(t *testing.T) {
-	err := Unmarshal(
+	err := Copy(
 		Marshal(func() int {
 			return 42
-		}),
-		func(i int) error {
-			if i != 42 {
-				t.Fatal()
-			}
-			return fmt.Errorf("foo")
-		},
-	)
+		}), Unmarshal(
+
+			func(i int) error {
+				if i != 42 {
+					t.Fatal()
+				}
+				return fmt.Errorf("foo")
+			}))
+
 	if err.Error() != "foo" {
 		t.Fatal()
 	}
 }
 
 func TestUnmarshalTupleToErrVariadicCaller(t *testing.T) {
-	err := Unmarshal(
+	err := Copy(
 		Marshal(func() int {
 			return 42
-		}),
-		func(args ...any) error {
-			if len(args) != 1 {
-				t.Fatal()
-			}
-			if args[0].(int) != 42 {
-				t.Fatal()
-			}
-			return fmt.Errorf("foo")
-		},
-	)
+		}), Unmarshal(
+
+			func(args ...any) error {
+				if len(args) != 1 {
+					t.Fatal()
+				}
+				if args[0].(int) != 42 {
+					t.Fatal()
+				}
+				return fmt.Errorf("foo")
+			}))
+
 	if err.Error() != "foo" {
 		t.Fatal()
 	}
 }
 
 func TestUnmarshalTupleToCallerNoError(t *testing.T) {
-	err := Unmarshal(
+	err := Copy(
 		Marshal(func() int {
 			return 42
-		}),
-		func(args ...any) error {
-			return nil
-		},
-	)
+		}), Unmarshal(
+
+			func(args ...any) error {
+				return nil
+			}))
+
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = Unmarshal(
+	err = Copy(
 		Marshal(func() int {
 			return 42
-		}),
-		func(i int) error {
-			return nil
-		},
-	)
+		}), Unmarshal(
+
+			func(i int) error {
+				return nil
+			}))
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1095,10 +1167,11 @@ func TestUnmarshalTupleToCallerNoError(t *testing.T) {
 
 func TestUnmarshalToPointer(t *testing.T) {
 	var i *int
-	err := Unmarshal(
-		Marshal(true),
-		&i,
-	)
+	err := Copy(
+		Marshal(true), Unmarshal(
+
+			&i))
+
 	if err == nil {
 		t.Fatal()
 	}

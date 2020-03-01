@@ -24,7 +24,10 @@ func TestSinkHash(t *testing.T) {
 
 	for i, c := range cases {
 		var sum []byte
-		if err := Unmarshal(Marshal(c.value), Hasher(fnv.New128, &sum, nil)); err != nil {
+		if err := Copy(
+			Marshal(c.value),
+			Hasher(fnv.New128, &sum, nil),
+		); err != nil {
 			t.Fatal(err)
 		}
 		if fmt.Sprintf("%x", sum) != c.expected {

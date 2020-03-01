@@ -161,7 +161,7 @@ func TestFilterSink(t *testing.T) {
 		FilterSink(
 			CollectTokens(&tokens),
 			func(token *Token) bool {
-				return token.Kind != KindBool
+				return token.Kind == KindBool
 			},
 		),
 	); err != nil {

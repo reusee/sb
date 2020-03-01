@@ -391,7 +391,7 @@ func TestMarshaler(t *testing.T) {
 			t.Fatal(err)
 		}
 		var obj any
-		if err := Unmarshal(tokens.Iter(), &obj); err != nil {
+		if err := Copy(tokens.Iter(), Unmarshal(&obj)); err != nil {
 			t.Fatal(err)
 		}
 		if MustCompare(Marshal(obj), Marshal(c.value)) != 0 {
@@ -437,7 +437,7 @@ func TestCustomType(t *testing.T) {
 		t.Fatal(err)
 	}
 	var c Custom
-	if err := Unmarshal(Decode(buf), &c); err != nil {
+	if err := Copy(Decode(buf), Unmarshal(&c)); err != nil {
 		t.Fatal(err)
 	}
 	if c.Foo != 42 {
@@ -503,7 +503,7 @@ func TestTimeMarshalText(t *testing.T) {
 		t.Fatal(err)
 	}
 	var tt timeTextMarshaler
-	if err := Unmarshal(tokens.Iter(), &tt); err != nil {
+	if err := Copy(tokens.Iter(), Unmarshal(&tt)); err != nil {
 		t.Fatal(err)
 	}
 	if time.Since(tt.t) > time.Second {

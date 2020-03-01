@@ -17,9 +17,9 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 		var obj any
 		tee := new(bytes.Buffer)
-		if err := Unmarshal(
+		if err := Copy(
 			Decode(io.TeeReader(r, tee)),
-			&obj,
+			Unmarshal(&obj),
 		); err != nil {
 			return 0
 		}
@@ -40,9 +40,9 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// decode and unmarshal
 		var obj2 any
-		if err := Unmarshal(
+		if err := Copy(
 			Decode(bytes.NewReader(teeBytes)),
-			&obj2,
+			Unmarshal(&obj2),
 		); err != nil { // NOCOVER
 			panic(err)
 		}
@@ -91,7 +91,10 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// sink hash
 		var sum3 []byte
-		if err := Unmarshal(Marshal(obj2), Hasher(fnv.New128, &sum3, nil)); err != nil { // NOCOVER
+		if err := Copy(
+			Marshal(obj2),
+			Hasher(fnv.New128, &sum3, nil),
+		); err != nil { // NOCOVER
 			panic(err)
 		}
 		if !bytes.Equal(sum1, sum3) { // NOCOVER
@@ -146,7 +149,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// marshal and unmarshal
 			func(in Stream) Stream {
 				var v any
-				if err := Unmarshal(in, &v); err != nil { // NOCOVER
+				if err := Copy(in, Unmarshal(&v)); err != nil { // NOCOVER
 					panic(err)
 				}
 				return Marshal(v)
@@ -243,7 +246,15 @@ func Fuzz(data []byte) int { // NOCOVER
 			// unmarshal to multiple
 			func(in Stream) Stream {
 				var ts [3]any
-				if err := Unmarshal(in, &ts[0], &ts[1], &ts[2]); err != nil { // NOCOVER
+				if err := Copy(
+					Tee(
+						in,
+						Unmarshal(&ts[0]),
+						Unmarshal(&ts[1]),
+						Unmarshal(&ts[2]),
+					),
+					Discard,
+				); err != nil { // NOCOVER
 					panic(err)
 				}
 				return Marshal(ts[rand.Intn(len(ts))])

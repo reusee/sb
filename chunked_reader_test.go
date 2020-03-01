@@ -20,10 +20,10 @@ func TestChunkedReader(t *testing.T) {
 	}
 
 	var data [][]byte
-	if err := Unmarshal(
-		Decode(buf),
-		&data,
-	); err != nil {
+	if err := Copy(
+		Decode(buf), Unmarshal(
+
+			&data)); err != nil {
 		t.Fatal(err)
 	}
 	if len(data) != 3 {

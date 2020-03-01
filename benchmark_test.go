@@ -56,7 +56,7 @@ func BenchmarkUnmarshalInt(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var n int
-		if err := Unmarshal(tokens.Iter(), &n); err != nil {
+		if err := Copy(tokens.Iter(), Unmarshal(&n)); err != nil {
 			b.Fatal(err)
 		}
 		if n != 42 {
@@ -130,7 +130,7 @@ func BenchmarkUnmarshalStruct(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var foo BenchFoo
-		if err := Unmarshal(tokens.Iter(), &foo); err != nil {
+		if err := Copy(tokens.Iter(), Unmarshal(&foo)); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -182,7 +182,7 @@ func BenchmarkUnarshalTuple(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var fn func() int
-		if err := Unmarshal(tokens.Iter(), &fn); err != nil {
+		if err := Copy(tokens.Iter(), Unmarshal(&fn)); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -198,7 +198,7 @@ func BenchmarkUnarshalTupleCall(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err := Unmarshal(tokens.Iter(), fn); err != nil {
+		if err := Copy(tokens.Iter(), Unmarshal(fn)); err != nil {
 			b.Fatal(err)
 		}
 	}

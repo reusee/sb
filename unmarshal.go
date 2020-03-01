@@ -11,21 +11,15 @@ type SBUnmarshaler interface {
 	UnmarshalSB(cont Sink) Sink
 }
 
-func Unmarshal(stream Stream, targets ...any) error {
-	stream = FilterProc(stream, func(token *Token) bool {
-		return token.Kind == KindPostTag
-	})
-	sinks := make([]Sink, 0, len(targets))
-	for _, target := range targets {
-		if sink, ok := target.(Sink); ok {
-			sinks = append(sinks, sink)
-		} else {
-			sinks = append(sinks, UnmarshalValue(reflect.ValueOf(target), nil))
-		}
-	}
-	return Copy(
-		Tee(stream, sinks...),
-		Discard,
+func Unmarshal(target any) Sink {
+	return FilterSink(
+		UnmarshalValue(
+			reflect.ValueOf(target),
+			nil,
+		),
+		func(token *Token) bool {
+			return token.Kind == KindPostTag
+		},
 	)
 }
 

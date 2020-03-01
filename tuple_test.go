@@ -6,7 +6,7 @@ func TestTuple(t *testing.T) {
 	s := Marshal(Tuple{
 		42, true, "foo",
 	})
-	if err := Unmarshal(s, func(i int, b bool, s string) {
+	if err := Copy(s, Unmarshal(func(i int, b bool, s string) {
 		if i != 42 {
 			t.Fatal()
 		}
@@ -16,7 +16,7 @@ func TestTuple(t *testing.T) {
 		if s != "foo" {
 			t.Fatal()
 		}
-	}); err != nil {
+	})); err != nil {
 		t.Fatal(err)
 	}
 }
