@@ -429,7 +429,8 @@ func unmarshalArray(
 	cont Sink,
 ) Sink {
 
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -440,16 +441,15 @@ func unmarshalArray(
 			return nil, UnmarshalError{TooManyElement}
 		}
 
+		e := target.Elem().Index(idx).Addr()
+		idx++
 		return UnmarshalValue(
-			target.Elem().Index(idx).Addr(),
-			unmarshalArray(
-				target,
-				idx+1,
-				cont,
-			),
+			e,
+			sink,
 		)(p)
 
 	}
+	return sink
 }
 
 func UnmarshalSlice(
@@ -473,7 +473,8 @@ func unmarshalSlice(
 	slice reflect.Value,
 	cont Sink,
 ) Sink {
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -486,15 +487,11 @@ func unmarshalSlice(
 
 		return UnmarshalValue(
 			slice.Index(slice.Len()-1).Addr(),
-			unmarshalSlice(
-				target,
-				valueType,
-				slice,
-				cont,
-			),
+			sink,
 		)(p)
 
 	}
+	return sink
 }
 
 func UnmarshalGenericSlice(
@@ -515,7 +512,8 @@ func unmarshalGenericSlice(
 	slice []any,
 	cont Sink,
 ) Sink {
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -529,15 +527,12 @@ func unmarshalGenericSlice(
 			reflect.ValueOf(&value),
 			func(token *Token) (Sink, error) {
 				slice = append(slice, value)
-				return unmarshalGenericSlice(
-					target,
-					slice,
-					cont,
-				)(token)
+				return sink(token)
 			},
 		)(p)
 
 	}
+	return sink
 }
 
 func UnmarshalStruct(
@@ -558,7 +553,8 @@ func unmarshalStruct(
 	valueType reflect.Type,
 	cont Sink,
 ) Sink {
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -576,21 +572,13 @@ func unmarshalStruct(
 					var value any
 					return UnmarshalValue(
 						reflect.ValueOf(&value),
-						unmarshalStruct(
-							target,
-							valueType,
-							cont,
-						),
+						sink,
 					)(token)
 
 				} else {
 					return UnmarshalValue(
 						target.Elem().FieldByIndex(field.Index).Addr(),
-						unmarshalStruct(
-							target,
-							valueType,
-							cont,
-						),
+						sink,
 					)(token)
 				}
 
@@ -598,6 +586,7 @@ func unmarshalStruct(
 		)(p)
 
 	}
+	return sink
 }
 
 func UnmarshalNewStruct(
@@ -622,7 +611,8 @@ func unmarshalNewStruct(
 	names map[string]struct{},
 	cont Sink,
 ) Sink {
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -661,13 +651,7 @@ func unmarshalNewStruct(
 							Type: reflect.TypeOf(value),
 						})
 
-						return unmarshalNewStruct(
-							target,
-							values,
-							fields,
-							names,
-							cont,
-						)(token)
+						return sink(token)
 
 					},
 				)(token)
@@ -676,6 +660,7 @@ func unmarshalNewStruct(
 		)(p)
 
 	}
+	return sink
 }
 
 func UnmarshalMap(
@@ -700,7 +685,8 @@ func unmarshalMap(
 	elemType reflect.Type,
 	cont Sink,
 ) Sink {
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -724,20 +710,14 @@ func unmarshalMap(
 							key.Elem(),
 							value.Elem(),
 						)
-						return unmarshalMap(
-							target,
-							valueType,
-							keyType,
-							elemType,
-							cont,
-						)(token)
+						return sink(token)
 					},
 				)(token)
 
 			},
 		)(p)
 	}
-
+	return sink
 }
 
 func UnmarshalGenericMap(
@@ -758,7 +738,8 @@ func unmarshalGenericMap(
 	m map[any]any,
 	cont Sink,
 ) Sink {
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -786,18 +767,14 @@ func unmarshalGenericMap(
 					reflect.ValueOf(&value),
 					func(token *Token) (Sink, error) {
 						m[key] = value
-						return unmarshalGenericMap(
-							target,
-							m,
-							cont,
-						)(token)
+						return sink(token)
 					},
 				)(token)
 
 			},
 		)(p)
 	}
-
+	return sink
 }
 
 func UnmarshalTuple(
@@ -824,8 +801,9 @@ func unmarshalTuple(
 	cont Sink,
 ) Sink {
 
-	if i >= numOut {
-		return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
+		if i >= numOut {
 			if p.Kind != KindTupleEnd {
 				return nil, UnmarshalError{TooManyElement}
 			}
@@ -837,9 +815,7 @@ func unmarshalTuple(
 			))
 			return cont, nil
 		}
-	}
 
-	return func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -852,18 +828,12 @@ func unmarshalTuple(
 			value,
 			func(token *Token) (Sink, error) {
 				items = append(items, value.Elem())
-				return unmarshalTuple(
-					target,
-					valueType,
-					numOut,
-					i+1,
-					items,
-					cont,
-				)(token)
+				i++
+				return sink(token)
 			},
 		)(p)
 	}
-
+	return sink
 }
 
 func UnmarshalTupleCall(
@@ -888,7 +858,8 @@ func unmarshalTupleCall(
 	cont Sink,
 ) Sink {
 
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -911,17 +882,12 @@ func unmarshalTupleCall(
 			value,
 			func(token *Token) (Sink, error) {
 				items = append(items, value.Elem())
-				return unmarshalTupleCall(
-					target,
-					itemType,
-					items,
-					cont,
-				)(token)
+				return sink(token)
 			},
 		)(p)
 
 	}
-
+	return sink
 }
 
 func UnmarshalTupleCallErr(
@@ -948,8 +914,9 @@ func unmarshalTupleCallErr(
 	cont Sink,
 ) Sink {
 
-	if i >= numIn {
-		return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
+		if i >= numIn {
 			if p.Kind != KindTupleEnd {
 				return nil, UnmarshalError{TooManyElement}
 			}
@@ -965,9 +932,7 @@ func unmarshalTupleCallErr(
 			}
 			return cont, nil
 		}
-	}
 
-	return func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -980,18 +945,13 @@ func unmarshalTupleCallErr(
 			value,
 			func(token *Token) (Sink, error) {
 				items = append(items, value.Elem())
-				return unmarshalTupleCallErr(
-					target,
-					valueType,
-					numIn,
-					i+1,
-					items,
-					cont,
-				)(token)
+				i++
+				return sink(token)
 			},
 		)(p)
 	}
 
+	return sink
 }
 
 func UnmarshalTupleVariadic(
@@ -1015,7 +975,8 @@ func unmarshalTupleVariadic(
 	cont Sink,
 ) Sink {
 
-	return func(p *Token) (Sink, error) {
+	var sink Sink
+	sink = func(p *Token) (Sink, error) {
 		if p == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -1043,14 +1004,10 @@ func unmarshalTupleVariadic(
 			value,
 			func(token *Token) (Sink, error) {
 				items = append(items, value.Elem())
-				return unmarshalTupleVariadic(
-					target,
-					items,
-					itemTypes,
-					cont,
-				)(token)
+				return sink(token)
 			},
 		)(p)
 	}
 
+	return sink
 }

@@ -3,6 +3,7 @@ package sb
 type Sink func(*Token) (Sink, error)
 
 func AltSink(sinks ...Sink) Sink {
+	//TODO optimize
 	return func(token *Token) (Sink, error) {
 		next := make([]Sink, 0, len(sinks))
 		var err error
