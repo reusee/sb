@@ -264,14 +264,15 @@ func MarshalStructFields(vm ValueMarshalFunc, value reflect.Value, fields []refl
 		}
 		field := fields[0]
 		fields = fields[1:]
-		return &Token{
-				Kind:  KindString,
-				Value: field.Name,
-			}, vm(
+		return nil, vm(
+			vm,
+			reflect.ValueOf(field.Name),
+			vm(
 				vm,
 				value.FieldByIndex(field.Index),
 				proc,
-			), nil
+			),
+		), nil
 	}
 	return proc
 }
