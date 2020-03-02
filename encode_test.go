@@ -12,7 +12,7 @@ func TestEncodeBadStream(t *testing.T) {
 	if err := Copy(
 		Decode(
 			bytes.NewReader([]byte{
-				KindString, // incomplete
+				byte(KindString), // incomplete
 			}),
 		),
 		Encode(ioutil.Discard),

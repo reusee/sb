@@ -12,6 +12,17 @@ func Hash(
 	sum *[]byte,
 	cont Sink,
 ) Sink {
+	return HashFunc(
+		newState, sum, nil, cont,
+	)
+}
+
+func HashFunc(
+	newState func() hash.Hash,
+	sum *[]byte,
+	fn func([]byte, *Token) error,
+	cont Sink,
+) Sink {
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
@@ -31,6 +42,12 @@ func Hash(
 			return nil, err
 		}
 
+		if fn != nil {
+			if err := fn(nil, token); err != nil {
+				return nil, err
+			}
+		}
+
 		switch token.Kind {
 
 		case KindInvalid,
@@ -43,6 +60,11 @@ func Hash(
 			KindMapEnd,
 			KindTupleEnd:
 			*sum = state.Sum(nil)
+			if fn != nil {
+				if err := fn(*sum, token); err != nil {
+					return nil, err
+				}
+			}
 			return cont, nil
 
 		case KindBool,
@@ -78,14 +100,26 @@ func Hash(
 				}
 			}
 			*sum = state.Sum(nil)
+			if fn != nil {
+				if err := fn(*sum, token); err != nil {
+					return nil, err
+				}
+			}
 			return cont, nil
 
 		case KindArray, KindObject, KindMap, KindTuple:
+			t := token
 			return HashCompound(
 				newState,
 				state,
+				fn,
 				func(token *Token) (Sink, error) {
 					*sum = state.Sum(nil)
+					if fn != nil {
+						if err := fn(*sum, t); err != nil {
+							return nil, err
+						}
+					}
 					if cont != nil {
 						return cont(token)
 					}
@@ -106,6 +140,7 @@ func Hash(
 func HashCompound(
 	newState func() hash.Hash,
 	state hash.Hash,
+	fn func([]byte, *Token) error,
 	cont Sink,
 ) Sink {
 	var sink Sink
@@ -129,9 +164,10 @@ func HashCompound(
 			next = sink
 		}
 
-		return Hash(
+		return HashFunc(
 			newState,
 			&subHash,
+			fn,
 			func(token *Token) (Sink, error) {
 				if _, err := state.Write(subHash); err != nil {
 					return nil, err

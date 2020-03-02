@@ -14,7 +14,7 @@ func TestTokens(t *testing.T) {
 			}
 		}()
 		MustTokensFromStream(Decode(bytes.NewReader([]byte{
-			KindString, // incomplete
+			byte(KindString), // incomplete
 		})))
 	}()
 

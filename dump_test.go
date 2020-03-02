@@ -8,7 +8,7 @@ import (
 func TestDump(t *testing.T) {
 	w := new(bytes.Buffer)
 	dumpStream(Marshal(42), "->", w)
-	if w.String() != "->&{Kind:60 Value:42}\n" {
-		t.Fatal()
+	if w.String() != "->&{Kind:KindInt Value:42}\n" {
+		t.Fatalf("got %q", w.String())
 	}
 }

@@ -6,39 +6,39 @@ const (
 	KindInvalid Kind = iota
 	KindMin
 
-	KindArrayEnd  = 10
-	KindObjectEnd = 20
-	KindMapEnd    = 25
-	KindTupleEnd  = 27
+	KindArrayEnd  Kind = 10
+	KindObjectEnd Kind = 20
+	KindMapEnd    Kind = 25
+	KindTupleEnd  Kind = 27
 
-	KindNil    = 30
-	KindBool   = 40
-	KindString = 50
-	KindBytes  = 55
+	KindNil    Kind = 30
+	KindBool   Kind = 40
+	KindString Kind = 50
+	KindBytes  Kind = 55
 
-	KindInt   = 60
-	KindInt8  = 70
-	KindInt16 = 80
-	KindInt32 = 90
-	KindInt64 = 100
+	KindInt   Kind = 60
+	KindInt8  Kind = 70
+	KindInt16 Kind = 80
+	KindInt32 Kind = 90
+	KindInt64 Kind = 100
 
-	KindUint   = 110
-	KindUint8  = 120
-	KindUint16 = 130
-	KindUint32 = 140
-	KindUint64 = 150
+	KindUint   Kind = 110
+	KindUint8  Kind = 120
+	KindUint16 Kind = 130
+	KindUint32 Kind = 140
+	KindUint64 Kind = 150
 
-	KindFloat32 = 160
-	KindFloat64 = 170
-	KindNaN     = 175
+	KindFloat32 Kind = 160
+	KindFloat64 Kind = 170
+	KindNaN     Kind = 175
 
-	KindArray  = 180
-	KindObject = 190
-	KindMap    = 200
-	KindTuple  = 210
+	KindArray  Kind = 180
+	KindObject Kind = 190
+	KindMap    Kind = 200
+	KindTuple  Kind = 210
 
-	KindPostTag = 250
-	KindRef     = 251
+	KindPostTag Kind = 250
+	KindRef     Kind = 251
 
 	KindMax Kind = 0xFF
 )
