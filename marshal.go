@@ -61,6 +61,8 @@ func MarshalValue(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 					return nil, nil, err
 				}
 				return nil, vm(vm, reflect.ValueOf(string(bs)), cont), nil
+			} else if v, ok := i.(*Token); ok {
+				return v, cont, nil
 			}
 		}
 
@@ -215,13 +217,19 @@ func MarshalValue(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 	}
 }
 
+var arrayEndToken = reflect.ValueOf(&Token{
+	Kind: KindArrayEnd,
+})
+
 func MarshalArray(vm ValueMarshalFunc, value reflect.Value, index int, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		if index >= value.Len() {
-			return &Token{
-				Kind: KindArrayEnd,
-			}, cont, nil
+			return nil, vm(
+				vm,
+				arrayEndToken,
+				cont,
+			), nil
 		}
 		v := value.Index(index)
 		index++
@@ -254,13 +262,19 @@ func MarshalStruct(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 	return MarshalStructFields(vm, value, fields, cont)
 }
 
+var objectEndToken = reflect.ValueOf(&Token{
+	Kind: KindObjectEnd,
+})
+
 func MarshalStructFields(vm ValueMarshalFunc, value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		if len(fields) == 0 {
-			return &Token{
-				Kind: KindObjectEnd,
-			}, cont, nil
+			return nil, vm(
+				vm,
+				objectEndToken,
+				cont,
+			), nil
 		}
 		field := fields[0]
 		fields = fields[1:]
@@ -322,13 +336,19 @@ func MarshalMapIter(vm ValueMarshalFunc, value reflect.Value, iter *reflect.MapI
 	return proc
 }
 
+var mapEndToken = reflect.ValueOf(&Token{
+	Kind: KindMapEnd,
+})
+
 func MarshalMapValue(vm ValueMarshalFunc, tuples []*MapTuple, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		if len(tuples) == 0 {
-			return &Token{
-				Kind: KindMapEnd,
-			}, cont, nil
+			return nil, vm(
+				vm,
+				mapEndToken,
+				cont,
+			), nil
 		}
 		tuple := tuples[0]
 		tuples = tuples[1:]
@@ -344,13 +364,19 @@ func MarshalMapValue(vm ValueMarshalFunc, tuples []*MapTuple, cont Proc) Proc {
 	return proc
 }
 
+var tupleEndToken = reflect.ValueOf(&Token{
+	Kind: KindTupleEnd,
+})
+
 func MarshalTuple(vm ValueMarshalFunc, items []reflect.Value, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		if len(items) == 0 {
-			return &Token{
-				Kind: KindTupleEnd,
-			}, cont, nil
+			return nil, vm(
+				vm,
+				tupleEndToken,
+				cont,
+			), nil
 		} else {
 			v := items[0]
 			items = items[1:]
