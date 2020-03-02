@@ -17,7 +17,8 @@ func deref(
 	getStream func([]byte) (Stream, error),
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		token, err := stream.Next()
 		if err != nil { // NOCOVER
 			return nil, nil, err
@@ -33,9 +34,10 @@ func deref(
 			}
 			return nil, IterStream(
 				subStream,
-				deref(stream, getStream, cont),
+				proc,
 			), nil
 		}
-		return token, deref(stream, getStream, cont), nil
+		return token, proc, nil
 	}
+	return proc
 }

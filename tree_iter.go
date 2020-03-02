@@ -27,22 +27,22 @@ func IterSubTrees(
 	index int,
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		if len(subs) == 0 {
 			return nil, cont, nil
 		}
 		if index >= len(subs) {
 			return nil, cont, nil
 		}
+		sub := subs[index]
+		index++
 		return nil, IterTree(
-			subs[index],
-			IterSubTrees(
-				subs,
-				index+1,
-				cont,
-			),
+			sub,
+			proc,
 		), nil
 	}
+	return proc
 }
 
 func (t *Tree) IterFunc(
@@ -83,22 +83,21 @@ func IterSubTreesFunc(
 	fn func(*Tree) (*Token, error),
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		if len(subs) == 0 {
 			return nil, cont, nil
 		}
 		if index >= len(subs) {
 			return nil, cont, nil
 		}
+		sub := subs[index]
+		index++
 		return nil, IterTreeFunc(
-			subs[index],
+			sub,
 			fn,
-			IterSubTreesFunc(
-				subs,
-				index+1,
-				fn,
-				cont,
-			),
+			proc,
 		), nil
 	}
+	return proc
 }

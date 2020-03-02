@@ -10,10 +10,14 @@ func IterTokens(
 	index int,
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		if index >= len(tokens) {
 			return nil, cont, nil
 		}
-		return &tokens[index], IterTokens(tokens, index+1, cont), nil
+		token := tokens[index]
+		index++
+		return &token, proc, nil
 	}
+	return proc
 }

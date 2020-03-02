@@ -29,7 +29,8 @@ func (c ChunkedReader) MarshalSB(vm ValueMarshalFunc, cont Proc) Proc {
 }
 
 func (c ChunkedReader) marshal(vm ValueMarshalFunc, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		bs, err := ioutil.ReadAll(
 			&io.LimitedReader{
 				R: c.R,
@@ -43,9 +44,10 @@ func (c ChunkedReader) marshal(vm ValueMarshalFunc, cont Proc) Proc {
 			return nil, vm(
 				vm,
 				reflect.ValueOf(bs),
-				c.marshal(vm, cont),
+				proc,
 			), nil
 		}
 		return nil, cont, nil
 	}
+	return proc
 }

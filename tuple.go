@@ -69,7 +69,8 @@ func UnmarshalTupleTyped(typeSpec any, target *Tuple, cont Sink) Sink {
 }
 
 func unmarshalTupleTyped(types []reflect.Type, target *Tuple, cont Sink) Sink {
-	return func(token *Token) (Sink, error) {
+	var sink Sink
+	sink = func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
@@ -90,13 +91,12 @@ func unmarshalTupleTyped(types []reflect.Type, target *Tuple, cont Sink) Sink {
 			elem,
 			func(token *Token) (Sink, error) {
 				*target = append(*target, elem.Elem().Interface())
-				return unmarshalTupleTyped(
-					types[1:],
-					target,
-					cont,
-				)(token)
+				types = types[1:]
+				return sink(token)
 			},
 		)(token)
 
 	}
+
+	return sink
 }

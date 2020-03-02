@@ -4,7 +4,8 @@ func IterStream(
 	stream Stream,
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		token, err := stream.Next()
 		if err != nil { // NOCOVER
 			return nil, nil, err
@@ -12,6 +13,7 @@ func IterStream(
 		if token == nil {
 			return nil, cont, nil
 		}
-		return token, IterStream(stream, cont), nil
+		return token, proc, nil
 	}
+	return proc
 }

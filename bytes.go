@@ -14,7 +14,7 @@ func isBytes(t reflect.Type) bool {
 	if t.AssignableTo(bytesType) {
 		return true
 	}
-	if t.Kind() == reflect.Array && t.Elem() == byteType {
+	if t.Kind() == reflect.Array && t.Elem().AssignableTo(byteType) {
 		return true
 	}
 	return false
@@ -33,5 +33,5 @@ func toBytes(v reflect.Value) []byte {
 		reflect.Copy(reflect.ValueOf(bs), v)
 		return bs
 	}
-	panic(fmt.Errorf("unknown type %v", t)) // NOCOVER
+	panic(fmt.Errorf("non-bytes type %v", t)) // NOCOVER
 }

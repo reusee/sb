@@ -26,7 +26,8 @@ func PostHashStream(
 	states *[]hash.Hash,
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		token, err := stream.Next()
 		if err != nil { // NOCOVER
 			return nil, nil, err
@@ -41,9 +42,9 @@ func PostHashStream(
 			} else {
 				if bytes.HasPrefix(value, []byte("hash:")) {
 					// rip hash tokens
-					return nil, PostHashStream(stream, newState, states, cont), nil
+					return nil, proc, nil
 				} else {
-					return token, PostHashStream(stream, newState, states, cont), nil
+					return token, proc, nil
 				}
 			}
 		}
@@ -63,7 +64,7 @@ func PostHashStream(
 			sum := state.Sum(nil)
 			return token, emitHash(
 				sum, states,
-				PostHashStream(stream, newState, states, cont),
+				proc,
 			), nil
 
 		case KindBool,
@@ -101,13 +102,13 @@ func PostHashStream(
 			sum := state.Sum(nil)
 			return token, emitHash(
 				sum, states,
-				PostHashStream(stream, newState, states, cont),
+				proc,
 			), nil
 
 		case KindArray, KindObject, KindMap, KindTuple:
 			// push state
 			*states = append(*states, state)
-			return token, PostHashStream(stream, newState, states, cont), nil
+			return token, proc, nil
 
 		case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
 			// pop state
@@ -120,13 +121,15 @@ func PostHashStream(
 			*states = (*states)[:len(*states)-1]
 			return token, emitHash(
 				sum, states,
-				PostHashStream(stream, newState, states, cont),
+				proc,
 			), nil
 
 		}
 
 		panic("impossible") // NOCOVER
 	}
+
+	return proc
 }
 
 func emitHash(sum []byte, states *[]hash.Hash, cont Proc) Proc {

@@ -35,13 +35,17 @@ func (t *Tags) Add(toAdd []byte) {
 }
 
 func (t Tags) Iter(index int, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
+	var proc Proc
+	proc = func() (*Token, Proc, error) {
 		if index >= len(t) {
 			return nil, cont, nil
 		}
+		v := t[index]
+		index++
 		return &Token{
 			Kind:  KindPostTag,
-			Value: t[index],
-		}, t.Iter(index+1, cont), nil
+			Value: v,
+		}, proc, nil
 	}
+	return proc
 }

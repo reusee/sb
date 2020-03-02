@@ -3,28 +3,32 @@ package sb
 type Sink func(*Token) (Sink, error)
 
 func AltSink(sinks ...Sink) Sink {
-	//TODO optimize
-	return func(token *Token) (Sink, error) {
-		next := make([]Sink, 0, len(sinks))
+	var sink Sink
+	sink = func(token *Token) (Sink, error) {
 		var err error
-		for _, sink := range sinks {
+		for i := 0; i < len(sinks); {
+			sink := sinks[i]
 			sink, err = sink(token)
 			if err != nil {
+				sinks[i] = sinks[len(sinks)-1]
+				sinks = sinks[:len(sinks)-1]
 				continue
 			}
 			if sink == nil {
 				return nil, nil
 			}
-			next = append(next, sink)
+			sinks[i] = sink
+			i++
 		}
-		if len(next) == 0 {
+		if len(sinks) == 0 {
 			return nil, err
 		}
-		if len(next) == 1 {
-			return next[0], nil
+		if len(sinks) == 1 {
+			return sinks[0], nil
 		}
-		return AltSink(next...), nil
+		return sink, nil
 	}
+	return sink
 }
 
 func Copy(stream Stream, sink Sink) error {
