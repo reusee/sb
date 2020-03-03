@@ -281,11 +281,13 @@ func MarshalStructFields(vm ValueMarshalFunc, value reflect.Value, fields []refl
 		return nil, vm(
 			vm,
 			reflect.ValueOf(field.Name),
-			vm(
-				vm,
-				value.FieldByIndex(field.Index),
-				proc,
-			),
+			func() (*Token, Proc, error) {
+				return nil, vm(
+					vm,
+					value.FieldByIndex(field.Index),
+					proc,
+				), nil
+			},
 		), nil
 	}
 	return proc

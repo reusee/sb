@@ -599,3 +599,31 @@ func TestValueMarshalFunc2(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestMarshalStructFieldOrder(t *testing.T) {
+	var fn ValueMarshalFunc
+	expectedKinds := []reflect.Kind{
+		reflect.Struct,
+		reflect.String,
+		reflect.Int,
+		reflect.Ptr, // *Token
+	}
+	fn = func(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+		if value.Kind() != expectedKinds[0] {
+			t.Fatal()
+		}
+		expectedKinds = expectedKinds[1:]
+		return MarshalValue(vm, value, cont)
+	}
+	proc := fn(fn, reflect.ValueOf(struct {
+		I int
+	}{
+		I: 42,
+	}), nil)
+	if err := Copy(
+		&proc,
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+}
