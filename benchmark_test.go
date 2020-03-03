@@ -8,45 +8,33 @@ import (
 
 func BenchmarkMarshalInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := Marshal(42)
-		for {
-			token, err := m.Next()
-			if err != nil {
-				b.Fatal(err)
-			}
-			if token == nil {
-				break
-			}
+		if err := Copy(
+			Marshal(42),
+			Discard,
+		); err != nil {
+			b.Fatal()
 		}
 	}
 }
 
 func BenchmarkTreeFromMarshalInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := MustTreeFromStream(Marshal(42)).Iter()
-		for {
-			token, err := m.Next()
-			if err != nil {
-				b.Fatal(err)
-			}
-			if token == nil {
-				break
-			}
+		if err := Copy(
+			MustTreeFromStream(Marshal(42)).Iter(),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
 
-func BenchmarkHashIntSha1(b *testing.B) {
+func BenchmarkHashInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := NewPostHasher(Marshal(42), newMapHashState)
-		for {
-			token, err := m.Next()
-			if err != nil {
-				b.Fatal(err)
-			}
-			if token == nil {
-				break
-			}
+		if err := Copy(
+			NewPostHasher(Marshal(42), newMapHashState),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
@@ -78,49 +66,60 @@ var benchFoo = BenchFoo{
 }
 
 func BenchmarkMarshalStruct(b *testing.B) {
-	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := Marshal(benchFoo)
-		for {
-			token, err := m.Next()
-			if err != nil {
-				b.Fatal(err)
-			}
-			if token == nil {
-				break
-			}
+		if err := Copy(
+			Marshal(benchFoo),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMarshalStructAsTuple(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		if err := Copy(
+			Marshal(Tuple{
+				benchFoo.Foo, benchFoo.Bar, benchFoo.Baz,
+			}),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMarshalStructAsTupleFunc(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		if err := Copy(
+			Marshal(func() (int, string, []int) {
+				return benchFoo.Foo, benchFoo.Bar, benchFoo.Baz
+			}),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
 
 func BenchmarkTreeFromMarshalStruct(b *testing.B) {
-	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := MustTreeFromStream(Marshal(benchFoo)).Iter()
-		for {
-			token, err := m.Next()
-			if err != nil {
-				b.Fatal(err)
-			}
-			if token == nil {
-				break
-			}
+		if err := Copy(
+			MustTreeFromStream(Marshal(benchFoo)).Iter(),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
 
-func BenchmarkHashStructSha1(b *testing.B) {
-	b.ResetTimer()
+func BenchmarkHashStruct(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := NewPostHasher(Marshal(benchFoo), newMapHashState)
-		for {
-			token, err := m.Next()
-			if err != nil {
-				b.Fatal(err)
-			}
-			if token == nil {
-				break
-			}
+		if err := Copy(
+			NewPostHasher(Marshal(benchFoo), newMapHashState),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
@@ -143,32 +142,24 @@ func BenchmarkMarshalMap(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m := Marshal(m)
-		for {
-			token, err := m.Next()
-			if err != nil {
-				b.Fatal(err)
-			}
-			if token == nil {
-				break
-			}
+		if err := Copy(
+			Marshal(m),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
 
 func BenchmarkMarshalTuple(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		m := Marshal(func() int {
-			return 42
-		})
-		for {
-			token, err := m.Next()
-			if err != nil {
-				b.Fatal(err)
-			}
-			if token == nil {
-				break
-			}
+		if err := Copy(
+			Marshal(func() int {
+				return 42
+			}),
+			Discard,
+		); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
