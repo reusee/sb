@@ -627,3 +627,30 @@ func TestMarshalStructFieldOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestMarshalMapOrder(t *testing.T) {
+	var fn ValueMarshalFunc
+	expecteds := []int64{
+		1, 2, 3, 4, 5, 6,
+	}
+	fn = func(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+		if value.Kind() == reflect.Int64 {
+			if value.Int() != expecteds[0] {
+				t.Fatalf("expected %d, got %d", expecteds[0], value.Int())
+			}
+			expecteds = expecteds[1:]
+		}
+		return MarshalValue(vm, value, cont)
+	}
+	proc := fn(fn, reflect.ValueOf(map[int64]int64{
+		1: 2,
+		3: 4,
+		5: 6,
+	}), nil)
+	if err := Copy(
+		&proc,
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+}

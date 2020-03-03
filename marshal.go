@@ -295,6 +295,7 @@ func MarshalStructFields(vm ValueMarshalFunc, value reflect.Value, fields []refl
 
 type MapTuple struct {
 	KeyTokens Tokens
+	Key       reflect.Value
 	Value     reflect.Value
 }
 
@@ -319,18 +320,22 @@ func MarshalMapIter(vm ValueMarshalFunc, value reflect.Value, iter *reflect.MapI
 					tuples[j].KeyTokens.Iter(),
 				) < 0
 			})
-			return nil, MarshalMapValue(vm, tuples, cont), nil
+			return nil, MarshalMapTuples(vm, tuples, cont), nil
 		}
-		marshaler := vm(vm, iter.Key(), nil)
-		tokens, err := TokensFromStream(&marshaler)
-		if err != nil {
+		var tokens Tokens
+		if err := Copy(
+			Marshal(iter.Key().Interface()),
+			CollectTokens(&tokens),
+		); err != nil {
 			return nil, nil, err
-		} else if len(tokens) == 0 ||
+		}
+		if len(tokens) == 0 ||
 			(len(tokens) == 1 && tokens[0].Kind == KindNaN) {
 			return nil, nil, MarshalError{BadMapKey}
 		}
 		tuples = append(tuples, &MapTuple{
 			KeyTokens: tokens,
+			Key:       iter.Key(),
 			Value:     iter.Value(),
 		})
 		return nil, proc, nil
@@ -342,7 +347,7 @@ var mapEndToken = reflect.ValueOf(&Token{
 	Kind: KindMapEnd,
 })
 
-func MarshalMapValue(vm ValueMarshalFunc, tuples []*MapTuple, cont Proc) Proc {
+func MarshalMapTuples(vm ValueMarshalFunc, tuples []*MapTuple, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		if len(tuples) == 0 {
@@ -354,13 +359,16 @@ func MarshalMapValue(vm ValueMarshalFunc, tuples []*MapTuple, cont Proc) Proc {
 		}
 		tuple := tuples[0]
 		tuples = tuples[1:]
-		return nil, MarshalTokens(
-			tuple.KeyTokens,
-			vm(
-				vm,
-				tuple.Value,
-				proc,
-			),
+		return nil, vm(
+			vm,
+			tuple.Key,
+			func() (*Token, Proc, error) {
+				return nil, vm(
+					vm,
+					tuple.Value,
+					proc,
+				), nil
+			},
 		), nil
 	}
 	return proc
