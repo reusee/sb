@@ -14,6 +14,7 @@ func TestSinkHash(t *testing.T) {
 		kinds    []Kind
 	}
 	cases := []Case{
+
 		{
 			42,
 			"0fcc339bcc03b2d67d97d0e2fa60bd41",
@@ -26,6 +27,7 @@ func TestSinkHash(t *testing.T) {
 				KindInt,
 			},
 		},
+
 		{
 			[]int{1, 2, 3},
 			"1686c4524aa5e66d9cf9b98296ea178c",
@@ -88,6 +90,7 @@ func TestSinkHash(t *testing.T) {
 		if fmt.Sprintf("%x", sum) != c.expected {
 			t.Fatalf("%d: %#v, got %x", i, c.value, sum)
 		}
+
 		if MustCompare(
 			Marshal(sums),
 			Marshal(c.sums),
@@ -107,6 +110,17 @@ func TestSinkHash(t *testing.T) {
 			t.Fatal()
 		}
 
+	}
+
+}
+
+func TestBadHash(t *testing.T) {
+
+	if err := Copy(
+		Tokens{}.Iter(),
+		Hash(fnv.New128, nil, nil),
+	); !is(err, ExpectingValue) {
+		t.Fatal()
 	}
 
 }

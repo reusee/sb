@@ -280,7 +280,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// collect tokens
 			func(in Stream) Stream {
 				var tokens Tokens
-				if err := Copy(in, CollectTokens(&tokens)); err != nil {
+				if err := Copy(in, CollectTokens(&tokens)); err != nil { // NOCOVER
 					panic(err)
 				}
 				return tokens.Iter()
