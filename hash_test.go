@@ -1,6 +1,8 @@
 package sb
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"testing"
@@ -114,12 +116,139 @@ func TestSinkHash(t *testing.T) {
 
 }
 
+func TestHash2(t *testing.T) {
+	var sum1, sum2 []byte
+	if err := Copy(
+		Tokens{
+			{
+				Kind: KindPostTag,
+			},
+			{
+				Kind:  KindInt,
+				Value: 42,
+			},
+		}.Iter(),
+		Hash(fnv.New128, &sum1, nil),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if err := Copy(
+		Marshal(42),
+		Hash(fnv.New128, &sum2, nil),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(sum1, sum2) {
+		t.Fatal()
+	}
+
+	if err := Copy(
+		Tokens{
+			{
+				Kind: KindArray,
+			},
+			{
+				Kind: KindPostTag,
+			},
+			{
+				Kind:  KindInt,
+				Value: 42,
+			},
+			{
+				Kind: KindArrayEnd,
+			},
+		}.Iter(),
+		Hash(fnv.New128, &sum1, nil),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if err := Copy(
+		Marshal([]int{42}),
+		Hash(fnv.New128, &sum2, nil),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(sum1, sum2) {
+		t.Fatal()
+	}
+}
+
 func TestBadHash(t *testing.T) {
 
 	if err := Copy(
 		Tokens{}.Iter(),
 		Hash(fnv.New128, nil, nil),
 	); !is(err, ExpectingValue) {
+		t.Fatal()
+	}
+
+	if err := Copy(
+		Tokens{
+			{
+				Kind: KindObject,
+			},
+		}.Iter(),
+		Hash(fnv.New128, nil, nil),
+	); !is(err, ExpectingValue) {
+		t.Fatal()
+	}
+
+	Foo := errors.New("foo")
+	var sum []byte
+	if err := Copy(
+		Marshal(42),
+		HashFunc(fnv.New128, &sum, func(hash []byte, token *Token) error {
+			return Foo
+		}, nil),
+	); !is(err, Foo) {
+		t.Fatal()
+	}
+
+	if err := Copy(
+		Marshal(42),
+		HashFunc(fnv.New128, &sum, func(hash []byte, token *Token) error {
+			if len(hash) > 0 {
+				return Foo
+			}
+			return nil
+		}, nil),
+	); !is(err, Foo) {
+		t.Fatal()
+	}
+
+	if err := Copy(
+		Marshal([]int{1, 2, 3}),
+		HashFunc(fnv.New128, &sum, func(hash []byte, token *Token) error {
+			if len(hash) > 0 && token.Kind == KindArrayEnd {
+				return Foo
+			}
+			return nil
+		}, nil),
+	); !is(err, Foo) {
+		t.Fatal()
+	}
+
+	if err := Copy(
+		Marshal([]int{1, 2, 3}),
+		HashFunc(fnv.New128, &sum, func(hash []byte, token *Token) error {
+			if len(hash) == 0 && token.Kind == KindArrayEnd {
+				return Foo
+			}
+			return nil
+		}, nil),
+	); !is(err, Foo) {
+		t.Fatal()
+	}
+
+	if err := Copy(
+		Marshal([]int{1, 2, 3}),
+		HashFunc(fnv.New128, &sum, func(hash []byte, token *Token) error {
+			if len(hash) > 0 && token.Kind == KindArray {
+				return Foo
+			}
+			return nil
+		}, nil),
+	); !is(err, Foo) {
 		t.Fatal()
 	}
 

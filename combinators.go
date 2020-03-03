@@ -130,7 +130,7 @@ func filterProc(
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		token, err := stream.Next()
-		if err != nil {
+		if err != nil { // NOCOVER
 			return nil, nil, err
 		}
 		if token == nil {

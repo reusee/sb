@@ -38,7 +38,7 @@ func HashFunc(
 			state,
 			binary.LittleEndian,
 			token.Kind,
-		); err != nil {
+		); err != nil { // NOCOVER
 			return nil, err
 		}
 
@@ -127,7 +127,7 @@ func HashFunc(
 				},
 			), nil
 
-		default:
+		default: // NOCOVER
 			panic(fmt.Errorf("unexpected token: %+v", token))
 
 		}
@@ -169,13 +169,13 @@ func HashCompound(
 			&subHash,
 			fn,
 			func(token *Token) (Sink, error) {
-				if _, err := state.Write(subHash); err != nil {
+				if _, err := state.Write(subHash); err != nil { // NOCOVER
 					return nil, err
 				}
 				if next != nil {
 					return next(token)
 				}
-				return nil, nil
+				return nil, nil // NOCOVER
 			},
 		)(token)
 

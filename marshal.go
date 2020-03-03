@@ -17,19 +17,6 @@ func Marshal(value any) *Proc {
 	return &marshaler
 }
 
-func MarshalTokens(tokens []Token, cont Proc) Proc {
-	var proc Proc
-	proc = func() (*Token, Proc, error) {
-		if len(tokens) == 0 {
-			return nil, cont, nil
-		}
-		v := tokens[0]
-		tokens = tokens[1:]
-		return &v, proc, nil
-	}
-	return proc
-}
-
 type ValueMarshalFunc func(
 	fn ValueMarshalFunc,
 	value reflect.Value,
