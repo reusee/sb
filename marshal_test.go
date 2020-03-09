@@ -654,3 +654,16 @@ func TestMarshalMapOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestMarshalUnexportedField(t *testing.T) {
+	if err := Copy(
+		Marshal(struct {
+			f int
+		}{
+			f: 42,
+		}),
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+}

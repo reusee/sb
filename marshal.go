@@ -239,7 +239,10 @@ func MarshalStruct(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 	} else {
 		numField := valueType.NumField()
 		for i := 0; i < numField; i++ {
-			fields = append(fields, valueType.Field(i))
+			field := valueType.Field(i)
+			if field.PkgPath == "" {
+				fields = append(fields, field)
+			}
 		}
 		sort.Slice(fields, func(i, j int) bool {
 			return fields[i].Name < fields[j].Name
