@@ -166,9 +166,7 @@ func MarshalValue(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 					Value: toBytes(value),
 				}, cont, nil
 			} else {
-				return &Token{
-					Kind: KindArray,
-				}, MarshalArray(vm, value, 0, cont), nil
+				return nil, MarshalArray(vm, value, 0, cont), nil
 			}
 
 		case reflect.String:
@@ -178,24 +176,18 @@ func MarshalValue(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 			}, cont, nil
 
 		case reflect.Struct:
-			return &Token{
-				Kind: KindObject,
-			}, MarshalStruct(vm, value, cont), nil
+			return nil, MarshalStruct(vm, value, cont), nil
 
 		case reflect.Map:
-			return &Token{
-				Kind: KindMap,
-			}, MarshalMap(vm, value, cont), nil
+			return nil, MarshalMap(vm, value, cont), nil
 
 		case reflect.Func:
 			items := value.Call([]reflect.Value{})
-			return &Token{
-					Kind: KindTuple,
-				}, MarshalTuple(
-					vm,
-					items,
-					cont,
-				), nil
+			return nil, MarshalTuple(
+				vm,
+				items,
+				cont,
+			), nil
 
 		default:
 			return nil, cont, nil
@@ -226,7 +218,11 @@ func MarshalArray(vm ValueMarshalFunc, value reflect.Value, index int, cont Proc
 			proc,
 		), nil
 	}
-	return proc
+	return func() (*Token, Proc, error) {
+		return &Token{
+			Kind: KindArray,
+		}, proc, nil
+	}
 }
 
 var structFields sync.Map
@@ -249,7 +245,11 @@ func MarshalStruct(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 		})
 		structFields.Store(valueType, fields)
 	}
-	return MarshalStructFields(vm, value, fields, cont)
+	return func() (*Token, Proc, error) {
+		return &Token{
+			Kind: KindObject,
+		}, MarshalStructFields(vm, value, fields, cont), nil
+	}
 }
 
 func MarshalStructNonEmpty(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
@@ -351,7 +351,11 @@ func MarshalMapIter(vm ValueMarshalFunc, value reflect.Value, iter *reflect.MapI
 		})
 		return nil, proc, nil
 	}
-	return proc
+	return func() (*Token, Proc, error) {
+		return &Token{
+			Kind: KindMap,
+		}, proc, nil
+	}
 }
 
 var mapEndToken = reflect.ValueOf(&Token{
@@ -408,5 +412,9 @@ func MarshalTuple(vm ValueMarshalFunc, items []reflect.Value, cont Proc) Proc {
 			), nil
 		}
 	}
-	return proc
+	return func() (*Token, Proc, error) {
+		return &Token{
+			Kind: KindTuple,
+		}, proc, nil
+	}
 }
