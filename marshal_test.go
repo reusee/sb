@@ -667,3 +667,24 @@ func TestMarshalUnexportedField(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestMarshalNonEmpty(t *testing.T) {
+	proc1 := MarshalStructNonEmpty(MarshalValue, reflect.ValueOf(struct {
+		Foo int
+		Bar string
+	}{
+		Foo: 42,
+	}), nil)
+	proc2 := MarshalStructNonEmpty(MarshalValue, reflect.ValueOf(struct {
+		Foo int
+		Baz bool
+	}{
+		Foo: 42,
+	}), nil)
+	if MustCompare(
+		&proc1,
+		&proc2,
+	) != 0 {
+		t.Fatal()
+	}
+}

@@ -252,6 +252,27 @@ func MarshalStruct(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 	return MarshalStructFields(vm, value, fields, cont)
 }
 
+func MarshalStructNonEmpty(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+	var fields []reflect.StructField
+	t := value.Type()
+	for i := 0; i < t.NumField(); i++ {
+		fieldValue := value.Field(i)
+		if fieldValue.IsZero() {
+			continue
+		}
+		field := t.Field(i)
+		if field.Type.Kind() == reflect.Slice && fieldValue.Len() == 0 {
+			continue
+		}
+		fields = append(fields, field)
+	}
+	return func() (*Token, Proc, error) {
+		return &Token{
+			Kind: KindObject,
+		}, MarshalStructFields(vm, value, fields, cont), nil
+	}
+}
+
 var objectEndToken = reflect.ValueOf(&Token{
 	Kind: KindObjectEnd,
 })
