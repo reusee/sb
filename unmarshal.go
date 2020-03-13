@@ -604,7 +604,7 @@ func unmarshalStruct(
 			reflect.ValueOf(&name),
 			func(token *Token) (Sink, error) {
 				field, ok := valueType.FieldByName(name)
-				if !ok || field.Anonymous {
+				if !ok {
 					// skip next value
 					var value any
 					return vu(
