@@ -285,6 +285,22 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 				return tokens.Iter()
 			},
+
+			// tuple
+			func(in Stream) Stream {
+				var v any
+				if err := Copy(in, Unmarshal(&v)); err != nil {
+					panic(err)
+				}
+				var tuple Tuple
+				if err := Copy(
+					Marshal(Tuple{v}),
+					Unmarshal(&tuple),
+				); err != nil {
+					panic(err)
+				}
+				return Marshal(tuple[0])
+			},
 		}
 		fn := func(in Stream) Stream {
 			return in
