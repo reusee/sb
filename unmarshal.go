@@ -2,6 +2,7 @@ package sb
 
 import (
 	"encoding"
+	"fmt"
 	gotoken "go/token"
 	"math"
 	"reflect"
@@ -339,6 +340,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 					vu,
 					target,
 					valueType,
+					false,
 					cont,
 				)(token)
 
@@ -572,13 +574,14 @@ func UnmarshalStruct(
 	vu ValueUnmarshalFunc,
 	target reflect.Value,
 	valueType reflect.Type,
+	errorOnUnknownField bool,
 	cont Sink,
 ) Sink {
 	return ExpectKind(
 		KindObject,
 		unmarshalStruct(
 			vu,
-			target, valueType, cont,
+			target, valueType, false, cont,
 		),
 	)
 }
@@ -587,6 +590,7 @@ func unmarshalStruct(
 	vu ValueUnmarshalFunc,
 	target reflect.Value,
 	valueType reflect.Type,
+	errorOnUnknownField bool,
 	cont Sink,
 ) Sink {
 	var sink Sink
@@ -605,13 +609,17 @@ func unmarshalStruct(
 			func(token *Token) (Sink, error) {
 				field, ok := valueType.FieldByName(name)
 				if !ok {
-					// skip next value
-					var value any
-					return vu(
-						vu,
-						reflect.ValueOf(&value),
-						sink,
-					)(token)
+					if errorOnUnknownField {
+						return nil, fmt.Errorf("field %s: %w", name, UnmarshalError{UnknownFieldName})
+					} else {
+						// skip next value
+						var value any
+						return vu(
+							vu,
+							reflect.ValueOf(&value),
+							sink,
+						)(token)
+					}
 
 				} else {
 					return vu(

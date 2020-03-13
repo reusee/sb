@@ -61,6 +61,7 @@ var (
 	ExpectingMap        = fmt.Errorf("expecting map")
 	ExpectingTuple      = fmt.Errorf("expecting tuple")
 	BadFieldName        = fmt.Errorf("bad field name")
+	UnknownFieldName    = fmt.Errorf("unknown field name")
 	DuplicatedFieldName = fmt.Errorf("duplicated field name")
 	TooManyElement      = fmt.Errorf("too many element")
 	BadMapKey           = fmt.Errorf("bad map key")
