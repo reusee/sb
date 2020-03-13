@@ -112,3 +112,27 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 	}
 
 }
+
+func TestTupleUnmarshal(t *testing.T) {
+	var tuple Tuple
+	if err := Copy(
+		Marshal(Tuple{
+			map[int]int{
+				42: 1,
+			},
+			42, true,
+		}),
+		Unmarshal(&tuple),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if len(tuple) != 3 {
+		t.Fatal()
+	}
+	if i, ok := tuple[1].(int); !ok || i != 42 {
+		t.Fatal()
+	}
+	if b, ok := tuple[2].(bool); !ok || !b {
+		t.Fatal()
+	}
+}
