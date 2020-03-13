@@ -28,7 +28,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		Marshal(Tuple{
 			42, true, "foo",
 		}),
-		UnmarshalTupleTyped(func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(UnmarshalValue, func(int, bool, string) {}, &tuple, nil),
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		Marshal(Tuple{
 			1, false, "bar",
 		}),
-		UnmarshalTupleTyped(struct {
+		UnmarshalTupleTyped(UnmarshalValue, struct {
 			int
 			bool
 			string
@@ -66,7 +66,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 
 	if err := Copy(
 		Tokens{}.Iter(),
-		UnmarshalTupleTyped(func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(UnmarshalValue, func(int, bool, string) {}, &tuple, nil),
 	); !is(err, ExpectingTuple) {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 				Kind: KindString,
 			},
 		}.Iter(),
-		UnmarshalTupleTyped(func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(UnmarshalValue, func(int, bool, string) {}, &tuple, nil),
 	); !is(err, ExpectingTuple) {
 		t.Fatal(err)
 	}
@@ -88,7 +88,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 				Kind: KindTuple,
 			},
 		}.Iter(),
-		UnmarshalTupleTyped(func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(UnmarshalValue, func(int, bool, string) {}, &tuple, nil),
 	); !is(err, ExpectingValue) {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		Marshal(Tuple{
 			42, true, "foo",
 		}),
-		UnmarshalTupleTyped(func(int, bool) {}, &tuple, nil),
+		UnmarshalTupleTyped(UnmarshalValue, func(int, bool) {}, &tuple, nil),
 	); !is(err, TooManyElement) {
 		t.Fatal(err)
 	}
@@ -106,7 +106,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		Marshal(Tuple{
 			42, true,
 		}),
-		UnmarshalTupleTyped(func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(UnmarshalValue, func(int, bool, string) {}, &tuple, nil),
 	); !is(err, ExpectingValue) {
 		t.Fatal(err)
 	}

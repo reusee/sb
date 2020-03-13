@@ -39,7 +39,7 @@ func marshalTuple(vm ValueMarshalFunc, tuple Tuple, cont Proc) Proc {
 	)
 }
 
-func UnmarshalTupleTyped(typeSpec any, target *Tuple, cont Sink) Sink {
+func UnmarshalTupleTyped(vu ValueUnmarshalFunc, typeSpec any, target *Tuple, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, UnmarshalError{ExpectingTuple}
@@ -64,11 +64,11 @@ func UnmarshalTupleTyped(typeSpec any, target *Tuple, cont Sink) Sink {
 			panic(fmt.Errorf("bad type: %T", typeSpec))
 		}
 
-		return unmarshalTupleTyped(types, target, cont), nil
+		return unmarshalTupleTyped(vu, types, target, cont), nil
 	}
 }
 
-func unmarshalTupleTyped(types []reflect.Type, target *Tuple, cont Sink) Sink {
+func unmarshalTupleTyped(vu ValueUnmarshalFunc, types []reflect.Type, target *Tuple, cont Sink) Sink {
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
@@ -87,7 +87,8 @@ func unmarshalTupleTyped(types []reflect.Type, target *Tuple, cont Sink) Sink {
 		}
 
 		elem := reflect.New(types[0])
-		return UnmarshalValue(
+		return vu(
+			vu,
 			elem,
 			func(token *Token) (Sink, error) {
 				*target = append(*target, elem.Elem().Interface())

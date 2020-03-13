@@ -414,7 +414,7 @@ func (c Custom) MarshalSB(vm ValueMarshalFunc, cont Proc) Proc {
 	return vm(vm, reflect.ValueOf(c.Foo), cont)
 }
 
-func (c *Custom) UnmarshalSB(cont Sink) Sink {
+func (c *Custom) UnmarshalSB(vu ValueUnmarshalFunc, cont Sink) Sink {
 	return func(p *Token) (Sink, error) {
 		if p == nil {
 			return cont, nil

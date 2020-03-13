@@ -30,6 +30,9 @@ func MarshalAny(vm ValueMarshalFunc, value any, cont Proc) Proc {
 }
 
 func MarshalValue(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+	if vm == nil {
+		vm = MarshalValue
+	}
 	return func() (*Token, Proc, error) {
 
 		if value.IsValid() {
