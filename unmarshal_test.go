@@ -791,12 +791,12 @@ func TestBadTuple(t *testing.T) {
 		t.Fatal()
 	}
 
-	// too many items
+	// type not match
 	err = Copy(
 		Marshal(func() (int, int) {
 			return 42, 42
 		}), Unmarshal(&tuple))
-	if !errors.Is(err, TooManyElement) {
+	if !errors.Is(err, BadTupleType) {
 		t.Fatal()
 	}
 
@@ -871,10 +871,18 @@ func TestBadTupleCall(t *testing.T) {
 		Marshal(func() (int, int) {
 			return 42, 42
 		}), Unmarshal(
+			&tuple))
+	if !errors.Is(err, BadTupleType) {
+		t.Fatal()
+	}
 
+	// too many items
+	err = Copy(
+		Marshal(func() (int, int) {
+			return 42, 42
+		}), Unmarshal(
 			tuple))
-
-	if !errors.Is(err, TooManyElement) {
+	if !errors.Is(err, BadTupleType) {
 		t.Fatal()
 	}
 
@@ -1155,4 +1163,104 @@ func TestUnmarshalToPointer(t *testing.T) {
 	if i != nil {
 		t.Fatal()
 	}
+}
+
+func TestUnmarshalNewImpl(t *testing.T) {
+	// unmarshal to any
+	{
+		var value any
+		if err := Copy(
+			Marshal(Tuple{
+				42, "foo", true,
+			}),
+			Unmarshal(&value),
+		); err != nil {
+			t.Fatal(err)
+		}
+		if fn, ok := value.(func() (int, string, bool)); !ok {
+			t.Fatal()
+		} else {
+			i, s, b := fn()
+			if i != 42 {
+				t.Fatal()
+			}
+			if s != "foo" {
+				t.Fatal()
+			}
+			if !b {
+				t.Fatal()
+			}
+		}
+	}
+
+	// unmarshal to func call
+	{
+		if err := Copy(
+			Marshal(Tuple{
+				42, "foo", true,
+			}),
+			Unmarshal(func(i int, s string, b bool) {
+				if i != 42 {
+					t.Fatal()
+				}
+				if s != "foo" {
+					t.Fatal()
+				}
+				if !b {
+					t.Fatal()
+				}
+			}),
+		); err != nil {
+			t.Fatal()
+		}
+	}
+
+	// unmarshal to tuple func
+	{
+		var fn func() (int, string, bool)
+		if err := Copy(
+			Marshal(Tuple{
+				42, "foo", true,
+			}),
+			Unmarshal(&fn),
+		); err != nil {
+			t.Fatal()
+		}
+		i, s, b := fn()
+		if i != 42 {
+			t.Fatal()
+		}
+		if s != "foo" {
+			t.Fatal()
+		}
+		if !b {
+			t.Fatal()
+		}
+	}
+
+	// unmarshal to ellipses
+	{
+		if err := Copy(
+			Marshal(Tuple{
+				42, "foo", true,
+			}),
+			Unmarshal(func(tuple ...any) {
+				if len(tuple) != 3 {
+					t.Fatal()
+				}
+				if i, ok := tuple[0].(int); !ok || i != 42 {
+					t.Fatal()
+				}
+				if s, ok := tuple[1].(string); !ok || s != "foo" {
+					t.Fatal()
+				}
+				if b, ok := tuple[2].(bool); !ok || !b {
+					t.Fatal()
+				}
+			}),
+		); err != nil {
+			t.Fatal()
+		}
+	}
+
 }

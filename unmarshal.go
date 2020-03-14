@@ -380,53 +380,13 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 				if valueKind != reflect.Func {
 					return nil, UnmarshalError{ExpectingTuple}
 				}
-
-				numOut := valueType.NumOut()
-				numIn := valueType.NumIn()
-
-				if numOut > 0 && numIn == 0 {
-					// func() (...)
-					return UnmarshalTuple(
-						vu,
-						target,
-						valueType,
-						cont,
-					)(token)
-
-				} else if numIn > 0 &&
-					(numOut == 0 ||
-						(numOut == 1 && valueType.Out(0) == errorType)) {
-					// func(...) or func(...) error
-
-					if numIn == 1 && valueType.IsVariadic() {
-						return UnmarshalTupleCall(
-							vu,
-							target,
-							valueType,
-							cont,
-						)(token)
-
-					} else {
-						return UnmarshalTupleCallErr(
-							vu,
-							target,
-							valueType,
-							cont,
-						)(token)
-					}
-
-				} else {
-					return nil, UnmarshalError{BadTupleType}
-				}
-
-			} else {
-				// func() (...any)
-				return UnmarshalTupleVariadic(
-					vu,
-					target,
-					cont,
-				)(token)
 			}
+			return UnmarshalTuple(
+				vu,
+				target,
+				valueType,
+				cont,
+			)(token)
 
 		default:
 			return nil, UnmarshalError{BadTokenKind}
@@ -839,252 +799,146 @@ func unmarshalGenericMap(
 	return sink
 }
 
+var ellipsesType = reflect.TypeOf((*[]any)(nil)).Elem()
+
 func UnmarshalTuple(
 	vu ValueUnmarshalFunc,
 	target reflect.Value,
 	valueType reflect.Type,
 	cont Sink,
 ) Sink {
-	numOut := valueType.NumOut()
-	var items []reflect.Value
+
+	var concreteTypes []reflect.Type
+	if valueType.Kind() == reflect.Func {
+		numIn := valueType.NumIn()
+		numOut := valueType.NumOut()
+		if numIn == 0 {
+			// return only
+			for i := 0; i < numOut; i++ {
+				t := valueType.Out(i)
+				if t == ellipsesType {
+					continue
+				}
+				concreteTypes = append(concreteTypes, t)
+			}
+		} else {
+			for i := 0; i < numIn; i++ {
+				t := valueType.In(i)
+				if t == ellipsesType {
+					continue
+				}
+				concreteTypes = append(concreteTypes, t)
+			}
+		}
+	}
+
 	return ExpectKind(
 		KindTuple,
 		unmarshalTuple(
 			vu,
-			target, valueType, numOut, 0, items, cont,
+			concreteTypes,
+			target,
+			cont,
 		),
 	)
 }
 
 func unmarshalTuple(
 	vu ValueUnmarshalFunc,
+	concreteTypes []reflect.Type,
 	target reflect.Value,
-	valueType reflect.Type,
-	numOut int,
-	i int,
-	items []reflect.Value,
 	cont Sink,
 ) Sink {
 
+	var values []reflect.Value
+	var valueTypes []reflect.Type
 	var sink Sink
-	sink = func(p *Token) (Sink, error) {
-		if i >= numOut {
-			if p.Kind != KindTupleEnd {
-				return nil, UnmarshalError{TooManyElement}
+	sink = func(token *Token) (Sink, error) {
+		if token == nil {
+			return nil, UnmarshalError{ExpectingValue}
+		}
+
+		if token.Kind == KindTupleEnd {
+
+			// too few values
+			if len(concreteTypes) > 0 {
+				return nil, UnmarshalError{ExpectingValue}
 			}
-			target.Elem().Set(reflect.MakeFunc(
-				valueType,
-				func(args []reflect.Value) []reflect.Value {
-					return items
-				},
-			))
-			return cont, nil
-		}
 
-		if p == nil {
-			return nil, UnmarshalError{ExpectingValue}
-		}
-		if p.Kind == KindTupleEnd {
-			return nil, UnmarshalError{ExpectingValue}
-		}
-		itemType := valueType.Out(i)
-		value := reflect.New(itemType)
-		return vu(
-			vu,
-			value,
-			func(token *Token) (Sink, error) {
-				items = append(items, value.Elem())
-				i++
-				return sink(token)
-			},
-		)(p)
-	}
-	return sink
-}
-
-func UnmarshalTupleCall(
-	vu ValueUnmarshalFunc,
-	target reflect.Value,
-	valueType reflect.Type,
-	cont Sink,
-) Sink {
-	itemType := valueType.In(0).Elem()
-	var items []reflect.Value
-	return ExpectKind(
-		KindTuple,
-		unmarshalTupleCall(
-			vu,
-			target, itemType, items, cont,
-		),
-	)
-}
-
-func unmarshalTupleCall(
-	vu ValueUnmarshalFunc,
-	target reflect.Value,
-	itemType reflect.Type,
-	items []reflect.Value,
-	cont Sink,
-) Sink {
-
-	var sink Sink
-	sink = func(p *Token) (Sink, error) {
-		if p == nil {
-			return nil, UnmarshalError{ExpectingValue}
-		}
-		if p.Kind == KindTupleEnd {
-			if !target.IsNil() {
-				rets := target.Call(items)
-				if len(rets) > 0 {
-					i := rets[0].Interface()
-					if i != nil {
-						return nil, i.(error)
-					}
-					return cont, nil
+			targetType := target.Type()
+			if targetType.Kind() == reflect.Func {
+				// arg nums not match
+				if !targetType.IsVariadic() && targetType.NumIn() != len(values) {
+					return nil, UnmarshalError{BadTupleType}
 				}
-			}
-			return cont, nil
-		}
-
-		value := reflect.New(itemType)
-		return vu(
-			vu,
-			value,
-			func(token *Token) (Sink, error) {
-				items = append(items, value.Elem())
-				return sink(token)
-			},
-		)(p)
-
-	}
-	return sink
-}
-
-func UnmarshalTupleCallErr(
-	vu ValueUnmarshalFunc,
-	target reflect.Value,
-	valueType reflect.Type,
-	cont Sink,
-) Sink {
-	numIn := valueType.NumIn()
-	var items []reflect.Value
-	return ExpectKind(
-		KindTuple,
-		unmarshalTupleCallErr(
-			vu,
-			target, valueType, numIn, 0, items, cont,
-		),
-	)
-}
-
-func unmarshalTupleCallErr(
-	vu ValueUnmarshalFunc,
-	target reflect.Value,
-	valueType reflect.Type,
-	numIn int,
-	i int,
-	items []reflect.Value,
-	cont Sink,
-) Sink {
-
-	var sink Sink
-	sink = func(p *Token) (Sink, error) {
-		if i >= numIn {
-			if p.Kind != KindTupleEnd {
-				return nil, UnmarshalError{TooManyElement}
-			}
-			if !target.IsNil() {
-				rets := target.Call(items)
-				if len(rets) > 0 {
-					i := rets[0].Interface()
-					if i != nil {
-						return nil, i.(error)
+				if !target.IsNil() {
+					rets := target.Call(values)
+					for _, ret := range rets {
+						if e, ok := ret.Interface().(error); ok {
+							return nil, e
+						}
 					}
-					return cont, nil
 				}
-			}
-			return cont, nil
-		}
 
-		if p == nil {
-			return nil, UnmarshalError{ExpectingValue}
-		}
-		if p.Kind == KindTupleEnd {
-			return nil, UnmarshalError{ExpectingValue}
-		}
-		itemType := valueType.In(i)
-		value := reflect.New(itemType)
-		return vu(
-			vu,
-			value,
-			func(token *Token) (Sink, error) {
-				items = append(items, value.Elem())
-				i++
-				return sink(token)
-			},
-		)(p)
-	}
-
-	return sink
-}
-
-func UnmarshalTupleVariadic(
-	vu ValueUnmarshalFunc,
-	target reflect.Value,
-	cont Sink,
-) Sink {
-	var items []reflect.Value
-	var itemTypes []reflect.Type
-	return ExpectKind(
-		KindTuple,
-		unmarshalTupleVariadic(
-			vu,
-			target, items, itemTypes, cont,
-		),
-	)
-}
-
-func unmarshalTupleVariadic(
-	vu ValueUnmarshalFunc,
-	target reflect.Value,
-	items []reflect.Value,
-	itemTypes []reflect.Type,
-	cont Sink,
-) Sink {
-
-	var sink Sink
-	sink = func(p *Token) (Sink, error) {
-		if p == nil {
-			return nil, UnmarshalError{ExpectingValue}
-		}
-		if p.Kind == KindTupleEnd {
-			if len(itemTypes) > 50 {
-				return nil, UnmarshalError{TooManyElement}
-			}
-			target.Elem().Set(reflect.MakeFunc(
-				reflect.FuncOf(
+			} else {
+				// not func type, set func() (...) tuple
+				if len(values) > 50 {
+					return nil, UnmarshalError{TooManyElement}
+				}
+				funcType := reflect.FuncOf(
 					[]reflect.Type{},
-					itemTypes,
+					valueTypes,
 					false,
-				),
-				func(args []reflect.Value) []reflect.Value {
-					return items
-				},
-			))
+				)
+				if !funcType.AssignableTo(target.Elem().Type()) {
+					return nil, UnmarshalError{BadTupleType}
+				}
+				target.Elem().Set(reflect.MakeFunc(
+					funcType,
+					func(args []reflect.Value) []reflect.Value {
+						return values
+					},
+				))
+			}
+
 			return cont, nil
 		}
 
-		var obj any
-		value := reflect.ValueOf(&obj)
-		itemTypes = append(itemTypes, anyType)
-		return vu(
-			vu,
-			value,
-			func(token *Token) (Sink, error) {
-				items = append(items, value.Elem())
-				return sink(token)
-			},
-		)(p)
+		// collect values
+		if len(concreteTypes) > 0 {
+			t := concreteTypes[0]
+			concreteTypes = concreteTypes[1:]
+			value := reflect.New(t)
+			valueTypes = append(valueTypes, t)
+			return vu(
+				vu,
+				value,
+				func(token *Token) (Sink, error) {
+					values = append(values, value.Elem())
+					return sink(token)
+				},
+			)(token)
+
+		} else {
+			var obj any
+			value := reflect.ValueOf(&obj)
+			return vu(
+				vu,
+				value,
+				func(token *Token) (Sink, error) {
+					if obj != nil {
+						values = append(values, value.Elem().Elem())
+						valueTypes = append(valueTypes, reflect.TypeOf(obj))
+					} else {
+						values = append(values, value.Elem())
+						valueTypes = append(valueTypes, value.Type().Elem())
+					}
+					return sink(token)
+				},
+			)(token)
+
+		}
+
 	}
 
 	return sink
