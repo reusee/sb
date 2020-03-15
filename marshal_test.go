@@ -19,14 +19,14 @@ type MarshalTestCase struct {
 type foo int
 
 var marshalTestCases = []MarshalTestCase{
-	{
+	0: {
 		int(42),
 		[]Token{
 			{Kind: KindInt, Value: int(42)},
 		},
 	},
 
-	{
+	1: {
 		func() *int32 {
 			i := int32(42)
 			return &i
@@ -36,28 +36,28 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	2: {
 		true,
 		[]Token{
 			{Kind: KindBool, Value: true},
 		},
 	},
 
-	{
+	3: {
 		uint32(42),
 		[]Token{
 			{Kind: KindUint32, Value: uint32(42)},
 		},
 	},
 
-	{
+	4: {
 		float32(42),
 		[]Token{
 			{Kind: KindFloat32, Value: float32(42)},
 		},
 	},
 
-	{
+	5: {
 		[]int{42, 4, 2},
 		[]Token{
 			{Kind: KindArray},
@@ -68,7 +68,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	6: {
 		[][]int{
 			{42, 4, 2},
 			{2, 4, 42},
@@ -89,14 +89,14 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	7: {
 		"foo",
 		[]Token{
 			{Kind: KindString, Value: "foo"},
 		},
 	},
 
-	{
+	8: {
 		struct {
 			Foo int
 			Bar float32
@@ -110,19 +110,19 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindObject},
+			{Kind: KindString, Value: "Foo"},
+			{Kind: KindInt, Value: int(42)},
 			{Kind: KindString, Value: "Bar"},
 			{Kind: KindFloat32, Value: float32(42)},
 			{Kind: KindString, Value: "Baz"},
 			{Kind: KindString, Value: "42"},
 			{Kind: KindString, Value: "Boo"},
 			{Kind: KindBool, Value: false},
-			{Kind: KindString, Value: "Foo"},
-			{Kind: KindInt, Value: int(42)},
 			{Kind: KindObjectEnd},
 		},
 	},
 
-	{
+	9: {
 		[]interface{}{
 			func() **int {
 				i := 42
@@ -143,7 +143,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	10: {
 		func() *int {
 			return nil
 		}(),
@@ -152,7 +152,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	11: {
 		func() *bool {
 			return nil
 		}(),
@@ -161,7 +161,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	12: {
 		func() *uint8 {
 			return nil
 		}(),
@@ -170,7 +170,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	13: {
 		func() *float32 {
 			return nil
 		}(),
@@ -179,7 +179,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	14: {
 		func() *[]int32 {
 			return nil
 		}(),
@@ -188,7 +188,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	15: {
 		func() *[]int32 {
 			array := []int32{42}
 			return &array
@@ -200,7 +200,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	16: {
 		func() *string {
 			return nil
 		}(),
@@ -209,7 +209,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	17: {
 		func() *struct{} {
 			return nil
 		}(),
@@ -218,7 +218,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	func() MarshalTestCase {
+	18: func() MarshalTestCase {
 		str := strings.Repeat("foo", 1024)
 		return MarshalTestCase{
 			str,
@@ -228,14 +228,14 @@ var marshalTestCases = []MarshalTestCase{
 		}
 	}(),
 
-	{
+	19: {
 		foo(42),
 		[]Token{
 			{Kind: KindInt, Value: int(42)},
 		},
 	},
 
-	{
+	20: {
 		[]foo{
 			42,
 		},
@@ -246,7 +246,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	21: {
 		struct {
 			Foo foo
 		}{
@@ -260,7 +260,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	22: {
 		struct {
 			Foo []foo
 		}{
@@ -278,7 +278,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	23: {
 		map[int]int{},
 		[]Token{
 			{Kind: KindMap},
@@ -286,7 +286,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	24: {
 		map[int]int{
 			1: 1,
 		},
@@ -298,7 +298,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	25: {
 		map[int]int{
 			42: 42,
 			1:  1,
@@ -313,7 +313,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	26: {
 		map[any]any{
 			42:    42,
 			"foo": "bar",
@@ -328,7 +328,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	27: {
 		func() (int, string) {
 			return 42, "42"
 		},
@@ -340,7 +340,7 @@ var marshalTestCases = []MarshalTestCase{
 		},
 	},
 
-	{
+	28: {
 		marshalStringAsInt("foo"),
 		[]Token{
 			{Kind: KindInt, Value: int(3)},
