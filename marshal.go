@@ -243,9 +243,6 @@ func MarshalStruct(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
 				fields = append(fields, field)
 			}
 		}
-		sort.Slice(fields, func(i, j int) bool {
-			return fields[i].Name < fields[j].Name
-		})
 		structFields.Store(valueType, fields)
 	}
 	return func() (*Token, Proc, error) {

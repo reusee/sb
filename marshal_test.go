@@ -688,3 +688,38 @@ func TestMarshalNonEmpty(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestStructAsMapKey(t *testing.T) {
+	m := map[interface{}]interface{}{
+		struct {
+			X struct {
+				P int16
+				X struct{}
+			}
+		}{X: struct {
+			P int16
+			X struct{}
+		}{P: -16693, X: struct{}{}}}: nil,
+		struct {
+			X struct {
+				X struct{}
+				P int16
+			}
+		}{X: struct {
+			X struct{}
+			P int16
+		}{X: struct{}{}, P: -16693}}: nil,
+	}
+
+	var o map[interface{}]interface{}
+	if err := Copy(
+		Marshal(m),
+		Unmarshal(&o),
+	); err != nil {
+		panic(err)
+	}
+	if len(o) != 2 {
+		t.Fatal()
+	}
+
+}
