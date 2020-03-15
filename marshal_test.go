@@ -110,14 +110,14 @@ var marshalTestCases = []MarshalTestCase{
 		},
 		[]Token{
 			{Kind: KindObject},
-			{Kind: KindString, Value: "Foo"},
-			{Kind: KindInt, Value: int(42)},
 			{Kind: KindString, Value: "Bar"},
 			{Kind: KindFloat32, Value: float32(42)},
 			{Kind: KindString, Value: "Baz"},
 			{Kind: KindString, Value: "42"},
 			{Kind: KindString, Value: "Boo"},
 			{Kind: KindBool, Value: false},
+			{Kind: KindString, Value: "Foo"},
+			{Kind: KindInt, Value: int(42)},
 			{Kind: KindObjectEnd},
 		},
 	},
@@ -410,11 +410,11 @@ var _ SBMarshaler = Custom{}
 
 var _ SBUnmarshaler = new(Custom)
 
-func (c Custom) MarshalSB(vm ValueMarshalFunc, cont Proc) Proc {
-	return vm(vm, reflect.ValueOf(c.Foo), cont)
+func (c Custom) MarshalSB(ctx Ctx, cont Proc) Proc {
+	return ctx.Marshal(ctx, reflect.ValueOf(c.Foo), cont)
 }
 
-func (c *Custom) UnmarshalSB(vu ValueUnmarshalFunc, cont Sink) Sink {
+func (c *Custom) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 	return func(p *Token) (Sink, error) {
 		if p == nil {
 			return cont, nil
@@ -553,19 +553,20 @@ type marshalStringAsInt string
 
 var _ SBMarshaler = marshalStringAsInt("")
 
-func (m marshalStringAsInt) MarshalSB(vm ValueMarshalFunc, cont Proc) Proc {
+func (m marshalStringAsInt) MarshalSB(ctx Ctx, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
-		return nil, MarshalAny(vm, len(m), cont), nil
+		return nil, MarshalAny(ctx, len(m), cont), nil
 	}
 }
 
 func TestValueMarshalFunc(t *testing.T) {
-	var fn ValueMarshalFunc
-	fn = func(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
-		return MarshalValue(fn, value, cont)
+	fn := func(ctx Ctx, value reflect.Value, cont Proc) Proc {
+		return MarshalValue(ctx, value, cont)
 	}
 	for _, c := range marshalTestCases {
-		proc := fn(fn, reflect.ValueOf(c.value), nil)
+		proc := fn(Ctx{
+			Marshal: fn,
+		}, reflect.ValueOf(c.value), nil)
 		stream := &proc
 		if MustCompare(stream, Tokens(c.expected).Iter()) != 0 {
 			t.Fatal("not equal")
@@ -574,15 +575,14 @@ func TestValueMarshalFunc(t *testing.T) {
 }
 
 func TestValueMarshalFunc2(t *testing.T) {
-	var fn ValueMarshalFunc
 	n := 0
-	fn = func(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+	fn := func(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		if value.Kind() == reflect.Struct {
 			n++
 		}
-		return MarshalValue(fn, value, cont)
+		return MarshalValue(ctx, value, cont)
 	}
-	proc := fn(fn, reflect.ValueOf(
+	proc := fn(Ctx{Marshal: fn}, reflect.ValueOf(
 		struct {
 			Foo struct {
 				Bar struct {
@@ -601,21 +601,20 @@ func TestValueMarshalFunc2(t *testing.T) {
 }
 
 func TestMarshalStructFieldOrder(t *testing.T) {
-	var fn ValueMarshalFunc
 	expectedKinds := []reflect.Kind{
 		reflect.Struct,
 		reflect.String,
 		reflect.Int,
 		reflect.Ptr, // *Token
 	}
-	fn = func(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+	fn := func(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		if value.Kind() != expectedKinds[0] {
 			t.Fatal()
 		}
 		expectedKinds = expectedKinds[1:]
-		return MarshalValue(vm, value, cont)
+		return MarshalValue(ctx, value, cont)
 	}
-	proc := fn(fn, reflect.ValueOf(struct {
+	proc := fn(Ctx{Marshal: fn}, reflect.ValueOf(struct {
 		I int
 	}{
 		I: 42,
@@ -629,20 +628,19 @@ func TestMarshalStructFieldOrder(t *testing.T) {
 }
 
 func TestMarshalMapOrder(t *testing.T) {
-	var fn ValueMarshalFunc
 	expecteds := []int64{
 		1, 2, 3, 4, 5, 6,
 	}
-	fn = func(vm ValueMarshalFunc, value reflect.Value, cont Proc) Proc {
+	fn := func(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		if value.Kind() == reflect.Int64 {
 			if value.Int() != expecteds[0] {
 				t.Fatalf("expected %d, got %d", expecteds[0], value.Int())
 			}
 			expecteds = expecteds[1:]
 		}
-		return MarshalValue(vm, value, cont)
+		return MarshalValue(ctx, value, cont)
 	}
-	proc := fn(fn, reflect.ValueOf(map[int64]int64{
+	proc := fn(Ctx{Marshal: fn}, reflect.ValueOf(map[int64]int64{
 		1: 2,
 		3: 4,
 		5: 6,
@@ -669,13 +667,19 @@ func TestMarshalUnexportedField(t *testing.T) {
 }
 
 func TestMarshalNonEmpty(t *testing.T) {
-	proc1 := MarshalStructNonEmpty(MarshalValue, reflect.ValueOf(struct {
+	proc1 := MarshalValue(Ctx{
+		Marshal:               MarshalValue,
+		SkipEmptyStructFields: true,
+	}, reflect.ValueOf(struct {
 		Foo int
 		Bar string
 	}{
 		Foo: 42,
 	}), nil)
-	proc2 := MarshalStructNonEmpty(MarshalValue, reflect.ValueOf(struct {
+	proc2 := MarshalValue(Ctx{
+		Marshal:               MarshalValue,
+		SkipEmptyStructFields: true,
+	}, reflect.ValueOf(struct {
 		Foo int
 		Baz bool
 	}{

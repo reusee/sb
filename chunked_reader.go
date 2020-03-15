@@ -13,12 +13,12 @@ type ChunkedReader struct {
 
 var _ SBMarshaler = new(ChunkedReader)
 
-func (c ChunkedReader) MarshalSB(vm ValueMarshalFunc, cont Proc) Proc {
+func (c ChunkedReader) MarshalSB(ctx Ctx, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 		return &Token{
 				Kind: KindArray,
 			}, c.marshal(
-				vm,
+				ctx,
 				func() (*Token, Proc, error) {
 					return &Token{
 						Kind: KindArrayEnd,
@@ -28,7 +28,7 @@ func (c ChunkedReader) MarshalSB(vm ValueMarshalFunc, cont Proc) Proc {
 	}
 }
 
-func (c ChunkedReader) marshal(vm ValueMarshalFunc, cont Proc) Proc {
+func (c ChunkedReader) marshal(ctx Ctx, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		bs, err := ioutil.ReadAll(
@@ -41,8 +41,8 @@ func (c ChunkedReader) marshal(vm ValueMarshalFunc, cont Proc) Proc {
 			return nil, nil, err
 		}
 		if len(bs) > 0 {
-			return nil, vm(
-				vm,
+			return nil, ctx.Marshal(
+				ctx,
 				reflect.ValueOf(bs),
 				proc,
 			), nil

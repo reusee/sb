@@ -9,13 +9,19 @@ import (
 )
 
 type SBUnmarshaler interface {
-	UnmarshalSB(vu ValueUnmarshalFunc, cont Sink) Sink
+	UnmarshalSB(ctx Ctx, cont Sink) Sink
+}
+
+var UnmarshalCtx = Ctx{
+	Unmarshal: UnmarshalValue,
 }
 
 func Unmarshal(target any) Sink {
 	return FilterSink(
 		UnmarshalValue(
-			UnmarshalValue,
+			Ctx{
+				Unmarshal: UnmarshalValue,
+			},
 			reflect.ValueOf(target),
 			nil,
 		),
@@ -25,21 +31,15 @@ func Unmarshal(target any) Sink {
 	)
 }
 
-type ValueUnmarshalFunc func(
-	vu ValueUnmarshalFunc,
-	target reflect.Value,
-	cont Sink,
-) Sink
-
-func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink {
-	if vu == nil {
-		vu = UnmarshalValue
+func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
+	if ctx.Unmarshal == nil {
+		ctx.Unmarshal = UnmarshalValue
 	}
 
 	if target.IsValid() {
 		i := target.Interface()
 		if v, ok := i.(SBUnmarshaler); ok {
-			return v.UnmarshalSB(vu, cont)
+			return v.UnmarshalSB(ctx, cont)
 
 		} else if v, ok := i.(encoding.BinaryUnmarshaler); ok {
 			return func(p *Token) (Sink, error) {
@@ -108,8 +108,8 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 		if valueKind == reflect.Ptr {
 			// deref
 			t := reflect.New(valueType.Elem())
-			return vu(
-				vu,
+			return ctx.Unmarshal(
+				ctx,
 				t,
 				func(token *Token) (Sink, error) {
 					// target will not set unless no error
@@ -304,7 +304,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 				if valueKind == reflect.Array {
 					// array
 					return UnmarshalArray(
-						vu,
+						ctx,
 						target,
 						cont,
 					)(token)
@@ -312,7 +312,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 				} else if valueKind == reflect.Slice {
 					// slice
 					return UnmarshalSlice(
-						vu,
+						ctx,
 						target,
 						valueType,
 						cont,
@@ -325,7 +325,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 			} else {
 				// generic slice
 				return UnmarshalGenericSlice(
-					vu,
+					ctx,
 					target,
 					cont,
 				)(token)
@@ -337,7 +337,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 					return nil, UnmarshalError{ExpectingStruct}
 				}
 				return UnmarshalStruct(
-					vu,
+					ctx,
 					target,
 					valueType,
 					false,
@@ -347,7 +347,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 			} else {
 				// construct new type
 				return UnmarshalNewStruct(
-					vu,
+					ctx,
 					target,
 					cont,
 				)(token)
@@ -359,7 +359,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 					return nil, UnmarshalError{ExpectingMap}
 				}
 				return UnmarshalMap(
-					vu,
+					ctx,
 					target,
 					valueType,
 					cont,
@@ -368,7 +368,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 			} else {
 				// map[any]any
 				return UnmarshalGenericMap(
-					vu,
+					ctx,
 					target,
 					cont,
 				)(token)
@@ -382,7 +382,7 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 				}
 			}
 			return UnmarshalTuple(
-				vu,
+				ctx,
 				target,
 				valueType,
 				cont,
@@ -398,18 +398,18 @@ func UnmarshalValue(vu ValueUnmarshalFunc, target reflect.Value, cont Sink) Sink
 }
 
 func UnmarshalArray(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	cont Sink,
 ) Sink {
 	return ExpectKind(
 		KindArray,
-		unmarshalArray(vu, target, 0, cont),
+		unmarshalArray(ctx, target, 0, cont),
 	)
 }
 
 func unmarshalArray(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	idx int,
 	cont Sink,
@@ -429,8 +429,8 @@ func unmarshalArray(
 
 		e := target.Elem().Index(idx).Addr()
 		idx++
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			e,
 			sink,
 		)(p)
@@ -440,7 +440,7 @@ func unmarshalArray(
 }
 
 func UnmarshalSlice(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
 	cont Sink,
@@ -449,7 +449,7 @@ func UnmarshalSlice(
 	return ExpectKind(
 		KindArray,
 		unmarshalSlice(
-			vu,
+			ctx,
 			target, valueType,
 			slice, cont,
 		),
@@ -457,7 +457,7 @@ func UnmarshalSlice(
 }
 
 func unmarshalSlice(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
 	slice reflect.Value,
@@ -475,8 +475,8 @@ func unmarshalSlice(
 		elemPtr := reflect.New(valueType.Elem())
 		slice = reflect.Append(slice, elemPtr.Elem())
 
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			slice.Index(slice.Len()-1).Addr(),
 			sink,
 		)(p)
@@ -486,7 +486,7 @@ func unmarshalSlice(
 }
 
 func UnmarshalGenericSlice(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	cont Sink,
 ) Sink {
@@ -494,14 +494,14 @@ func UnmarshalGenericSlice(
 	return ExpectKind(
 		KindArray,
 		unmarshalGenericSlice(
-			vu,
+			ctx,
 			target, slice, cont,
 		),
 	)
 }
 
 func unmarshalGenericSlice(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	slice []any,
 	cont Sink,
@@ -517,8 +517,8 @@ func unmarshalGenericSlice(
 		}
 
 		var value any
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			reflect.ValueOf(&value),
 			func(token *Token) (Sink, error) {
 				slice = append(slice, value)
@@ -531,7 +531,7 @@ func unmarshalGenericSlice(
 }
 
 func UnmarshalStruct(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
 	errorOnUnknownField bool,
@@ -540,14 +540,14 @@ func UnmarshalStruct(
 	return ExpectKind(
 		KindObject,
 		unmarshalStruct(
-			vu,
+			ctx,
 			target, valueType, false, cont,
 		),
 	)
 }
 
 func unmarshalStruct(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
 	errorOnUnknownField bool,
@@ -563,8 +563,8 @@ func unmarshalStruct(
 		}
 		var name string
 
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			reflect.ValueOf(&name),
 			func(token *Token) (Sink, error) {
 				field, ok := valueType.FieldByName(name)
@@ -574,16 +574,16 @@ func unmarshalStruct(
 					} else {
 						// skip next value
 						var value any
-						return vu(
-							vu,
+						return ctx.Unmarshal(
+							ctx,
 							reflect.ValueOf(&value),
 							sink,
 						)(token)
 					}
 
 				} else {
-					return vu(
-						vu,
+					return ctx.Unmarshal(
+						ctx,
 						target.Elem().FieldByIndex(field.Index).Addr(),
 						sink,
 					)(token)
@@ -597,7 +597,7 @@ func unmarshalStruct(
 }
 
 func UnmarshalNewStruct(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	cont Sink,
 ) Sink {
@@ -607,14 +607,14 @@ func UnmarshalNewStruct(
 	return ExpectKind(
 		KindObject,
 		unmarshalNewStruct(
-			vu,
+			ctx,
 			target, values, fields, names, cont,
 		),
 	)
 }
 
 func unmarshalNewStruct(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	values []any,
 	fields []reflect.StructField,
@@ -637,8 +637,8 @@ func unmarshalNewStruct(
 		}
 
 		var name string
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			reflect.ValueOf(&name),
 			func(token *Token) (Sink, error) {
 				if !gotoken.IsIdentifier(name) || !gotoken.IsExported(name) {
@@ -650,8 +650,8 @@ func unmarshalNewStruct(
 				names[name] = struct{}{}
 				var value any
 
-				return vu(
-					vu,
+				return ctx.Unmarshal(
+					ctx,
 					reflect.ValueOf(&value),
 					func(token *Token) (Sink, error) {
 						if value == nil {
@@ -676,7 +676,7 @@ func unmarshalNewStruct(
 }
 
 func UnmarshalMap(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
 	cont Sink,
@@ -686,14 +686,14 @@ func UnmarshalMap(
 	return ExpectKind(
 		KindMap,
 		unmarshalMap(
-			vu,
+			ctx,
 			target, valueType, keyType, elemType, cont,
 		),
 	)
 }
 
 func unmarshalMap(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
 	keyType reflect.Type,
@@ -710,14 +710,14 @@ func unmarshalMap(
 		}
 
 		key := reflect.New(keyType)
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			key,
 			func(token *Token) (Sink, error) {
 				value := reflect.New(elemType)
 
-				return vu(
-					vu,
+				return ctx.Unmarshal(
+					ctx,
 					value,
 					func(token *Token) (Sink, error) {
 						if target.Elem().IsNil() {
@@ -738,7 +738,7 @@ func unmarshalMap(
 }
 
 func UnmarshalGenericMap(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	cont Sink,
 ) Sink {
@@ -746,14 +746,14 @@ func UnmarshalGenericMap(
 	return ExpectKind(
 		KindMap,
 		unmarshalGenericMap(
-			vu,
+			ctx,
 			target, m, cont,
 		),
 	)
 }
 
 func unmarshalGenericMap(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	m map[any]any,
 	cont Sink,
@@ -769,8 +769,8 @@ func unmarshalGenericMap(
 		}
 
 		var key any
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			reflect.ValueOf(&key),
 			func(token *Token) (Sink, error) {
 				if key == nil {
@@ -784,8 +784,8 @@ func unmarshalGenericMap(
 				}
 				var value any
 
-				return vu(
-					vu,
+				return ctx.Unmarshal(
+					ctx,
 					reflect.ValueOf(&value),
 					func(token *Token) (Sink, error) {
 						m[key] = value
@@ -802,7 +802,7 @@ func unmarshalGenericMap(
 var ellipsesType = reflect.TypeOf((*[]any)(nil)).Elem()
 
 func UnmarshalTuple(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
 	cont Sink,
@@ -835,7 +835,7 @@ func UnmarshalTuple(
 	return ExpectKind(
 		KindTuple,
 		unmarshalTuple(
-			vu,
+			ctx,
 			concreteTypes,
 			target,
 			cont,
@@ -844,7 +844,7 @@ func UnmarshalTuple(
 }
 
 func unmarshalTuple(
-	vu ValueUnmarshalFunc,
+	ctx Ctx,
 	concreteTypes []reflect.Type,
 	target reflect.Value,
 	cont Sink,
@@ -910,8 +910,8 @@ func unmarshalTuple(
 			concreteTypes = concreteTypes[1:]
 			value := reflect.New(t)
 			valueTypes = append(valueTypes, t)
-			return vu(
-				vu,
+			return ctx.Unmarshal(
+				ctx,
 				value,
 				func(token *Token) (Sink, error) {
 					values = append(values, value.Elem())
@@ -922,8 +922,8 @@ func unmarshalTuple(
 		} else {
 			var obj any
 			value := reflect.ValueOf(&obj)
-			return vu(
-				vu,
+			return ctx.Unmarshal(
+				ctx,
 				value,
 				func(token *Token) (Sink, error) {
 					if obj != nil {

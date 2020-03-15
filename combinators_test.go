@@ -1,7 +1,6 @@
 package sb
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -12,8 +11,8 @@ func TestAltSink(t *testing.T) {
 	if err := Copy(
 		Marshal(42),
 		AltSink(
-			UnmarshalValue(UnmarshalValue, reflect.ValueOf(&i), nil),
-			UnmarshalValue(UnmarshalValue, reflect.ValueOf(&b), nil),
+			Unmarshal(&i),
+			Unmarshal(&b),
 		),
 	); err != nil {
 		t.Fatal(err)
@@ -24,8 +23,8 @@ func TestAltSink(t *testing.T) {
 	if err := Copy(
 		Marshal(24),
 		AltSink(
-			UnmarshalValue(nil, reflect.ValueOf(&b), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&i), nil),
+			Unmarshal(&b),
+			Unmarshal(&i),
 		),
 	); err != nil {
 		t.Fatal(err)
@@ -37,8 +36,8 @@ func TestAltSink(t *testing.T) {
 	if err := Copy(
 		Marshal(true),
 		AltSink(
-			UnmarshalValue(nil, reflect.ValueOf(&i), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&b), nil),
+			Unmarshal(&i),
+			Unmarshal(&b),
 		),
 	); err != nil {
 		t.Fatal(err)
@@ -49,8 +48,8 @@ func TestAltSink(t *testing.T) {
 	if err := Copy(
 		Marshal(false),
 		AltSink(
-			UnmarshalValue(nil, reflect.ValueOf(&b), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&i), nil),
+			Unmarshal(&b),
+			Unmarshal(&i),
 		),
 	); err != nil {
 		t.Fatal(err)
@@ -62,8 +61,8 @@ func TestAltSink(t *testing.T) {
 	err := Copy(
 		Marshal("foo"),
 		AltSink(
-			UnmarshalValue(nil, reflect.ValueOf(&i), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&b), nil),
+			Unmarshal(&i),
+			Unmarshal(&b),
 		),
 	)
 	if err == nil {
@@ -74,9 +73,9 @@ func TestAltSink(t *testing.T) {
 	if err := Copy(
 		Marshal("foo"),
 		AltSink(
-			UnmarshalValue(nil, reflect.ValueOf(&b), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&i), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&s), nil),
+			Unmarshal(&b),
+			Unmarshal(&i),
+			Unmarshal(&s),
 		),
 	); err != nil {
 		t.Fatal(err)
@@ -91,10 +90,10 @@ func TestAltSink(t *testing.T) {
 			[]string{"foo", "bar"},
 		),
 		AltSink(
-			UnmarshalValue(nil, reflect.ValueOf(&b), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&i), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&s), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&ss), nil),
+			Unmarshal(&b),
+			Unmarshal(&i),
+			Unmarshal(&s),
+			Unmarshal(&ss),
 		),
 	); err != nil {
 		t.Fatal(err)
@@ -114,8 +113,8 @@ func TestAltSink(t *testing.T) {
 			}{42},
 		),
 		AltSink(
-			UnmarshalValue(nil, reflect.ValueOf(&s1), nil),
-			UnmarshalValue(nil, reflect.ValueOf(&s2), nil),
+			Unmarshal(&s1),
+			Unmarshal(&s2),
 		),
 	); err != nil {
 		t.Fatal(err)

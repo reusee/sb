@@ -10,17 +10,17 @@ type Tuple []any
 var _ SBMarshaler = Tuple{}
 
 func (t Tuple) MarshalSB(
-	vm ValueMarshalFunc,
+	ctx Ctx,
 	cont Proc,
 ) Proc {
 	return func() (*Token, Proc, error) {
 		return &Token{
 			Kind: KindTuple,
-		}, marshalTuple(vm, t, cont), nil
+		}, marshalTuple(ctx, t, cont), nil
 	}
 }
 
-func marshalTuple(vm ValueMarshalFunc, tuple Tuple, cont Proc) Proc {
+func marshalTuple(ctx Ctx, tuple Tuple, cont Proc) Proc {
 	if len(tuple) == 0 {
 		return func() (*Token, Proc, error) {
 			return &Token{
@@ -28,11 +28,11 @@ func marshalTuple(vm ValueMarshalFunc, tuple Tuple, cont Proc) Proc {
 			}, cont, nil
 		}
 	}
-	return vm(
-		vm,
+	return ctx.Marshal(
+		ctx,
 		reflect.ValueOf(tuple[0]),
 		marshalTuple(
-			vm,
+			ctx,
 			tuple[1:],
 			cont,
 		),
@@ -41,7 +41,7 @@ func marshalTuple(vm ValueMarshalFunc, tuple Tuple, cont Proc) Proc {
 
 var _ SBUnmarshaler = new(Tuple)
 
-func (t *Tuple) UnmarshalSB(vu ValueUnmarshalFunc, cont Sink) Sink {
+func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, UnmarshalError{ExpectingTuple}
@@ -49,11 +49,11 @@ func (t *Tuple) UnmarshalSB(vu ValueUnmarshalFunc, cont Sink) Sink {
 		if token.Kind != KindTuple {
 			return nil, UnmarshalError{ExpectingTuple}
 		}
-		return t.unmarshal(vu, cont), nil
+		return t.unmarshal(ctx, cont), nil
 	}
 }
 
-func (t *Tuple) unmarshal(vu ValueUnmarshalFunc, cont Sink) Sink {
+func (t *Tuple) unmarshal(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, UnmarshalError{ExpectingTuple}
@@ -62,18 +62,18 @@ func (t *Tuple) unmarshal(vu ValueUnmarshalFunc, cont Sink) Sink {
 			return cont, nil
 		}
 		var value any
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			reflect.ValueOf(&value),
 			func(token *Token) (Sink, error) {
 				*t = append(*t, value)
-				return t.unmarshal(vu, cont)(token)
+				return t.unmarshal(ctx, cont)(token)
 			},
 		)(token)
 	}
 }
 
-func UnmarshalTupleTyped(vu ValueUnmarshalFunc, typeSpec any, target *Tuple, cont Sink) Sink {
+func UnmarshalTupleTyped(ctx Ctx, typeSpec any, target *Tuple, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, UnmarshalError{ExpectingTuple}
@@ -98,11 +98,11 @@ func UnmarshalTupleTyped(vu ValueUnmarshalFunc, typeSpec any, target *Tuple, con
 			panic(fmt.Errorf("bad type: %T", typeSpec))
 		}
 
-		return unmarshalTupleTyped(vu, types, target, cont), nil
+		return unmarshalTupleTyped(ctx, types, target, cont), nil
 	}
 }
 
-func unmarshalTupleTyped(vu ValueUnmarshalFunc, types []reflect.Type, target *Tuple, cont Sink) Sink {
+func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink) Sink {
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
@@ -121,8 +121,8 @@ func unmarshalTupleTyped(vu ValueUnmarshalFunc, types []reflect.Type, target *Tu
 		}
 
 		elem := reflect.New(types[0])
-		return vu(
-			vu,
+		return ctx.Unmarshal(
+			ctx,
 			elem,
 			func(token *Token) (Sink, error) {
 				*target = append(*target, elem.Elem().Interface())
