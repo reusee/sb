@@ -340,7 +340,6 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 					ctx,
 					target,
 					valueType,
-					false,
 					cont,
 				)(token)
 
@@ -534,14 +533,13 @@ func UnmarshalStruct(
 	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
-	errorOnUnknownField bool,
 	cont Sink,
 ) Sink {
 	return ExpectKind(
 		KindObject,
 		unmarshalStruct(
 			ctx,
-			target, valueType, false, cont,
+			target, valueType, cont,
 		),
 	)
 }
@@ -550,7 +548,6 @@ func unmarshalStruct(
 	ctx Ctx,
 	target reflect.Value,
 	valueType reflect.Type,
-	errorOnUnknownField bool,
 	cont Sink,
 ) Sink {
 	var sink Sink
@@ -569,7 +566,7 @@ func unmarshalStruct(
 			func(token *Token) (Sink, error) {
 				field, ok := valueType.FieldByName(name)
 				if !ok {
-					if errorOnUnknownField {
+					if ctx.DisallowUnknownStructFields {
 						return nil, fmt.Errorf("field %s: %w", name, UnmarshalError{UnknownFieldName})
 					} else {
 						// skip next value
