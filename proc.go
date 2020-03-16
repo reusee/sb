@@ -17,3 +17,18 @@ func (p *Proc) Next() (*Token, error) {
 		}
 	}
 }
+
+var _ SBMarshaler = Proc(nil)
+
+func (p Proc) MarshalSB(ctx Ctx, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
+		if p == nil {
+			return nil, cont, nil
+		}
+		token, next, err := p()
+		if err != nil {
+			return nil, nil, err
+		}
+		return token, next.MarshalSB(ctx, cont), nil
+	}
+}
