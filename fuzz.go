@@ -226,6 +226,13 @@ func Fuzz(data []byte) int { // NOCOVER
 				return &proc
 			},
 
+			// marshal stream iter
+			func(in Stream) Stream {
+				return Marshal(
+					IterStream(in, nil),
+				)
+			},
+
 			// random filter post hash
 			func(in Stream) Stream {
 				return FilterProc(in, func(token *Token) bool {
