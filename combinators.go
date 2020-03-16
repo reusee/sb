@@ -1,7 +1,5 @@
 package sb
 
-type Sink func(*Token) (Sink, error)
-
 func AltSink(sinks ...Sink) Sink {
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
