@@ -14,27 +14,16 @@ type ChunkedReader struct {
 var _ SBMarshaler = new(ChunkedReader)
 
 func (c ChunkedReader) MarshalSB(ctx Ctx, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
-		return &Token{
-				Kind: KindArray,
-			}, c.marshal(
-				ctx,
-				func() (*Token, Proc, error) {
-					return &Token{
-						Kind: KindArrayEnd,
-					}, cont, nil
-				},
-			), nil
-	}
+	return MarshalReaderChunked(ctx, c.R, c.N, cont)
 }
 
-func (c ChunkedReader) marshal(ctx Ctx, cont Proc) Proc {
-	var proc Proc
-	proc = func() (*Token, Proc, error) {
+func MarshalReaderChunked(ctx Ctx, r io.Reader, n int64, cont Proc) Proc {
+	var marshal Proc
+	marshal = func() (*Token, Proc, error) {
 		bs, err := ioutil.ReadAll(
 			&io.LimitedReader{
-				R: c.R,
-				N: c.N,
+				R: r,
+				N: n,
 			},
 		)
 		if err != nil { // NOCOVER
@@ -44,10 +33,16 @@ func (c ChunkedReader) marshal(ctx Ctx, cont Proc) Proc {
 			return nil, ctx.Marshal(
 				ctx,
 				reflect.ValueOf(bs),
-				proc,
+				marshal,
 			), nil
 		}
-		return nil, cont, nil
+		return &Token{
+			Kind: KindArrayEnd,
+		}, cont, nil
 	}
-	return proc
+	return func() (*Token, Proc, error) {
+		return &Token{
+			Kind: KindArray,
+		}, marshal, nil
+	}
 }
