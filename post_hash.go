@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-func NewPostHasher(
+func PostHash(
 	stream Stream,
 	newState func() hash.Hash,
 ) *Proc {

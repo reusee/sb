@@ -9,7 +9,7 @@ import (
 func TestHasher(t *testing.T) {
 	for _, c := range marshalTestCases {
 		marshaler := Marshal(c.value)
-		hasher := NewPostHasher(marshaler, newMapHashState)
+		hasher := PostHash(marshaler, newMapHashState)
 		tokens, err := TokensFromStream(hasher)
 		if err != nil {
 			t.Fatal(err)
@@ -28,7 +28,7 @@ func TestHasher(t *testing.T) {
 		}
 
 		// hash tokens will be ignore
-		hasher2 := NewPostHasher(tokens.Iter(), newMapHashState)
+		hasher2 := PostHash(tokens.Iter(), newMapHashState)
 		tokens2, err := TokensFromStream(hasher2)
 		if err != nil {
 			t.Fatal(err)
@@ -63,7 +63,7 @@ func TestHasher(t *testing.T) {
 
 func TestIntHash(t *testing.T) {
 	tokens, err := TokensFromStream(
-		NewPostHasher(
+		PostHash(
 			Marshal(42),
 			newMapHashState,
 		),

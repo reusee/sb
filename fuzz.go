@@ -67,7 +67,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// hash
-		hasher := NewPostHasher(Marshal(obj2), newMapHashState)
+		hasher := PostHash(Marshal(obj2), newMapHashState)
 		hashedTokens, err := TokensFromStream(hasher)
 		if err != nil { // NOCOVER
 			panic(err)
@@ -115,7 +115,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// hashed tree
 		hashedTree, err := TreeFromStream(
-			NewPostHasher(Marshal(obj2), fnv.New128),
+			PostHash(Marshal(obj2), fnv.New128),
 		)
 		if err != nil { // NOCOVER
 			panic(err)
@@ -166,7 +166,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 			// post hasher
 			func(in Stream) Stream {
-				return NewPostHasher(in, newMapHashState)
+				return PostHash(in, newMapHashState)
 			},
 
 			// tokens
