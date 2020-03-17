@@ -3,7 +3,6 @@ package sb
 import (
 	"bytes"
 	"hash/fnv"
-	"os"
 	"testing"
 )
 
@@ -73,7 +72,6 @@ func TestIntHash(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(tokens) != 2 {
-		dumpStream(tokens.Iter(), "->", os.Stdout)
 		t.Fatalf("got %d\n", len(tokens))
 	}
 }
