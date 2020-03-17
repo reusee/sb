@@ -276,8 +276,8 @@ func Fuzz(data []byte) int { // NOCOVER
 			func(in Stream) Stream {
 				buf := new(bytes.Buffer)
 				if err := Copy(
-					Tee(in, Encode(buf)),
-					Discard,
+					in,
+					Encode(buf),
 				); err != nil { // NOCOVER
 					panic(err)
 				}
