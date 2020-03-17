@@ -9,34 +9,31 @@ type Tuple []any
 
 var _ SBMarshaler = Tuple{}
 
-func (t Tuple) MarshalSB(
-	ctx Ctx,
-	cont Proc,
-) Proc {
-	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind: KindTuple,
-		}, marshalTuple(ctx, t, cont), nil
-	}
+func (t Tuple) MarshalSB(ctx Ctx, cont Proc) Proc {
+	return MarshalAsTuple(ctx, t, cont)
 }
 
-func marshalTuple(ctx Ctx, tuple Tuple, cont Proc) Proc {
-	if len(tuple) == 0 {
-		return func() (*Token, Proc, error) {
+func MarshalAsTuple(ctx Ctx, tuple []any, cont Proc) Proc {
+	var marshal Proc
+	marshal = func() (*Token, Proc, error) {
+		if len(tuple) == 0 {
 			return &Token{
 				Kind: KindTupleEnd,
 			}, cont, nil
 		}
-	}
-	return ctx.Marshal(
-		ctx,
-		reflect.ValueOf(tuple[0]),
-		marshalTuple(
+		value := tuple[0]
+		tuple = tuple[1:]
+		return nil, ctx.Marshal(
 			ctx,
-			tuple[1:],
-			cont,
-		),
-	)
+			reflect.ValueOf(value),
+			marshal,
+		), nil
+	}
+	return func() (*Token, Proc, error) {
+		return &Token{
+			Kind: KindTuple,
+		}, marshal, nil
+	}
 }
 
 var _ SBUnmarshaler = new(Tuple)
