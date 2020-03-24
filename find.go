@@ -108,9 +108,5 @@ func FindByHash(
 		}
 	}
 
-	if subStream == nil {
-		err = fmt.Errorf("FindByHash %x: %w", hash, NotFound)
-	}
-
-	return
+	return nil, fmt.Errorf("FindByHash %x: %w", hash, NotFound)
 }
