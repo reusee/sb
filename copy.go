@@ -4,6 +4,10 @@ func Copy(stream Stream, sinks ...Sink) error {
 	var err error
 	for {
 
+		if len(sinks) == 0 {
+			break
+		}
+
 		var token *Token
 		for token == nil {
 			if stream != nil {
