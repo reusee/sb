@@ -17,17 +17,12 @@ var UnmarshalCtx = Ctx{
 }
 
 func Unmarshal(target any) Sink {
-	return FilterSink(
-		UnmarshalValue(
-			Ctx{
-				Unmarshal: UnmarshalValue,
-			},
-			reflect.ValueOf(target),
-			nil,
-		),
-		func(token *Token) bool {
-			return token.Kind == KindPostTag
+	return UnmarshalValue(
+		Ctx{
+			Unmarshal: UnmarshalValue,
 		},
+		reflect.ValueOf(target),
+		nil,
 	)
 }
 

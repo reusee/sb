@@ -37,8 +37,7 @@ const (
 	KindMap    Kind = 200
 	KindTuple  Kind = 210
 
-	KindPostTag Kind = 250
-	KindRef     Kind = 251
+	KindRef Kind = 251
 
 	KindMax Kind = 0xFF
 )

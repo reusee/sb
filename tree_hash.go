@@ -22,10 +22,6 @@ func (t *Tree) FillHash(
 	}
 	token := t.Token
 
-	if token.Kind == KindPostTag {
-		panic("unexpected KindPostTag token")
-	}
-
 	state := newState()
 	if err = binary.Write(state, binary.LittleEndian, token.Kind); err != nil { // NOCOVER
 		return

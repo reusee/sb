@@ -12,14 +12,14 @@ func TestRef(t *testing.T) {
 		S string
 	}
 	tree := MustTreeFromStream(
-		PostHash(
-			Marshal(foo{
-				I: 42,
-				S: "42",
-			}),
-			newMapHashState,
-		),
+		Marshal(foo{
+			I: 42,
+			S: "42",
+		}),
 	)
+	if err := tree.FillHash(newMapHashState); err != nil {
+		t.Fatal(err)
+	}
 
 	type ref struct {
 		Hash  []byte

@@ -35,7 +35,6 @@ func _() {
 	_ = x[KindObject-190]
 	_ = x[KindMap-200]
 	_ = x[KindTuple-210]
-	_ = x[KindPostTag-250]
 	_ = x[KindRef-251]
 	_ = x[KindMax-255]
 }

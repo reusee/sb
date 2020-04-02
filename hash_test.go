@@ -121,9 +121,6 @@ func TestHash2(t *testing.T) {
 	if err := Copy(
 		Tokens{
 			{
-				Kind: KindPostTag,
-			},
-			{
 				Kind:  KindInt,
 				Value: 42,
 			},
@@ -146,9 +143,6 @@ func TestHash2(t *testing.T) {
 		Tokens{
 			{
 				Kind: KindArray,
-			},
-			{
-				Kind: KindPostTag,
 			},
 			{
 				Kind:  KindInt,

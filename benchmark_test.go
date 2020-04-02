@@ -29,10 +29,11 @@ func BenchmarkTreeFromMarshalInt(b *testing.B) {
 }
 
 func BenchmarkHashInt(b *testing.B) {
+	var hash []byte
 	for i := 0; i < b.N; i++ {
 		if err := Copy(
-			PostHash(Marshal(42), newMapHashState),
-			Discard,
+			Marshal(42),
+			Hash(newMapHashState, &hash, nil),
 		); err != nil {
 			b.Fatal(err)
 		}
@@ -114,10 +115,11 @@ func BenchmarkTreeFromMarshalStruct(b *testing.B) {
 }
 
 func BenchmarkHashStruct(b *testing.B) {
+	var hash []byte
 	for i := 0; i < b.N; i++ {
 		if err := Copy(
-			PostHash(Marshal(benchFoo), newMapHashState),
-			Discard,
+			Marshal(benchFoo),
+			Hash(newMapHashState, &hash, nil),
 		); err != nil {
 			b.Fatal(err)
 		}

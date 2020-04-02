@@ -23,14 +23,9 @@ func HashFunc(
 	fn func([]byte, *Token) error,
 	cont Sink,
 ) Sink {
-	var sink Sink
-	sink = func(token *Token) (Sink, error) {
+	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, UnmarshalError{ExpectingValue}
-		}
-		if token.Kind == KindPostTag {
-			// skip
-			return sink, nil
 		}
 
 		state := newState()
@@ -133,8 +128,6 @@ func HashFunc(
 		}
 
 	}
-
-	return sink
 }
 
 func HashCompound(
@@ -147,9 +140,6 @@ func HashCompound(
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, UnmarshalError{ExpectingValue}
-		}
-		if token.Kind == KindPostTag {
-			return sink, nil
 		}
 
 		var subHash []byte

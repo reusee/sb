@@ -79,20 +79,6 @@ func TestBadFind(t *testing.T) {
 	_, err := FindByHash(
 		Tokens{
 			{
-				Kind:  KindPostTag,
-				Value: []byte("foo"),
-			},
-		}.Iter(),
-		[]byte("foo"),
-		newMapHashState,
-	)
-	if !is(err, UnexpectedHashToken) {
-		t.Fatal()
-	}
-
-	_, err = FindByHash(
-		Tokens{
-			{
 				Kind: KindArrayEnd,
 			},
 		}.Iter(),

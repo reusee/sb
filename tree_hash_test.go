@@ -26,23 +26,6 @@ func TestBadTreeFillHash(t *testing.T) {
 			if p == nil {
 				t.Fatal("should panic")
 			}
-			if p != "unexpected KindPostTag token" {
-				t.Fatal("not match")
-			}
-		}()
-		(&Tree{
-			Token: &Token{
-				Kind: KindPostTag,
-			},
-		}).FillHash(newMapHashState)
-	}()
-
-	func() {
-		defer func() {
-			p := recover()
-			if p == nil {
-				t.Fatal("should panic")
-			}
 			if !strings.HasPrefix(p.(error).Error(), "unexpected token") {
 				t.Fatal("not match")
 			}

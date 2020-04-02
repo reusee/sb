@@ -1,7 +1,6 @@
 package sb
 
 import (
-	"bytes"
 	"hash"
 )
 
@@ -16,7 +15,6 @@ func TreeFromStream(
 	stream Stream,
 ) (*Tree, error) {
 	root := new(Tree)
-	last := root
 	stack := []*Tree{
 		root,
 	}
@@ -28,39 +26,20 @@ func TreeFromStream(
 		if token == nil {
 			break
 		}
-		if token.Kind == KindPostTag {
-			// set tag to last node
-			if last.Token == nil {
-				return nil, UnexpectedHashToken
+		node := &Tree{
+			Token: token,
+		}
+		parent := stack[len(stack)-1]
+		parent.Subs = append(parent.Subs, node)
+		switch token.Kind {
+		case KindArray, KindObject, KindMap, KindTuple:
+			stack = append(stack, node)
+		case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
+			if len(stack) == 1 {
+				return nil, UnexpectedEndToken
 			}
-			if tag, ok := token.Value.([]byte); ok {
-				switch last.Kind {
-				case KindArrayEnd,
-					KindObjectEnd,
-					KindMapEnd,
-					KindTupleEnd:
-					last.Paired.Hash = bytes.TrimPrefix(tag, []byte("hash:"))
-				default:
-					last.Hash = tag
-				}
-			}
-		} else {
-			node := &Tree{
-				Token: token,
-			}
-			last = node
-			parent := stack[len(stack)-1]
-			parent.Subs = append(parent.Subs, node)
-			switch token.Kind {
-			case KindArray, KindObject, KindMap, KindTuple:
-				stack = append(stack, node)
-			case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
-				if len(stack) == 1 {
-					return nil, UnexpectedEndToken
-				}
-				node.Paired = parent
-				stack = stack[:len(stack)-1]
-			}
+			node.Paired = parent
+			stack = stack[:len(stack)-1]
 		}
 	}
 	if len(root.Subs) > 1 {

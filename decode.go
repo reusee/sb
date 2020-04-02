@@ -140,7 +140,7 @@ func Decode(r io.Reader) *Proc {
 			}
 			value = string(bs)
 
-		case KindBytes, KindPostTag:
+		case KindBytes:
 			var length uint64
 			if _, err := io.ReadFull(r, buf[:1]); err != nil {
 				return nil, nil, err
