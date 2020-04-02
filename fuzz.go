@@ -66,16 +66,6 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("not equal") // NOCOVER
 		}
 
-		// hash
-		hasher := PostHash(Marshal(obj2), newMapHashState)
-		hashedTokens, err := TokensFromStream(hasher)
-		if err != nil { // NOCOVER
-			panic(err)
-		}
-		if hashedTokens[len(hashedTokens)-1].Kind != KindPostTag { // NOCOVER
-			panic("expecting tag token")
-		}
-
 		// sum
 		sum1, err := MustTreeFromStream(Marshal(obj2)).HashSum(fnv.New128)
 		if err != nil { // NOCOVER
@@ -113,27 +103,6 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("not equal")
 		}
 
-		// hashed tree
-		hashedTree, err := TreeFromStream(
-			PostHash(Marshal(obj2), fnv.New128),
-		)
-		if err != nil { // NOCOVER
-			panic(err)
-		}
-		if MustCompare(
-			hashedTree.Iter(),
-			tree.Iter(),
-		) != 0 { // NOCOVER
-			panic("not equal")
-		}
-		h, ok := hashedTree.Tags.Get("hash")
-		if !ok { // NOCOVER
-			panic("no hash")
-		}
-		if !bytes.Equal(h, sum1) { // NOCOVER
-			panic("hash not match")
-		}
-
 		mapHashSum, err := MustTreeFromStream(
 			Marshal(obj2),
 		).HashSum(
@@ -162,11 +131,6 @@ func Fuzz(data []byte) int { // NOCOVER
 					panic(err)
 				}
 				return Decode(buf)
-			},
-
-			// post hasher
-			func(in Stream) Stream {
-				return PostHash(in, newMapHashState)
 			},
 
 			// tokens
@@ -231,14 +195,6 @@ func Fuzz(data []byte) int { // NOCOVER
 				return Marshal(
 					IterStream(in, nil),
 				)
-			},
-
-			// random filter post hash
-			func(in Stream) Stream {
-				return FilterProc(in, func(token *Token) bool {
-					return token.Kind == KindPostTag &&
-						rand.Intn(2) == 0
-				})
 			},
 
 			// find
