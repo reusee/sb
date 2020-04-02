@@ -28,7 +28,7 @@ func FindByHash(
 			return tree.Iter(), nil
 		}
 		for _, sub := range tree.Subs {
-			if subStream, err := iter(sub); err != nil {
+			if subStream, err := iter(sub); err != nil { // NOCOVER
 				return nil, err
 			} else if subStream != nil {
 				return subStream, nil

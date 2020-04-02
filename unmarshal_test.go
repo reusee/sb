@@ -1264,3 +1264,44 @@ func TestUnmarshalNewImpl(t *testing.T) {
 	}
 
 }
+
+func TestUnmarshalStructUnknownField(t *testing.T) {
+	var s struct {
+		A int
+	}
+	err := Copy(
+		Marshal(struct {
+			B int
+		}{}),
+		UnmarshalValue(
+			Ctx{
+				DisallowUnknownStructFields: true,
+			},
+			reflect.ValueOf(&s),
+			nil,
+		),
+	)
+	if !is(err, UnknownFieldName) {
+		t.Fatal()
+	}
+}
+
+func TestUnmarshalTupleFunc(t *testing.T) {
+	var fn func() (int, int, int)
+	if err := Copy(
+		Marshal(Tuple{1, 2, 3}),
+		Unmarshal(&fn),
+	); err != nil {
+		t.Fatal(err)
+	}
+	a, b, c := fn()
+	if a != 1 {
+		t.Fatal()
+	}
+	if b != 2 {
+		t.Fatal()
+	}
+	if c != 3 {
+		t.Fatal()
+	}
+}

@@ -39,7 +39,7 @@ func FilterSink(sink Sink, fn func(*Token) bool) Sink {
 				return nil, nil
 			}
 			sink, err = sink(token)
-			if err != nil {
+			if err != nil { // NOCOVER
 				return nil, err
 			}
 		}

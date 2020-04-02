@@ -136,3 +136,42 @@ func TestTupleUnmarshal(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestUnmarshalTupleBad(t *testing.T) {
+	var tuple Tuple
+	err := Copy(
+		Tokens{}.Iter(),
+		Unmarshal(&tuple),
+	)
+	if !is(err, ExpectingTuple) {
+		t.Fatal()
+	}
+
+	err = Copy(
+		Tokens{
+			{
+				Kind: KindInt,
+			},
+		}.Iter(),
+		Unmarshal(&tuple),
+	)
+	if !is(err, ExpectingTuple) {
+		t.Fatal()
+	}
+
+	err = Copy(
+		Tokens{
+			{
+				Kind: KindTuple,
+			},
+			{
+				Kind:  KindInt,
+				Value: 42,
+			},
+		}.Iter(),
+		Unmarshal(&tuple),
+	)
+	if !is(err, ExpectingValue) {
+		t.Fatal()
+	}
+}

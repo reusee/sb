@@ -808,9 +808,6 @@ func UnmarshalTuple(
 			// return only
 			for i := 0; i < numOut; i++ {
 				t := valueType.Out(i)
-				if t == ellipsesType {
-					continue
-				}
 				concreteTypes = append(concreteTypes, t)
 			}
 		} else {

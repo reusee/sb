@@ -27,7 +27,7 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// validate tree
 		_, err := TreeFromStream(Decode(bytes.NewReader(teeBytes)))
-		if err != nil {
+		if err != nil { // NOCOVER
 			return 0
 		}
 
@@ -162,7 +162,7 @@ func Fuzz(data []byte) int { // NOCOVER
 				}
 				var refs []ref
 				tree := MustTreeFromStream(in)
-				if err := tree.FillHash(newMapHashState); err != nil {
+				if err := tree.FillHash(newMapHashState); err != nil { // NOCOVER
 					panic(err)
 				}
 				refed := tree.IterFunc(func(tree *Tree) (*Token, error) {
@@ -256,14 +256,14 @@ func Fuzz(data []byte) int { // NOCOVER
 			// tuple
 			func(in Stream) Stream {
 				var v any
-				if err := Copy(in, Unmarshal(&v)); err != nil {
+				if err := Copy(in, Unmarshal(&v)); err != nil { // NOCOVER
 					panic(err)
 				}
 				var tuple Tuple
 				if err := Copy(
 					Marshal(Tuple{v}),
 					Unmarshal(&tuple),
-				); err != nil {
+				); err != nil { // NOCOVER
 					panic(err)
 				}
 				return Marshal(tuple[0])

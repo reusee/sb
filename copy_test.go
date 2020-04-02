@@ -40,3 +40,19 @@ func TestCopyNoExtraNext(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestCopySingleShotSink(t *testing.T) {
+	var ones Proc
+	ones = func() (*Token, Proc, error) {
+		return &Token{
+			Kind:  KindInt,
+			Value: 1,
+		}, ones, nil
+	}
+	if err := Copy(
+		&ones,
+		nil,
+	); err != nil {
+		t.Fatal()
+	}
+}

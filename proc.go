@@ -23,7 +23,7 @@ func (p Proc) MarshalSB(ctx Ctx, cont Proc) Proc {
 			return nil, cont, nil
 		}
 		token, next, err := p()
-		if err != nil {
+		if err != nil { // NOCOVER
 			return nil, nil, err
 		}
 		return token, next.MarshalSB(ctx, cont), nil

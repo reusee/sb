@@ -171,6 +171,22 @@ func TestFilterSink(t *testing.T) {
 	}
 }
 
+func TestFilterSink2(t *testing.T) {
+	if err := Copy(
+		Marshal([]any{
+			1, 2, 3, true, false, "foo", "bar",
+		}),
+		FilterSink(
+			nil,
+			func(token *Token) bool {
+				return token.Kind != KindBool
+			},
+		),
+	); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestFilterProc(t *testing.T) {
 	var ints []int
 	if err := Copy(
@@ -191,6 +207,24 @@ func TestFilterProc(t *testing.T) {
 		t.Fatal()
 	}
 	if ints[1] != 3 {
+		t.Fatal()
+	}
+}
+
+func TestFilterProc2(t *testing.T) {
+	var tokens Tokens
+	if err := Copy(
+		FilterProc(
+			Marshal([]int{1, 2, 3}),
+			func(token *Token) bool {
+				return !(token.Kind == KindInt && token.Value.(int) == 2)
+			},
+		),
+		CollectTokens(&tokens),
+	); err != nil {
+		t.Fatal()
+	}
+	if len(tokens) != 4 {
 		t.Fatal()
 	}
 }

@@ -53,7 +53,7 @@ func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 func (t *Tuple) unmarshal(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, UnmarshalError{ExpectingTuple}
+			return nil, UnmarshalError{ExpectingValue}
 		}
 		if token.Kind == KindTupleEnd {
 			return cont, nil
