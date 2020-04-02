@@ -24,7 +24,7 @@ func TestFindByHash(t *testing.T) {
 	} {
 
 		sub, err := FindByHash(
-			PostHash(Marshal(v), newMapHashState),
+			Marshal(v),
 			h,
 			newMapHashState,
 		)

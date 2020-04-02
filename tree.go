@@ -1,10 +1,13 @@
 package sb
 
-import "hash"
+import (
+	"bytes"
+	"hash"
+)
 
 type Tree struct {
 	*Token
-	Tags   Tags
+	Hash   []byte
 	Subs   []*Tree
 	Paired *Tree
 }
@@ -36,9 +39,9 @@ func TreeFromStream(
 					KindObjectEnd,
 					KindMapEnd,
 					KindTupleEnd:
-					last.Paired.Tags.Add(tag)
+					last.Paired.Hash = bytes.TrimPrefix(tag, []byte("hash:"))
 				default:
-					last.Tags.Add(tag)
+					last.Hash = tag
 				}
 			}
 		} else {
@@ -86,9 +89,5 @@ func (t *Tree) HashSum(
 	if err := t.FillHash(newState); err != nil { // NOCOVER
 		return nil, err
 	}
-	h, ok := t.Tags.Get("hash")
-	if !ok { // NOCOVER
-		panic("impossible")
-	}
-	return h, nil
+	return t.Hash, nil
 }

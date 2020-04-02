@@ -29,17 +29,13 @@ func TestRef(t *testing.T) {
 
 	refTree := tree.IterFunc(func(tree *Tree) (*Token, error) {
 		if tree.Kind == KindString || tree.Kind == KindInt {
-			h, ok := tree.Tags.Get("hash")
-			if !ok {
-				panic("impossible")
-			}
 			refs = append(refs, ref{
-				Hash:  h,
+				Hash:  tree.Hash,
 				Value: tree.Value,
 			})
 			return &Token{
 				Kind:  KindRef,
-				Value: h,
+				Value: tree.Hash,
 			}, nil
 		}
 		return nil, nil

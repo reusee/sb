@@ -24,11 +24,7 @@ func FindByHash(
 
 	var iter func(*Tree) (Stream, error)
 	iter = func(tree *Tree) (Stream, error) {
-		h, ok := tree.Tags.Get("hash")
-		if !ok {
-			panic("should not empty")
-		}
-		if bytes.Equal(h, hash) {
+		if bytes.Equal(tree.Hash, hash) {
 			return tree.Iter(), nil
 		}
 		for _, sub := range tree.Subs {

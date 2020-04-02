@@ -13,9 +13,6 @@ func IterTree(
 		return tree.Token, IterSubTrees(
 			tree.Subs, 0,
 			func() (*Token, Proc, error) {
-				if !isEnd(tree.Kind) && len(tree.Tags) > 0 {
-					return nil, tree.Tags.Iter(0, cont), nil
-				}
 				return nil, cont, nil
 			},
 		), nil
@@ -68,9 +65,6 @@ func IterTreeFunc(
 		return tree.Token, IterSubTreesFunc(
 			tree.Subs, 0, fn,
 			func() (*Token, Proc, error) {
-				if !isEnd(tree.Kind) && len(tree.Tags) > 0 {
-					return nil, tree.Tags.Iter(0, cont), nil
-				}
 				return nil, cont, nil
 			},
 		), nil

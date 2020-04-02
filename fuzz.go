@@ -111,6 +111,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		if err != nil { // NOCOVER
 			panic(err)
 		}
+		_ = mapHashSum
 
 		// random transform
 		transforms := []func(Stream) Stream{
@@ -118,7 +119,10 @@ func Fuzz(data []byte) int { // NOCOVER
 			// marshal and unmarshal
 			func(in Stream) Stream {
 				var v any
-				if err := Copy(in, Unmarshal(&v)); err != nil { // NOCOVER
+				if err := Copy(
+					in,
+					Unmarshal(&v),
+				); err != nil { // NOCOVER
 					panic(err)
 				}
 				return Marshal(v)
@@ -157,21 +161,21 @@ func Fuzz(data []byte) int { // NOCOVER
 					Tree *Tree
 				}
 				var refs []ref
-				refed := MustTreeFromStream(in).IterFunc(func(tree *Tree) (*Token, error) {
-					h, ok := tree.Tags.Get("hash")
-					if !ok {
-						return nil, nil
-					}
+				tree := MustTreeFromStream(in)
+				if err := tree.FillHash(newMapHashState); err != nil {
+					panic(err)
+				}
+				refed := tree.IterFunc(func(tree *Tree) (*Token, error) {
 					if rand.Intn(2) != 0 {
 						return nil, nil
 					}
 					refs = append(refs, ref{
-						Hash: h,
+						Hash: tree.Hash,
 						Tree: tree,
 					})
 					return &Token{
 						Kind:  KindRef,
-						Value: h,
+						Value: tree.Hash,
 					}, nil
 				})
 				return Deref(refed, func(hash []byte) (Stream, error) {
@@ -265,6 +269,7 @@ func Fuzz(data []byte) int { // NOCOVER
 				return Marshal(tuple[0])
 			},
 		}
+
 		fn := func(in Stream) Stream {
 			return in
 		}
