@@ -18,7 +18,7 @@ func FindByHash(
 	if err != nil {
 		return nil, err
 	}
-	if err := tree.FillHash(newState); err != nil {
+	if err := tree.FillHash(newState); err != nil { // NOCOVER
 		return nil, err
 	}
 

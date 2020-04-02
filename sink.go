@@ -9,11 +9,8 @@ func (s Sink) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 		if s == nil {
 			return cont, nil
 		}
-		if token == nil {
-			return cont, nil
-		}
 		next, err := s(token)
-		if err != nil {
+		if err != nil { // NOCOVER
 			return nil, err
 		}
 		return next.UnmarshalSB(ctx, cont), nil
