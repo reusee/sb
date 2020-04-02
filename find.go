@@ -2,7 +2,6 @@ package sb
 
 import (
 	"bytes"
-	"fmt"
 	"hash"
 )
 
@@ -15,98 +14,37 @@ func FindByHash(
 	err error,
 ) {
 
-	root := new(Tree)
-	anchor := root
-	stack := []*Tree{
-		root,
+	tree, err := TreeFromStream(stream)
+	if err != nil {
+		return nil, err
 	}
-	var token *Token
-	var noHashNodes []*Tree
-
-	for {
-		token, err = stream.Next()
-		if err != nil { // NOCOVER
-			return nil, err
-		}
-		if token == nil {
-			break
-		}
-
-		if token.Kind == KindPostTag {
-			// set to anchor node
-			if anchor.Token == nil {
-				return nil, UnexpectedHashToken
-			}
-			if tag, ok := token.Value.([]byte); ok {
-				var node *Tree
-				switch anchor.Kind {
-				case KindArrayEnd,
-					KindObjectEnd,
-					KindMapEnd,
-					KindTupleEnd:
-					node = anchor.Paired
-				default:
-					node = anchor
-				}
-				node.Tags.Add(tag)
-				if bytes.HasPrefix(tag, []byte("hash:")) {
-					if bytes.Equal(bytes.TrimPrefix(tag, []byte("hash:")), hash) {
-						subStream = node.Iter()
-						return
-					}
-				}
-			}
-
-		} else {
-			if anchor != root {
-				if _, ok := anchor.Tags.Get("hash"); !ok {
-					// save for later rehash
-					noHashNodes = append(noHashNodes, anchor)
-				}
-			}
-			node := &Tree{
-				Token: token,
-			}
-			anchor = node
-			parent := stack[len(stack)-1]
-			parent.Subs = append(parent.Subs, node)
-			switch token.Kind {
-			case KindArray, KindObject, KindMap, KindTuple:
-				stack = append(stack, node)
-			case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
-				if len(stack) == 1 {
-					return nil, UnexpectedEndToken
-				}
-				node.Paired = parent
-				stack = stack[:len(stack)-1]
-			}
-		}
-
+	if err := tree.FillHash(newState); err != nil {
+		return nil, err
 	}
 
-	if len(root.Subs) > 1 {
-		return nil, MoreThanOneValue
-	}
-
-	// rehash
-	if anchor != root {
-		if _, ok := anchor.Tags.Get("hash"); !ok {
-			noHashNodes = append(noHashNodes, anchor)
-		}
-	}
-	for _, node := range noHashNodes {
-		if err = node.FillHash(newState); err != nil { // NOCOVER
-			return
-		}
-		h, ok := node.Tags.Get("hash")
-		if !ok { // NOCOVER
-			panic("impossible")
+	var iter func(*Tree) (Stream, error)
+	iter = func(tree *Tree) (Stream, error) {
+		h, ok := tree.Tags.Get("hash")
+		if !ok {
+			panic("should not empty")
 		}
 		if bytes.Equal(h, hash) {
-			subStream = node.Iter()
-			return
+			return tree.Iter(), nil
 		}
+		for _, sub := range tree.Subs {
+			if subStream, err := iter(sub); err != nil {
+				return nil, err
+			} else if subStream != nil {
+				return subStream, nil
+			}
+		}
+		return nil, nil
 	}
 
-	return nil, fmt.Errorf("FindByHash %x: %w", hash, NotFound)
+	subStream, err = iter(tree)
+	if subStream == nil {
+		err = NotFound
+	}
+
+	return
 }
