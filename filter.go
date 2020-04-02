@@ -22,7 +22,7 @@ func filterProc(
 		if token == nil {
 			return nil, cont, nil
 		}
-		if predict(token) {
+		if !predict(token) {
 			token = nil
 		}
 		return token, proc, nil
@@ -34,7 +34,7 @@ func FilterSink(sink Sink, fn func(*Token) bool) Sink {
 	var s Sink
 	s = func(token *Token) (Sink, error) {
 		var err error
-		if token == nil || !fn(token) {
+		if token == nil || fn(token) {
 			if sink == nil {
 				return nil, nil
 			}
