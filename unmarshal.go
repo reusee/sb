@@ -31,18 +31,18 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		ctx.Unmarshal = UnmarshalValue
 	}
 
-	if target.IsValid() {
-		switch v := target.Interface().(type) {
+	return func(token *Token) (Sink, error) {
 
-		case SBUnmarshaler:
-			return v.UnmarshalSB(ctx, cont)
+		if target.IsValid() {
+			switch v := target.Interface().(type) {
 
-		case encoding.BinaryUnmarshaler:
-			return func(p *Token) (Sink, error) {
-				if p == nil {
+			case SBUnmarshaler:
+				return v.UnmarshalSB(ctx, cont)(token)
+
+			case encoding.BinaryUnmarshaler:
+				if token == nil {
 					return nil, UnmarshalError{ExpectingString}
 				}
-				token := *p
 				if token.Kind != KindString {
 					return nil, UnmarshalError{ExpectingString}
 				}
@@ -52,14 +52,11 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 					return nil, err
 				}
 				return cont, nil
-			}
 
-		case encoding.TextUnmarshaler:
-			return func(p *Token) (Sink, error) {
-				if p == nil {
+			case encoding.TextUnmarshaler:
+				if token == nil {
 					return nil, UnmarshalError{ExpectingString}
 				}
-				token := *p
 				if token.Kind != KindString {
 					return nil, UnmarshalError{ExpectingString}
 				}
@@ -69,12 +66,10 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 					return nil, err
 				}
 				return cont, nil
+
 			}
-
 		}
-	}
 
-	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, UnmarshalError{ExpectingValue}
 		}
