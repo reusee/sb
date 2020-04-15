@@ -36,6 +36,90 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		if target.IsValid() {
 			switch v := target.Interface().(type) {
 
+			case *int:
+				if token.Kind == KindInt && v != nil {
+					*v = token.Value.(int)
+					return cont, nil
+				}
+
+			case *string:
+				if token.Kind == KindString && v != nil {
+					*v = token.Value.(string)
+					return cont, nil
+				}
+
+			case *bool:
+				if token.Kind == KindBool && v != nil {
+					*v = token.Value.(bool)
+					return cont, nil
+				}
+
+			case *uint32:
+				if token.Kind == KindUint32 && v != nil {
+					*v = token.Value.(uint32)
+					return cont, nil
+				}
+
+			case *int64:
+				if token.Kind == KindInt64 && v != nil {
+					*v = token.Value.(int64)
+					return cont, nil
+				}
+
+			case *uint64:
+				if token.Kind == KindUint64 && v != nil {
+					*v = token.Value.(uint64)
+					return cont, nil
+				}
+
+			case *uint16:
+				if token.Kind == KindUint16 && v != nil {
+					*v = token.Value.(uint16)
+					return cont, nil
+				}
+
+			case *uint8:
+				if token.Kind == KindUint8 && v != nil {
+					*v = token.Value.(uint8)
+					return cont, nil
+				}
+
+			case *int32:
+				if token.Kind == KindInt32 && v != nil {
+					*v = token.Value.(int32)
+					return cont, nil
+				}
+
+			case *uint:
+				if token.Kind == KindUint && v != nil {
+					*v = token.Value.(uint)
+					return cont, nil
+				}
+
+			case *float64:
+				if token.Kind == KindFloat64 && v != nil {
+					*v = token.Value.(float64)
+					return cont, nil
+				}
+
+			case *int8:
+				if token.Kind == KindInt8 && v != nil {
+					*v = token.Value.(int8)
+					return cont, nil
+				}
+
+			case *float32:
+				if token.Kind == KindFloat32 && v != nil {
+					*v = token.Value.(float32)
+					return cont, nil
+				}
+
+			case *int16:
+				if token.Kind == KindInt16 && v != nil {
+					*v = token.Value.(int16)
+					return cont, nil
+				}
+
 			case SBUnmarshaler:
 				return v.UnmarshalSB(ctx, cont)(token)
 
