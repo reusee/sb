@@ -37,3 +37,14 @@ func TestEncodeToBadWriter(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func BenchmarkEncodeInt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		if err := Copy(
+			Marshal(42),
+			Encode(ioutil.Discard),
+		); err != nil {
+			b.Fatal(err)
+		}
+	}
+}

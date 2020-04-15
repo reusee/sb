@@ -12,25 +12,48 @@ func Encode(w io.Writer) Sink {
 }
 
 func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
+	var byteWriter io.ByteWriter
+	if bw, ok := w.(io.ByteWriter); ok {
+		byteWriter = bw
+	}
+
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
 			return cont, nil
 		}
-		if err := binary.Write(w, binary.LittleEndian, token.Kind); err != nil {
-			return nil, err
+		if byteWriter != nil {
+			if err := byteWriter.WriteByte(byte(token.Kind)); err != nil {
+				return nil, err
+			}
+		} else {
+			if _, err := w.Write([]byte{byte(token.Kind)}); err != nil {
+				return nil, err
+			}
 		}
 		if token.Value != nil {
 			switch value := token.Value.(type) {
 
 			case bool:
 				if value {
-					if _, err := w.Write([]byte{1}); err != nil { // NOCOVER
-						return nil, err
+					if byteWriter != nil {
+						if err := byteWriter.WriteByte(1); err != nil {
+							return nil, err
+						}
+					} else {
+						if _, err := w.Write([]byte{1}); err != nil { // NOCOVER
+							return nil, err
+						}
 					}
 				} else {
-					if _, err := w.Write([]byte{0}); err != nil { // NOCOVER
-						return nil, err
+					if byteWriter != nil {
+						if err := byteWriter.WriteByte(0); err != nil {
+							return nil, err
+						}
+					} else {
+						if _, err := w.Write([]byte{0}); err != nil { // NOCOVER
+							return nil, err
+						}
 					}
 				}
 
@@ -54,13 +77,25 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 			case string:
 				l := uint64(len(value))
 				if l < 128 {
-					if _, err := w.Write([]byte{byte(l)}); err != nil { // NOCOVER
-						return nil, err
+					if byteWriter != nil {
+						if err := byteWriter.WriteByte(byte(l)); err != nil {
+							return nil, err
+						}
+					} else {
+						if _, err := w.Write([]byte{byte(l)}); err != nil { // NOCOVER
+							return nil, err
+						}
 					}
 				} else {
 					n := binary.PutUvarint(buf, l)
-					if _, err := w.Write([]byte{byte(^n)}); err != nil { // NOCOVER
-						return nil, err
+					if byteWriter != nil {
+						if err := byteWriter.WriteByte(byte(^n)); err != nil {
+							return nil, err
+						}
+					} else {
+						if _, err := w.Write([]byte{byte(^n)}); err != nil { // NOCOVER
+							return nil, err
+						}
 					}
 					if _, err := w.Write(buf[:n]); err != nil { // NOCOVER
 						return nil, err
@@ -73,13 +108,25 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 			case []byte:
 				l := uint64(len(value))
 				if l < 128 {
-					if _, err := w.Write([]byte{byte(l)}); err != nil { // NOCOVER
-						return nil, err
+					if byteWriter != nil {
+						if err := byteWriter.WriteByte(byte(l)); err != nil {
+							return nil, err
+						}
+					} else {
+						if _, err := w.Write([]byte{byte(l)}); err != nil { // NOCOVER
+							return nil, err
+						}
 					}
 				} else {
 					n := binary.PutUvarint(buf, l)
-					if _, err := w.Write([]byte{byte(^n)}); err != nil { // NOCOVER
-						return nil, err
+					if byteWriter != nil {
+						if err := byteWriter.WriteByte(byte(^n)); err != nil {
+							return nil, err
+						}
+					} else {
+						if _, err := w.Write([]byte{byte(^n)}); err != nil { // NOCOVER
+							return nil, err
+						}
 					}
 					if _, err := w.Write(buf[:n]); err != nil { // NOCOVER
 						return nil, err
