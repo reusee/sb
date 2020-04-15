@@ -33,23 +33,83 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
 
 		if value.IsValid() {
-			i := value.Interface()
-			if v, ok := i.(SBMarshaler); ok {
+
+			switch v := value.Interface().(type) {
+
+			case int:
+				return &Token{Kind: KindInt, Value: v}, cont, nil
+
+			case string:
+				return &Token{Kind: KindString, Value: v}, cont, nil
+
+			case bool:
+				return &Token{Kind: KindBool, Value: v}, cont, nil
+
+			case uint32:
+				return &Token{Kind: KindUint32, Value: v}, cont, nil
+
+			case int64:
+				return &Token{Kind: KindInt64, Value: v}, cont, nil
+
+			case uint64:
+				return &Token{Kind: KindUint64, Value: v}, cont, nil
+
+			case uint16:
+				return &Token{Kind: KindUint16, Value: v}, cont, nil
+
+			case uint8:
+				return &Token{Kind: KindUint8, Value: v}, cont, nil
+
+			case int32:
+				return &Token{Kind: KindInt32, Value: v}, cont, nil
+
+			case uint:
+				return &Token{Kind: KindUint, Value: v}, cont, nil
+
+			case float64:
+				if math.IsNaN(v) {
+					return &Token{
+						Kind: KindNaN,
+					}, cont, nil
+				} else {
+					return &Token{Kind: KindFloat64, Value: v}, cont, nil
+				}
+
+			case int8:
+				return &Token{Kind: KindInt8, Value: v}, cont, nil
+
+			case float32:
+				if math.IsNaN(float64(v)) {
+					return &Token{
+						Kind: KindNaN,
+					}, cont, nil
+				} else {
+					return &Token{Kind: KindFloat32, Value: v}, cont, nil
+				}
+
+			case int16:
+				return &Token{Kind: KindInt16, Value: v}, cont, nil
+
+			case SBMarshaler:
 				return nil, v.MarshalSB(ctx, cont), nil
-			} else if v, ok := i.(encoding.BinaryMarshaler); ok {
+
+			case encoding.BinaryMarshaler:
 				bs, err := v.MarshalBinary()
 				if err != nil {
 					return nil, nil, err
 				}
 				return nil, ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
-			} else if v, ok := i.(encoding.TextMarshaler); ok {
+
+			case encoding.TextMarshaler:
 				bs, err := v.MarshalText()
 				if err != nil {
 					return nil, nil, err
 				}
 				return nil, ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
-			} else if v, ok := i.(*Token); ok {
+
+			case *Token:
 				return v, cont, nil
+
 			}
 		}
 
