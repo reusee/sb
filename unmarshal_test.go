@@ -19,56 +19,55 @@ type UnmarshalTestCase struct {
 type testBytes []byte
 
 var unmarshalTestCases = []UnmarshalTestCase{
-	{true, bool(false), nil},
-	{int8(42), int8(0), nil},
-	{int16(42), int16(0), nil},
-	{int32(42), int32(0), nil},
-	{int64(42), int64(0), nil},
-	{uint(42), uint(0), nil},
-	{uint8(42), uint8(0), nil},
-	{uint16(42), uint16(0), nil},
-	{uint32(42), uint32(0), nil},
-	{uint64(42), uint64(0), nil},
-	{float32(42), float32(0), nil},
-	{float64(42), float64(0), nil},
-	{string("42"), string(""), nil},
-	{map[int]int{1: 1}, map[int]int(nil), nil},
-	{[]byte("foo"), []byte("foo"), nil},
-	{testBytes{42}, testBytes{42}, nil},
-	{[3]int{1}, [3]int{1}, nil},
-	{
+	0:  {true, bool(false), nil},
+	1:  {int8(42), int8(0), nil},
+	2:  {int16(42), int16(0), nil},
+	3:  {int32(42), int32(0), nil},
+	4:  {int64(42), int64(0), nil},
+	5:  {uint(42), uint(0), nil},
+	6:  {uint8(42), uint8(0), nil},
+	7:  {uint16(42), uint16(0), nil},
+	8:  {uint32(42), uint32(0), nil},
+	9:  {uint64(42), uint64(0), nil},
+	10: {float32(42), float32(0), nil},
+	11: {float64(42), float64(0), nil},
+	12: {string("42"), string(""), nil},
+	13: {map[int]int{1: 1}, map[int]int(nil), nil},
+	14: {[]byte("foo"), []byte("foo"), nil},
+	15: {testBytes{42}, testBytes{42}, nil},
+	16: {[3]int{1}, [3]int{1}, nil},
+	17: {
 		func() (int, string) {
 			return 42, "42"
 		},
 		(func() (int, string))(nil),
 		nil,
 	},
-
-	{true, int(0), ExpectingBool},
-	{42, true, ExpectingInt},
-	{int8(42), true, ExpectingInt8},
-	{int16(42), true, ExpectingInt16},
-	{int32(42), true, ExpectingInt32},
-	{int64(42), true, ExpectingInt64},
-	{uint(42), true, ExpectingUint},
-	{uint8(42), true, ExpectingUint8},
-	{uint16(42), true, ExpectingUint16},
-	{uint32(42), true, ExpectingUint32},
-	{uint64(42), true, ExpectingUint64},
-	{float32(42), true, ExpectingFloat32},
-	{float64(42), true, ExpectingFloat64},
-	{math.NaN(), true, ExpectingFloat},
-	{"42", true, ExpectingString},
-	{[]int{42}, true, ExpectingSequence},
-	{map[int]int{}, true, ExpectingMap},
-	{42, (****string)(nil), ExpectingInt},
-	{[]byte("foo"), true, ExpectingBytes},
-	{
+	18: {true, int(0), ExpectingBool},
+	19: {42, true, ExpectingInt},
+	20: {int8(42), true, ExpectingInt8},
+	21: {int16(42), true, ExpectingInt16},
+	22: {int32(42), true, ExpectingInt32},
+	23: {int64(42), true, ExpectingInt64},
+	24: {uint(42), true, ExpectingUint},
+	25: {uint8(42), true, ExpectingUint8},
+	26: {uint16(42), true, ExpectingUint16},
+	27: {uint32(42), true, ExpectingUint32},
+	28: {uint64(42), true, ExpectingUint64},
+	29: {float32(42), true, ExpectingFloat32},
+	30: {float64(42), true, ExpectingFloat64},
+	31: {math.NaN(), true, ExpectingFloat},
+	32: {"42", true, ExpectingString},
+	33: {[]int{42}, true, ExpectingSequence},
+	34: {map[int]int{}, true, ExpectingMap},
+	35: {42, (****string)(nil), ExpectingInt},
+	36: {[]byte("foo"), true, ExpectingBytes},
+	37: {
 		func() int { return 42 },
 		true,
 		ExpectingTuple,
 	},
-	{
+	38: {
 		func() int { return 42 },
 		(func(int) int)(nil),
 		BadTupleType,
@@ -76,13 +75,12 @@ var unmarshalTestCases = []UnmarshalTestCase{
 }
 
 func TestUnmarshal(t *testing.T) {
-	for _, c := range unmarshalTestCases {
+	for i, c := range unmarshalTestCases {
 		stream := Marshal(c.value)
 		ptr := reflect.New(reflect.TypeOf(c.target))
 		err := Copy(stream, Unmarshal(ptr.Interface()))
 		if !errors.Is(err, c.err) {
-			pt("%v\n", err)
-			t.Fatal()
+			t.Fatalf("case %d, expecting %v, got %v", i, c.err, err)
 		}
 		if err == nil {
 			if ptr.Elem().Kind() == reflect.Func {
