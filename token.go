@@ -32,3 +32,11 @@ func (_ max) MarshalSB(_ Ctx, cont Proc) Proc {
 }
 
 var Max = max{}
+
+var NaN = &Token{
+	Kind: KindNaN,
+}
+
+var Nil = &Token{
+	Kind: KindNil,
+}

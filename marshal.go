@@ -68,9 +68,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 
 			case float64:
 				if math.IsNaN(v) {
-					return &Token{
-						Kind: KindNaN,
-					}, cont, nil
+					return NaN, cont, nil
 				} else {
 					return &Token{Kind: KindFloat64, Value: v}, cont, nil
 				}
@@ -80,9 +78,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 
 			case float32:
 				if math.IsNaN(float64(v)) {
-					return &Token{
-						Kind: KindNaN,
-					}, cont, nil
+					return NaN, cont, nil
 				} else {
 					return &Token{Kind: KindFloat32, Value: v}, cont, nil
 				}
@@ -116,15 +112,11 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		switch value.Kind() {
 
 		case reflect.Invalid:
-			return &Token{
-				Kind: KindNil,
-			}, cont, nil
+			return Nil, cont, nil
 
 		case reflect.Ptr, reflect.Interface:
 			if value.IsNil() {
-				return &Token{
-					Kind: KindNil,
-				}, cont, nil
+				return Nil, cont, nil
 			} else {
 				return nil, ctx.Marshal(ctx, value.Elem(), cont), nil
 			}
@@ -197,9 +189,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 
 		case reflect.Float32:
 			if math.IsNaN(value.Float()) {
-				return &Token{
-					Kind: KindNaN,
-				}, cont, nil
+				return NaN, cont, nil
 			} else {
 				return &Token{
 					Kind:  KindFloat32,
@@ -209,9 +199,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 
 		case reflect.Float64:
 			if math.IsNaN(value.Float()) {
-				return &Token{
-					Kind: KindNaN,
-				}, cont, nil
+				return NaN, cont, nil
 			} else {
 				return &Token{
 					Kind:  KindFloat64,
@@ -260,6 +248,10 @@ var arrayEndToken = reflect.ValueOf(&Token{
 	Kind: KindArrayEnd,
 })
 
+var arrayToken = &Token{
+	Kind: KindArray,
+}
+
 func MarshalArray(ctx Ctx, value reflect.Value, index int, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
@@ -279,10 +271,16 @@ func MarshalArray(ctx Ctx, value reflect.Value, index int, cont Proc) Proc {
 		), nil
 	}
 	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind: KindArray,
-		}, proc, nil
+		return arrayToken, proc, nil
 	}
+}
+
+var objectEndToken = reflect.ValueOf(&Token{
+	Kind: KindObjectEnd,
+})
+
+var objectToken = &Token{
+	Kind: KindObject,
 }
 
 func MarshalStruct(ctx Ctx, value reflect.Value, cont Proc) Proc {
@@ -311,15 +309,9 @@ func MarshalStruct(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		})
 	}
 	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind: KindObject,
-		}, MarshalStructFields(ctx, value, fields, cont), nil
+		return objectToken, MarshalStructFields(ctx, value, fields, cont), nil
 	}
 }
-
-var objectEndToken = reflect.ValueOf(&Token{
-	Kind: KindObjectEnd,
-})
 
 func MarshalStructFields(ctx Ctx, value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
 	var proc Proc
@@ -364,6 +356,14 @@ func MarshalMap(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	)
 }
 
+var mapEndToken = reflect.ValueOf(&Token{
+	Kind: KindMapEnd,
+})
+
+var mapToken = &Token{
+	Kind: KindMap,
+}
+
 func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples []*MapTuple, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
@@ -396,15 +396,9 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 		return nil, proc, nil
 	}
 	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind: KindMap,
-		}, proc, nil
+		return mapToken, proc, nil
 	}
 }
-
-var mapEndToken = reflect.ValueOf(&Token{
-	Kind: KindMapEnd,
-})
 
 func MarshalMapTuples(ctx Ctx, tuples []*MapTuple, cont Proc) Proc {
 	var proc Proc
@@ -439,6 +433,10 @@ var tupleEndToken = reflect.ValueOf(&Token{
 	Kind: KindTupleEnd,
 })
 
+var tupleToken = &Token{
+	Kind: KindTuple,
+}
+
 func MarshalTuple(ctx Ctx, items []reflect.Value, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
@@ -459,8 +457,6 @@ func MarshalTuple(ctx Ctx, items []reflect.Value, cont Proc) Proc {
 		}
 	}
 	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind: KindTuple,
-		}, proc, nil
+		return tupleToken, proc, nil
 	}
 }
