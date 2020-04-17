@@ -67,12 +67,17 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// sum
-		sum1, err := MustTreeFromStream(Marshal(obj2)).HashSum(fnv.New128)
-		if err != nil { // NOCOVER
+		var sum1, sum2 []byte
+		if err := Copy(
+			Marshal(obj2),
+			Hash(fnv.New128, &sum1, nil),
+		); err != nil {
 			panic(err)
 		}
-		sum2, err := MustTreeFromStream(Marshal(obj2)).HashSum(fnv.New128a)
-		if err != nil { // NOCOVER
+		if err := Copy(
+			Marshal(obj2),
+			Hash(fnv.New128a, &sum2, nil),
+		); err != nil {
 			panic(err)
 		}
 		if bytes.Equal(sum1, sum2) { // NOCOVER
@@ -103,15 +108,13 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("not equal")
 		}
 
-		mapHashSum, err := MustTreeFromStream(
+		var mapHashSum []byte
+		if err := Copy(
 			Marshal(obj2),
-		).HashSum(
-			newMapHashState,
-		)
-		if err != nil { // NOCOVER
+			Hash(newMapHashState, &mapHashSum, nil),
+		); err != nil {
 			panic(err)
 		}
-		_ = mapHashSum
 
 		// random transform
 		transforms := []func(Stream) Stream{
@@ -280,16 +283,20 @@ func Fuzz(data []byte) int { // NOCOVER
 				return f(transforms[i](in))
 			}
 		}
-		s := fn(tree.Iter())
-		if MustCompare(s, tree.Iter()) != 0 { // NOCOVER
+		if MustCompare(fn(tree.Iter()), tree.Iter()) != 0 { // NOCOVER
 			panic("not equal")
 		}
-		sum1, err = MustTreeFromStream(tree.Iter()).HashSum(newMapHashState)
-		if err != nil { // NOCOVER
+
+		if err := Copy(
+			tree.Iter(),
+			Hash(newMapHashState, &sum1, nil),
+		); err != nil {
 			panic(err)
 		}
-		sum2, err = MustTreeFromStream(fn(tree.Iter())).HashSum(newMapHashState)
-		if err != nil { // NOCOVER
+		if err := Copy(
+			fn(tree.Iter()),
+			Hash(newMapHashState, &sum2, nil),
+		); err != nil {
 			panic(err)
 		}
 		if !bytes.Equal(sum1, sum2) { // NOCOVER
