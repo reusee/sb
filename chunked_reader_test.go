@@ -45,7 +45,7 @@ func TestMarshalReaderChunked(t *testing.T) {
 	if err := Copy(
 		Marshal(
 			MarshalReaderChunked(
-				MarshalCtx,
+				DefaultCtx,
 				bytes.NewReader([]byte("foobarbaz")),
 				3,
 				nil,
@@ -96,7 +96,7 @@ func BenchmarkMarshalReaderChunked(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		r := bytes.NewReader(bs)
-		proc := MarshalReaderChunked(MarshalCtx, r, 128, nil)
+		proc := MarshalReaderChunked(DefaultCtx, r, 128, nil)
 		if err := Copy(
 			&proc,
 			Discard,

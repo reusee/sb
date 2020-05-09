@@ -10,3 +10,18 @@ type Ctx struct {
 	SkipEmptyStructFields       bool
 	DisallowUnknownStructFields bool
 }
+
+var DefaultCtx = Ctx{
+	Marshal:   MarshalValue,
+	Unmarshal: UnmarshalValue,
+}
+
+func (c Ctx) SkipEmpty() Ctx {
+	c.SkipEmptyStructFields = true
+	return c
+}
+
+func (c Ctx) Strict() Ctx {
+	c.DisallowUnknownStructFields = true
+	return c
+}

@@ -12,10 +12,6 @@ type SBUnmarshaler interface {
 	UnmarshalSB(ctx Ctx, cont Sink) Sink
 }
 
-var UnmarshalCtx = Ctx{
-	Unmarshal: UnmarshalValue,
-}
-
 func Unmarshal(target any) Sink {
 	return UnmarshalValue(
 		Ctx{

@@ -11,10 +11,6 @@ type SBMarshaler interface {
 	MarshalSB(ctx Ctx, cont Proc) Proc
 }
 
-var MarshalCtx = Ctx{
-	Marshal: MarshalValue,
-}
-
 func Marshal(value any) *Proc {
 	marshaler := MarshalValue(Ctx{
 		Marshal: MarshalValue,
