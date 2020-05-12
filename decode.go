@@ -9,13 +9,8 @@ import (
 	"math"
 )
 
-func Decode(r io.Reader) *Proc {
-	var byteReader io.ByteReader
-	if rd, ok := r.(io.ByteReader); ok {
-		byteReader = rd
-	}
+func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
 	var proc Proc
-	buf := make([]byte, 8)
 	proc = Proc(func() (*Token, Proc, error) {
 		var kind Kind
 		if byteReader != nil {
@@ -247,5 +242,15 @@ func Decode(r io.Reader) *Proc {
 		}, proc, nil
 	})
 
+	return proc
+}
+
+func Decode(r io.Reader) *Proc {
+	var byteReader io.ByteReader
+	if rd, ok := r.(io.ByteReader); ok {
+		byteReader = rd
+	}
+	buf := make([]byte, 8)
+	proc := DecodeBuffer(r, byteReader, buf, nil)
 	return &proc
 }
