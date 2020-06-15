@@ -185,10 +185,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 				func(token *Token) (Sink, error) {
 					// target will not set unless no error
 					target.Elem().Set(t)
-					if cont != nil {
-						return cont(token)
-					}
-					return nil, nil
+					return cont.Sink(token)
 				},
 			)(token)
 		} else if valueKind != reflect.Interface {

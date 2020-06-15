@@ -16,3 +16,10 @@ func (s Sink) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 		return next.UnmarshalSB(ctx, cont), nil
 	}
 }
+
+func (s Sink) Sink(token *Token) (Sink, error) {
+	if s == nil {
+		return nil, nil
+	}
+	return s(token)
+}

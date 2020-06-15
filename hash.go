@@ -115,10 +115,7 @@ func HashFunc(
 							return nil, err
 						}
 					}
-					if cont != nil {
-						return cont(token)
-					}
-					return nil, nil
+					return cont.Sink(token)
 				},
 			), nil
 
