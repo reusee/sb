@@ -60,6 +60,10 @@ var (
 	ExpectingStruct     = fmt.Errorf("expecting struct")
 	ExpectingMap        = fmt.Errorf("expecting map")
 	ExpectingTuple      = fmt.Errorf("expecting tuple")
+	ExpectingArrayEnd   = fmt.Errorf("expecting array end")
+	ExpectingObjectEnd  = fmt.Errorf("expecting object end")
+	ExpectingMapEnd     = fmt.Errorf("expecting map end")
+	ExpectingTupleEnd   = fmt.Errorf("expecting tuple end")
 	BadFieldName        = fmt.Errorf("bad field name")
 	UnknownFieldName    = fmt.Errorf("unknown field name")
 	DuplicatedFieldName = fmt.Errorf("duplicated field name")
@@ -78,23 +82,27 @@ var (
 )
 
 var kindToExpectingErr = map[Kind]error{
-	KindString:  ExpectingString,
-	KindBytes:   ExpectingBytes,
-	KindBool:    ExpectingBool,
-	KindInt:     ExpectingInt,
-	KindInt8:    ExpectingInt8,
-	KindInt16:   ExpectingInt16,
-	KindInt32:   ExpectingInt32,
-	KindInt64:   ExpectingInt64,
-	KindUint:    ExpectingUint,
-	KindUint8:   ExpectingUint8,
-	KindUint16:  ExpectingUint16,
-	KindUint32:  ExpectingUint32,
-	KindUint64:  ExpectingUint64,
-	KindFloat32: ExpectingFloat32,
-	KindFloat64: ExpectingFloat64,
-	KindArray:   ExpectingSequence,
-	KindObject:  ExpectingStruct,
-	KindMap:     ExpectingMap,
-	KindTuple:   ExpectingTuple,
+	KindString:    ExpectingString,
+	KindBytes:     ExpectingBytes,
+	KindBool:      ExpectingBool,
+	KindInt:       ExpectingInt,
+	KindInt8:      ExpectingInt8,
+	KindInt16:     ExpectingInt16,
+	KindInt32:     ExpectingInt32,
+	KindInt64:     ExpectingInt64,
+	KindUint:      ExpectingUint,
+	KindUint8:     ExpectingUint8,
+	KindUint16:    ExpectingUint16,
+	KindUint32:    ExpectingUint32,
+	KindUint64:    ExpectingUint64,
+	KindFloat32:   ExpectingFloat32,
+	KindFloat64:   ExpectingFloat64,
+	KindArray:     ExpectingSequence,
+	KindObject:    ExpectingStruct,
+	KindMap:       ExpectingMap,
+	KindTuple:     ExpectingTuple,
+	KindArrayEnd:  ExpectingArrayEnd,
+	KindObjectEnd: ExpectingObjectEnd,
+	KindMapEnd:    ExpectingMapEnd,
+	KindTupleEnd:  ExpectingTupleEnd,
 }
