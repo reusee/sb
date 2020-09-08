@@ -7,7 +7,7 @@ var _ SBUnmarshaler = Sink(nil)
 func (s Sink) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if s == nil {
-			return cont, nil
+			return cont.Sink(token)
 		}
 		next, err := s(token)
 		if err != nil { // NOCOVER
