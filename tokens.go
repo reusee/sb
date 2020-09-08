@@ -73,6 +73,9 @@ func CollectValueTokens(tokens *Tokens) Sink {
 			stack = append(stack, KindTupleEnd)
 			return sink, nil
 		}
+		if len(stack) > 0 {
+			return sink, nil
+		}
 		return nil, nil
 	}
 	return sink
