@@ -8,6 +8,7 @@ import (
 	"math"
 	"reflect"
 	"testing"
+	"time"
 )
 
 type UnmarshalTestCase struct {
@@ -1301,5 +1302,24 @@ func TestUnmarshalTupleFunc(t *testing.T) {
 	}
 	if c != 3 {
 		t.Fatal()
+	}
+}
+
+func TestUnmarshalEmbedded(t *testing.T) {
+	type Foo struct {
+		time.Time
+	}
+	var f Foo
+	now := time.Now()
+	if err := Copy(
+		Marshal(Foo{
+			Time: now,
+		}),
+		Unmarshal(&f),
+	); err != nil {
+		t.Fatal()
+	}
+	if !f.Time.Equal(now) {
+		t.Fatalf("got %v, expected %v", f.Time, now)
 	}
 }

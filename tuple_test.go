@@ -175,3 +175,32 @@ func TestUnmarshalTupleBad(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestMarshalEmptyTuple(t *testing.T) {
+	var tuple Tuple
+	var tokens Tokens
+	if err := Copy(
+		Marshal(tuple),
+		CollectTokens(&tokens),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if len(tokens) != 2 {
+		t.Fatal()
+	}
+
+	tokens = tokens[:0]
+	if err := Copy(
+		Marshal(struct {
+			T any
+		}{
+			T: tuple,
+		}),
+		CollectTokens(&tokens),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if len(tokens) != 5 {
+		t.Fatal()
+	}
+}
