@@ -312,11 +312,6 @@ func MarshalStruct(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			fields = append(fields, field)
 		}
 	}
-	if !ctx.ReserveStructFieldsOrder {
-		sort.Slice(fields, func(i, j int) bool {
-			return fields[i].Name < fields[j].Name
-		})
-	}
 	return func() (*Token, Proc, error) {
 		return objectToken, MarshalStructFields(ctx, value, fields, cont), nil
 	}
@@ -421,12 +416,11 @@ func MarshalMapTuples(ctx Ctx, tuples []*MapTuple, cont Proc) Proc {
 		}
 		tuple := tuples[0]
 		tuples = tuples[1:]
-		ctx.ReserveStructFieldsOrder = true
 		return nil, ctx.Marshal(
 			ctx,
 			tuple.Key,
+			// must wrap in closure to delay value marshaling
 			func() (*Token, Proc, error) {
-				ctx.ReserveStructFieldsOrder = false
 				return nil, ctx.Marshal(
 					ctx,
 					tuple.Value,
