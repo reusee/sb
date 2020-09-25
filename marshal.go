@@ -114,6 +114,19 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			if value.IsNil() {
 				return Nil, cont, nil
 			} else {
+				ctx.pointerDepth++
+				if ctx.pointerDepth == 1000 {
+					ctx.detectCycleEnabled = true
+				}
+				if ctx.detectCycleEnabled {
+					ptr := value.Pointer()
+					for _, p := range ctx.visitedPointers {
+						if p == ptr {
+							return nil, nil, MarshalError{CyclicPointer}
+						}
+					}
+					ctx.visitedPointers = append(ctx.visitedPointers, ptr)
+				}
 				return nil, ctx.Marshal(ctx, value.Elem(), cont), nil
 			}
 
