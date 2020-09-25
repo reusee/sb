@@ -79,6 +79,7 @@ var (
 	NotFound            = fmt.Errorf("not found")
 	MoreThanOneValue    = fmt.Errorf("more than one value in stream")
 	EmptySink           = fmt.Errorf("empty sink")
+	CyclicPointer       = fmt.Errorf("cyclic pointer")
 )
 
 var kindToExpectingErr = map[Kind]error{

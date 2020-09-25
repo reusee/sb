@@ -9,6 +9,10 @@ type Ctx struct {
 	ReserveStructFieldsOrder    bool
 	SkipEmptyStructFields       bool
 	DisallowUnknownStructFields bool
+
+	pointerDepth       int
+	detectCycleEnabled bool
+	visitedPointers    []uintptr
 }
 
 var DefaultCtx = Ctx{

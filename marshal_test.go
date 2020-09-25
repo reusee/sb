@@ -746,3 +746,16 @@ func TestMarshalTime(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestCyclicPointer(t *testing.T) {
+	type P *P
+	var p P
+	p = &p
+	err := Copy(
+		Marshal(p),
+		Discard,
+	)
+	if !is(err, CyclicPointer) {
+		t.Fatal()
+	}
+}
