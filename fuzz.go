@@ -48,20 +48,27 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// compare
+		var tokens1 Tokens
+		var tokens2 Tokens
 		if MustCompare(
-			Decode(bytes.NewReader(bs)),
-			Marshal(obj2),
-		) != 0 { // NOCOVER
-			tokens1 := MustTokensFromStream(
-				Decode(bytes.NewReader(teeBytes)),
-			)
-			tokens2 := MustTokensFromStream(
+			Tee(
 				Decode(bytes.NewReader(bs)),
-			)
+				CollectTokens(&tokens1),
+			),
+			Tee(
+				Marshal(obj2),
+				CollectValueTokens(&tokens2),
+			),
+		) != 0 { // NOCOVER
+			pt("obj : %+v\n\n", obj)
+			pt("obj2: %+v\n\n", obj2)
 			for i, token := range tokens1 { // NOCOVER
 				if i < len(tokens2) { // NOCOVER
 					pt("%+v\n%+v\n\n", token, tokens2[i])
 				}
+			}
+			for _, token := range tokens2[len(tokens1):] {
+				pt("---\n%+v\n\n", token)
 			}
 			panic("not equal") // NOCOVER
 		}
