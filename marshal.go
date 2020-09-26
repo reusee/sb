@@ -383,6 +383,7 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 		}
 		var tokens Tokens
 		if err := Copy(
+			// tokens are for sorting only, so do not call ctx.Marshal
 			Marshal(iter.Key().Interface()),
 			CollectTokens(&tokens),
 		); err != nil {
