@@ -382,9 +382,10 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 			return nil, MarshalMapTuples(ctx, tuples, cont), nil
 		}
 		var tokens Tokens
+		keyMarshalProc := MarshalValue(Ctx{}, iter.Key(), nil)
 		if err := Copy(
 			// tokens are for sorting only, so do not call ctx.Marshal
-			Marshal(iter.Key().Interface()),
+			&keyMarshalProc,
 			CollectTokens(&tokens),
 		); err != nil {
 			return nil, nil, err
