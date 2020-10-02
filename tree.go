@@ -1,7 +1,12 @@
 package sb
 
 import (
+	"fmt"
 	"hash"
+)
+
+var (
+	MoreThanOneValue = fmt.Errorf("more than one value in stream")
 )
 
 type Tree struct {

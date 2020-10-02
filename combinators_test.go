@@ -132,7 +132,7 @@ func TestExpectKind(t *testing.T) {
 				Kind: KindInt,
 			},
 		}.Iter(),
-		ExpectKind(KindString, nil),
+		ExpectKind(DefaultCtx, KindString, nil),
 	)
 	if !is(err, ExpectingString) {
 		t.Fatal()
@@ -144,7 +144,7 @@ func TestExpectKind(t *testing.T) {
 				Kind: KindInt,
 			},
 		}.Iter(),
-		ExpectKind(KindInvalid, nil),
+		ExpectKind(DefaultCtx, KindInvalid, nil),
 	)
 	if !is(err, ExpectingValue) {
 		t.Fatal()

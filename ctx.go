@@ -9,6 +9,8 @@ type Ctx struct {
 	SkipEmptyStructFields       bool
 	DisallowUnknownStructFields bool
 
+	Path []any //TODO
+
 	pointerDepth       int
 	detectCycleEnabled bool
 	visitedPointers    []uintptr

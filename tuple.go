@@ -41,10 +41,10 @@ var _ SBUnmarshaler = new(Tuple)
 func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, UnmarshalError{ExpectingTuple}
+			return nil, NewUnmarshalError(ctx, ExpectingTuple)
 		}
 		if token.Kind != KindTuple {
-			return nil, UnmarshalError{ExpectingTuple}
+			return nil, NewUnmarshalError(ctx, ExpectingTuple)
 		}
 		return t.unmarshal(ctx, cont), nil
 	}
@@ -53,7 +53,7 @@ func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 func (t *Tuple) unmarshal(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, UnmarshalError{ExpectingValue}
+			return nil, NewUnmarshalError(ctx, ExpectingValue)
 		}
 		if token.Kind == KindTupleEnd {
 			return cont, nil
@@ -73,10 +73,10 @@ func (t *Tuple) unmarshal(ctx Ctx, cont Sink) Sink {
 func UnmarshalTupleTyped(ctx Ctx, typeSpec any, target *Tuple, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, UnmarshalError{ExpectingTuple}
+			return nil, NewUnmarshalError(ctx, ExpectingTuple)
 		}
 		if token.Kind != KindTuple {
-			return nil, UnmarshalError{ExpectingTuple}
+			return nil, NewUnmarshalError(ctx, ExpectingTuple)
 		}
 
 		var types []reflect.Type
@@ -103,18 +103,18 @@ func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, UnmarshalError{ExpectingValue}
+			return nil, NewUnmarshalError(ctx, ExpectingValue)
 		}
 
 		if token.Kind == KindTupleEnd {
 			if len(types) > 0 {
-				return nil, UnmarshalError{ExpectingValue}
+				return nil, NewUnmarshalError(ctx, ExpectingValue)
 			}
 			return cont, nil
 		}
 
 		if len(types) == 0 {
-			return nil, UnmarshalError{TooManyElement}
+			return nil, NewUnmarshalError(ctx, TooManyElement)
 		}
 
 		elem := reflect.New(types[0])

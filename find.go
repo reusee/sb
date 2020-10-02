@@ -2,7 +2,12 @@ package sb
 
 import (
 	"bytes"
+	"fmt"
 	"hash"
+)
+
+var (
+	NotFound = fmt.Errorf("not found")
 )
 
 func FindByHash(

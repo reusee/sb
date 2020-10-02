@@ -2,7 +2,70 @@ package sb
 
 import "fmt"
 
+var (
+	BadMapKey    = fmt.Errorf("bad map key")
+	BadTokenKind = fmt.Errorf("bad token kind")
+
+	UnexpectedEndToken = fmt.Errorf("unexpected end token")
+
+	ExpectingArrayEnd  = fmt.Errorf("expecting array end")
+	ExpectingBool      = fmt.Errorf("expecting bool")
+	ExpectingBytes     = fmt.Errorf("expecting bytes")
+	ExpectingFloat     = fmt.Errorf("expecting float32 or float64")
+	ExpectingFloat32   = fmt.Errorf("expecting float32")
+	ExpectingFloat64   = fmt.Errorf("expecting float64")
+	ExpectingInt       = fmt.Errorf("expecting int")
+	ExpectingInt16     = fmt.Errorf("expecting int16")
+	ExpectingInt32     = fmt.Errorf("expecting int32")
+	ExpectingInt64     = fmt.Errorf("expecting int64")
+	ExpectingInt8      = fmt.Errorf("expecting int8")
+	ExpectingMap       = fmt.Errorf("expecting map")
+	ExpectingMapEnd    = fmt.Errorf("expecting map end")
+	ExpectingObjectEnd = fmt.Errorf("expecting object end")
+	ExpectingSequence  = fmt.Errorf("expecting array / slice")
+	ExpectingString    = fmt.Errorf("expecting string")
+	ExpectingStruct    = fmt.Errorf("expecting struct")
+	ExpectingTuple     = fmt.Errorf("expecting tuple")
+	ExpectingTupleEnd  = fmt.Errorf("expecting tuple end")
+	ExpectingUint      = fmt.Errorf("expecting uint")
+	ExpectingUint16    = fmt.Errorf("expecting uint16")
+	ExpectingUint32    = fmt.Errorf("expecting uint32")
+	ExpectingUint64    = fmt.Errorf("expecting uint64")
+	ExpectingUint8     = fmt.Errorf("expecting uint8")
+	ExpectingValue     = fmt.Errorf("expecting value")
+
+	kindToExpectingErr = map[Kind]error{
+		KindString:    ExpectingString,
+		KindBytes:     ExpectingBytes,
+		KindBool:      ExpectingBool,
+		KindInt:       ExpectingInt,
+		KindInt8:      ExpectingInt8,
+		KindInt16:     ExpectingInt16,
+		KindInt32:     ExpectingInt32,
+		KindInt64:     ExpectingInt64,
+		KindUint:      ExpectingUint,
+		KindUint8:     ExpectingUint8,
+		KindUint16:    ExpectingUint16,
+		KindUint32:    ExpectingUint32,
+		KindUint64:    ExpectingUint64,
+		KindFloat32:   ExpectingFloat32,
+		KindFloat64:   ExpectingFloat64,
+		KindArray:     ExpectingSequence,
+		KindObject:    ExpectingStruct,
+		KindMap:       ExpectingMap,
+		KindTuple:     ExpectingTuple,
+		KindArrayEnd:  ExpectingArrayEnd,
+		KindObjectEnd: ExpectingObjectEnd,
+		KindMapEnd:    ExpectingMapEnd,
+		KindTupleEnd:  ExpectingTupleEnd,
+	}
+)
+
+// unmarshal
+
 type UnmarshalError struct {
+	_    [0]func()
+	Path []any
 	Prev error
 }
 
@@ -14,7 +77,27 @@ func (u UnmarshalError) Error() string {
 	return fmt.Sprintf("UnmarshalError: %s", u.Prev.Error())
 }
 
+func NewUnmarshalError(ctx Ctx, err error) error {
+	return UnmarshalError{
+		Path: append(ctx.Path[:0:0], ctx.Path...),
+		Prev: err,
+	}
+}
+
+var (
+	BadFieldName        = fmt.Errorf("bad field name")
+	BadTargetType       = fmt.Errorf("bad target type")
+	BadTupleType        = fmt.Errorf("bad tuple type")
+	DuplicatedFieldName = fmt.Errorf("duplicated field name")
+	TooManyElement      = fmt.Errorf("too many element")
+	UnknownFieldName    = fmt.Errorf("unknown field name")
+)
+
+// marshal
+
 type MarshalError struct {
+	_    [0]func()
+	Path []any
 	Prev error
 }
 
@@ -26,8 +109,25 @@ func (u MarshalError) Error() string {
 	return fmt.Sprintf("MarshalError: %s", u.Prev.Error())
 }
 
+func NewMarshalError(ctx Ctx, err error) error {
+	return MarshalError{
+		Path: append(ctx.Path[:0:0], ctx.Path...),
+		Prev: err,
+	}
+}
+
+var (
+	CyclicPointer = fmt.Errorf("cyclic pointer")
+)
+
+// decode
+
 type DecodeError struct {
-	Prev error
+	_      [0]func()
+	Offset int64
+	Prev   error
+
+	Kind *Kind
 }
 
 func (d DecodeError) Unwrap() error {
@@ -38,72 +138,22 @@ func (d DecodeError) Error() string {
 	return fmt.Sprintf("DecodeError: %s", d.Prev.Error())
 }
 
-var (
-	ExpectingValue      = fmt.Errorf("expecting value")
-	ExpectingString     = fmt.Errorf("expecting string")
-	ExpectingBytes      = fmt.Errorf("expecting bytes")
-	ExpectingBool       = fmt.Errorf("expecting bool")
-	ExpectingInt        = fmt.Errorf("expecting int")
-	ExpectingInt8       = fmt.Errorf("expecting int8")
-	ExpectingInt16      = fmt.Errorf("expecting int16")
-	ExpectingInt32      = fmt.Errorf("expecting int32")
-	ExpectingInt64      = fmt.Errorf("expecting int64")
-	ExpectingUint       = fmt.Errorf("expecting uint")
-	ExpectingUint8      = fmt.Errorf("expecting uint8")
-	ExpectingUint16     = fmt.Errorf("expecting uint16")
-	ExpectingUint32     = fmt.Errorf("expecting uint32")
-	ExpectingUint64     = fmt.Errorf("expecting uint64")
-	ExpectingFloat32    = fmt.Errorf("expecting float32")
-	ExpectingFloat64    = fmt.Errorf("expecting float64")
-	ExpectingFloat      = fmt.Errorf("expecting float32 or float64")
-	ExpectingSequence   = fmt.Errorf("expecting array / slice")
-	ExpectingStruct     = fmt.Errorf("expecting struct")
-	ExpectingMap        = fmt.Errorf("expecting map")
-	ExpectingTuple      = fmt.Errorf("expecting tuple")
-	ExpectingArrayEnd   = fmt.Errorf("expecting array end")
-	ExpectingObjectEnd  = fmt.Errorf("expecting object end")
-	ExpectingMapEnd     = fmt.Errorf("expecting map end")
-	ExpectingTupleEnd   = fmt.Errorf("expecting tuple end")
-	BadFieldName        = fmt.Errorf("bad field name")
-	UnknownFieldName    = fmt.Errorf("unknown field name")
-	DuplicatedFieldName = fmt.Errorf("duplicated field name")
-	TooManyElement      = fmt.Errorf("too many element")
-	BadMapKey           = fmt.Errorf("bad map key")
-	StringTooLong       = fmt.Errorf("string too long")
-	BytesTooLong        = fmt.Errorf("bytes too long")
-	BadTokenKind        = fmt.Errorf("bad token kind")
-	BadTupleType        = fmt.Errorf("bad tuple type")
-	BadTargetType       = fmt.Errorf("bad target type")
-	UnexpectedEndToken  = fmt.Errorf("unexpected end token")
-	UnexpectedHashToken = fmt.Errorf("unexpected hash token")
-	NotFound            = fmt.Errorf("not found")
-	MoreThanOneValue    = fmt.Errorf("more than one value in stream")
-	EmptySink           = fmt.Errorf("empty sink")
-	CyclicPointer       = fmt.Errorf("cyclic pointer")
-)
-
-var kindToExpectingErr = map[Kind]error{
-	KindString:    ExpectingString,
-	KindBytes:     ExpectingBytes,
-	KindBool:      ExpectingBool,
-	KindInt:       ExpectingInt,
-	KindInt8:      ExpectingInt8,
-	KindInt16:     ExpectingInt16,
-	KindInt32:     ExpectingInt32,
-	KindInt64:     ExpectingInt64,
-	KindUint:      ExpectingUint,
-	KindUint8:     ExpectingUint8,
-	KindUint16:    ExpectingUint16,
-	KindUint32:    ExpectingUint32,
-	KindUint64:    ExpectingUint64,
-	KindFloat32:   ExpectingFloat32,
-	KindFloat64:   ExpectingFloat64,
-	KindArray:     ExpectingSequence,
-	KindObject:    ExpectingStruct,
-	KindMap:       ExpectingMap,
-	KindTuple:     ExpectingTuple,
-	KindArrayEnd:  ExpectingArrayEnd,
-	KindObjectEnd: ExpectingObjectEnd,
-	KindMapEnd:    ExpectingMapEnd,
-	KindTupleEnd:  ExpectingTupleEnd,
+func NewDecodeError(offset int64, err error, datas ...any) error {
+	ret := DecodeError{
+		Prev: err,
+	}
+	for _, data := range datas {
+		switch data := data.(type) {
+		case Kind:
+			ret.Kind = &data
+		default:
+			panic(fmt.Errorf("bad data: %T", data))
+		}
+	}
+	return ret
 }
+
+var (
+	StringTooLong = fmt.Errorf("string too long")
+	BytesTooLong  = fmt.Errorf("bytes too long")
+)

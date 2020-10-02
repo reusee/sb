@@ -4,28 +4,31 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 	"math"
 )
 
 func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
 	var proc Proc
+	var offset int64
 	proc = Proc(func() (*Token, Proc, error) {
 		var kind Kind
 		if byteReader != nil {
 			if b, err := byteReader.ReadByte(); errors.Is(err, io.EOF) {
 				return nil, nil, nil
 			} else if err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
 			} else {
+				offset++
 				kind = Kind(b)
 			}
 		} else {
 			if _, err := io.ReadFull(r, buf[:1]); errors.Is(err, io.EOF) {
 				return nil, nil, nil
 			} else if err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 1
 			}
 			kind = Kind(buf[0])
 		}
@@ -38,8 +41,9 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			if byteReader != nil {
 				b, err := byteReader.ReadByte()
 				if err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
 				}
+				offset++
 				if b > 0 {
 					value = true
 				} else {
@@ -47,7 +51,9 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 				}
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
+				} else {
+					offset += 1
 				}
 				if buf[0] > 0 {
 					value = true
@@ -58,89 +64,115 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 
 		case KindInt:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 8
 			}
 			value = int(binary.LittleEndian.Uint64(buf[:8]))
 
 		case KindInt8:
 			if byteReader != nil {
 				if b, err := byteReader.ReadByte(); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
 				} else {
+					offset++
 					value = int8(b)
 				}
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
+				} else {
+					offset += 1
 				}
 				value = int8(buf[0])
 			}
 
 		case KindInt16:
 			if _, err := io.ReadFull(r, buf[:2]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 2
 			}
 			value = int16(binary.LittleEndian.Uint16(buf[:2]))
 
 		case KindInt32:
 			if _, err := io.ReadFull(r, buf[:4]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 4
 			}
 			value = int32(binary.LittleEndian.Uint32(buf[:4]))
 
 		case KindInt64:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 8
 			}
 			value = int64(binary.LittleEndian.Uint64(buf[:8]))
 
 		case KindUint:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 8
 			}
 			value = uint(binary.LittleEndian.Uint64(buf[:8]))
 
 		case KindUint8:
 			if byteReader != nil {
 				if b, err := byteReader.ReadByte(); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
 				} else {
+					offset++
 					value = uint8(b)
 				}
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
+				} else {
+					offset += 1
 				}
 				value = uint8(buf[0])
 			}
 
 		case KindUint16:
 			if _, err := io.ReadFull(r, buf[:2]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 2
 			}
 			value = binary.LittleEndian.Uint16(buf[:2])
 
 		case KindUint32:
 			if _, err := io.ReadFull(r, buf[:4]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 4
 			}
 			value = binary.LittleEndian.Uint32(buf[:4])
 
 		case KindUint64:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 8
 			}
 			value = binary.LittleEndian.Uint64(buf[:8])
 
 		case KindFloat32:
 			if _, err := io.ReadFull(r, buf[:4]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 4
 			}
 			value = math.Float32frombits(binary.LittleEndian.Uint32(buf[:4]))
 
 		case KindFloat64:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += 8
 			}
 			value = math.Float64frombits(binary.LittleEndian.Uint64(buf[:8]))
 
@@ -149,11 +181,14 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			var b byte
 			if byteReader != nil {
 				if b, err = byteReader.ReadByte(); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
 				}
+				offset++
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
+				} else {
+					offset += 1
 				}
 				b = buf[0]
 			}
@@ -162,19 +197,21 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			} else {
 				l := ^b
 				if l > 8 {
-					return nil, nil, DecodeError{StringTooLong}
+					return nil, nil, NewDecodeError(offset, StringTooLong)
 				}
 				if _, err := io.ReadFull(r, buf[:l]); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
+				} else {
+					offset += int64(l)
 				}
 				var err error
 				length, err = binary.ReadUvarint(bytes.NewReader(buf[:l]))
 				if err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
 				}
 			}
 			if length > 128*1024*1024 {
-				return nil, nil, DecodeError{StringTooLong}
+				return nil, nil, NewDecodeError(offset, StringTooLong)
 			}
 			var bs []byte
 			if int(length) <= len(buf) {
@@ -183,7 +220,9 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 				bs = make([]byte, length)
 			}
 			if _, err := io.ReadFull(r, bs); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += int64(length)
 			}
 			value = string(bs)
 
@@ -192,11 +231,14 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			var b byte
 			if byteReader != nil {
 				if b, err = byteReader.ReadByte(); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
 				}
+				offset++
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
+				} else {
+					offset += 1
 				}
 				b = buf[0]
 			}
@@ -205,23 +247,27 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			} else {
 				l := ^b
 				if l > 8 {
-					return nil, nil, DecodeError{StringTooLong}
+					return nil, nil, NewDecodeError(offset, BytesTooLong)
 				}
 				if _, err := io.ReadFull(r, buf[:l]); err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
+				} else {
+					offset += int64(l)
 				}
 				var err error
 				length, err = binary.ReadUvarint(bytes.NewReader(buf[:l]))
 				if err != nil {
-					return nil, nil, err
+					return nil, nil, NewDecodeError(offset, err)
 				}
 			}
 			if length > 128*1024*1024 {
-				return nil, nil, DecodeError{StringTooLong}
+				return nil, nil, NewDecodeError(offset, BytesTooLong)
 			}
 			bs := make([]byte, length)
 			if _, err := io.ReadFull(r, bs); err != nil {
-				return nil, nil, err
+				return nil, nil, NewDecodeError(offset, err)
+			} else {
+				offset += int64(length)
 			}
 			value = bs
 
@@ -232,7 +278,7 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			KindMax:
 
 		default:
-			return nil, nil, fmt.Errorf("%w: %d", BadTokenKind, kind)
+			return nil, nil, NewDecodeError(offset, BadTokenKind, kind)
 
 		}
 
