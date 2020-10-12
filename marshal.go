@@ -18,6 +18,17 @@ func Marshal(value any) *Proc {
 	return &marshaler
 }
 
+func TapMarshal(ctx Ctx, value any, fn func(Ctx, reflect.Value)) *Proc {
+	var marshal func(Ctx, reflect.Value, Proc) Proc
+	marshal = func(ctx Ctx, value reflect.Value, cont Proc) Proc {
+		fn(ctx, value)
+		return MarshalValue(ctx, value, cont)
+	}
+	ctx.Marshal = marshal
+	proc := marshal(ctx, reflect.ValueOf(value), nil)
+	return &proc
+}
+
 func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	if ctx.Marshal == nil {
 		ctx.Marshal = MarshalValue

@@ -759,3 +759,239 @@ func TestCyclicPointer(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestMarshalPath(t *testing.T) {
+
+	// array
+	if err := Copy(
+		TapMarshal(DefaultCtx, [3]int{1, 2, 3}, func(ctx Ctx, value reflect.Value) {
+			v := value.Interface()
+			if _, ok := v.([3]int); ok {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			} else if i, ok := v.(int); ok && i == 1 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 0 {
+					t.Fatal()
+				}
+			} else if i == 2 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 1 {
+					t.Fatal()
+				}
+			} else if i == 3 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 2 {
+					t.Fatal()
+				}
+			}
+		}),
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// slice
+	if err := Copy(
+		TapMarshal(DefaultCtx, []int{2, 3, 4}, func(ctx Ctx, value reflect.Value) {
+			v := value.Interface()
+			if _, ok := v.([]int); ok {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			} else if i, ok := v.(int); ok && i == 2 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 0 {
+					t.Fatal()
+				}
+			} else if i == 3 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 1 {
+					t.Fatal()
+				}
+			} else if i == 4 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 2 {
+					t.Fatal()
+				}
+			}
+		}),
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// struct
+	if err := Copy(
+		TapMarshal(DefaultCtx, struct {
+			Foo string
+			Bar int
+		}{
+			Foo: "42",
+			Bar: 42,
+		}, func(ctx Ctx, value reflect.Value) {
+			v := value.Interface()
+			if value.Kind() == reflect.Struct {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			} else if s, ok := v.(string); ok && s == "Foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if s, ok := v.(string); ok && s == "42" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if s, ok := v.(string); ok && s == "Bar" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			} else if s, ok := v.(int); ok && s == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			}
+		}),
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// map
+	if err := Copy(
+		TapMarshal(DefaultCtx, map[any]any{
+			"Foo": "foo",
+			"Bar": 42,
+		}, func(ctx Ctx, value reflect.Value) {
+			v := value.Interface()
+			if value.Kind() == reflect.Map {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			} else if s, ok := v.(string); ok && s == "Foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if s, ok := v.(string); ok && s == "foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if s, ok := v.(string); ok && s == "Bar" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			} else if v == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			}
+		}),
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// tuple
+	if err := Copy(
+		TapMarshal(DefaultCtx, func() (int, string) {
+			return 42, "foo"
+		}, func(ctx Ctx, value reflect.Value) {
+			v := value.Interface()
+			if value.Kind() == reflect.Func {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			} else if v == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 0 {
+					t.Fatal()
+				}
+			} else if v == "foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 1 {
+					t.Fatal()
+				}
+			}
+		}),
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// nested
+	if err := Copy(
+		TapMarshal(DefaultCtx, func() ([]int, string) {
+			return []int{1, 2, 3}, "foo"
+		}, func(ctx Ctx, value reflect.Value) {
+			v := value.Interface()
+			if value.Kind() == reflect.Func {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			} else if v == 2 {
+				if len(ctx.Path) != 2 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 0 {
+					t.Fatal()
+				}
+				if ctx.Path[1] != 1 {
+					t.Fatal()
+				}
+			} else if v == "foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 1 {
+					t.Fatal()
+				}
+			}
+		}),
+		Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+}
