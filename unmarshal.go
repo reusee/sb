@@ -22,6 +22,21 @@ func Unmarshal(target any) Sink {
 	)
 }
 
+func TapUnmarshal(ctx Ctx, target any, fn func(Ctx, Token, reflect.Value)) Sink {
+	var unmarshal func(Ctx, reflect.Value, Sink) Sink
+	unmarshal = func(ctx Ctx, target reflect.Value, cont Sink) Sink {
+		return func(token *Token) (Sink, error) {
+			if token == nil {
+				return cont, nil
+			}
+			fn(ctx, *token, target)
+			return UnmarshalValue(ctx, target, cont)(token)
+		}
+	}
+	ctx.Unmarshal = unmarshal
+	return unmarshal(ctx, reflect.ValueOf(target), nil)
+}
+
 func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 	if ctx.Unmarshal == nil {
 		ctx.Unmarshal = UnmarshalValue
@@ -511,7 +526,7 @@ func unmarshalArray(
 		e := target.Elem().Index(idx).Addr()
 		idx++
 		return ctx.Unmarshal(
-			ctx,
+			ctx.WithPath(idx-1),
 			e,
 			sink,
 		)(p)
@@ -558,7 +573,7 @@ func unmarshalSlice(
 		slice = reflect.Append(slice, elemPtr.Elem())
 
 		return ctx.Unmarshal(
-			ctx,
+			ctx.WithPath(slice.Len()-1),
 			slice.Index(slice.Len()-1).Addr(),
 			sink,
 		)(p)
@@ -601,7 +616,7 @@ func unmarshalGenericSlice(
 
 		var value any
 		return ctx.Unmarshal(
-			ctx,
+			ctx.WithPath(len(slice)),
 			reflect.ValueOf(&value),
 			func(token *Token) (Sink, error) {
 				slice = append(slice, value)
@@ -657,7 +672,7 @@ func unmarshalStruct(
 						// skip next value
 						var value any
 						return ctx.Unmarshal(
-							ctx,
+							ctx.WithPath(name),
 							reflect.ValueOf(&value),
 							sink,
 						)(token)
@@ -665,7 +680,7 @@ func unmarshalStruct(
 
 				} else {
 					return ctx.Unmarshal(
-						ctx,
+						ctx.WithPath(target.Elem().Type().FieldByIndex(field.Index).Name),
 						target.Elem().FieldByIndex(field.Index).Addr(),
 						sink,
 					)(token)
@@ -734,7 +749,7 @@ func unmarshalNewStruct(
 				var value any
 
 				return ctx.Unmarshal(
-					ctx,
+					ctx.WithPath(name),
 					reflect.ValueOf(&value),
 					func(token *Token) (Sink, error) {
 						if value == nil {
@@ -801,7 +816,7 @@ func unmarshalMap(
 				value := reflect.New(elemType)
 
 				return ctx.Unmarshal(
-					ctx,
+					ctx.WithPath(key.Elem().Interface()),
 					value,
 					func(token *Token) (Sink, error) {
 						if target.Elem().IsNil() {
@@ -870,7 +885,7 @@ func unmarshalGenericMap(
 				var value any
 
 				return ctx.Unmarshal(
-					ctx,
+					ctx.WithPath(key),
 					reflect.ValueOf(&value),
 					func(token *Token) (Sink, error) {
 						m[key] = value
@@ -994,7 +1009,7 @@ func unmarshalTuple(
 			value := reflect.New(t)
 			valueTypes = append(valueTypes, t)
 			return ctx.Unmarshal(
-				ctx,
+				ctx.WithPath(len(valueTypes)-1),
 				value,
 				func(token *Token) (Sink, error) {
 					values = append(values, value.Elem())
@@ -1006,7 +1021,7 @@ func unmarshalTuple(
 			var obj any
 			value := reflect.ValueOf(&obj)
 			return ctx.Unmarshal(
-				ctx,
+				ctx.WithPath(len(valueTypes)),
 				value,
 				func(token *Token) (Sink, error) {
 					if obj != nil {

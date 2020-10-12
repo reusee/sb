@@ -60,7 +60,7 @@ func (t *Tuple) unmarshal(ctx Ctx, cont Sink) Sink {
 		}
 		var value any
 		return ctx.Unmarshal(
-			ctx,
+			ctx.WithPath(len(*t)),
 			reflect.ValueOf(&value),
 			func(token *Token) (Sink, error) {
 				*t = append(*t, value)
@@ -99,6 +99,17 @@ func UnmarshalTupleTyped(ctx Ctx, typeSpec any, target *Tuple, cont Sink) Sink {
 	}
 }
 
+type TypedTuple struct {
+	Spec   any
+	Values Tuple
+}
+
+var _ SBUnmarshaler = new(TypedTuple)
+
+func (t *TypedTuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
+	return UnmarshalTupleTyped(ctx, t.Spec, &t.Values, cont)
+}
+
 func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink) Sink {
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
@@ -119,7 +130,7 @@ func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink
 
 		elem := reflect.New(types[0])
 		return ctx.Unmarshal(
-			ctx,
+			ctx.WithPath(len(*target)),
 			elem,
 			func(token *Token) (Sink, error) {
 				*target = append(*target, elem.Elem().Interface())

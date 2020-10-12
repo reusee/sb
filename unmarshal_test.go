@@ -1325,3 +1325,431 @@ func TestUnmarshalEmbedded(t *testing.T) {
 		t.Fatalf("got %v, expected %v", f.Time, now)
 	}
 }
+
+func TestUnmarshalPath(t *testing.T) {
+
+	// slice
+	var ints []int
+	if err := Copy(
+		Marshal([]int{1, 2, 3}),
+		TapUnmarshal(DefaultCtx, &ints, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindArray {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Kind == KindInt {
+				if token.Value == 1 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 0 {
+						t.Fatal()
+					}
+				} else if token.Value == 2 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 1 {
+						t.Fatal()
+					}
+				} else if token.Value == 3 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 2 {
+						t.Fatal()
+					}
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// generic slice
+	var value any
+	if err := Copy(
+		Marshal([]int{1, 2, 3}),
+		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindArray {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Kind == KindInt {
+				if token.Value == 1 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 0 {
+						t.Fatal()
+					}
+				} else if token.Value == 2 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 1 {
+						t.Fatal()
+					}
+				} else if token.Value == 3 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 2 {
+						t.Fatal()
+					}
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// array
+	var array []int
+	if err := Copy(
+		Marshal([]int{1, 2, 3}),
+		TapUnmarshal(DefaultCtx, &array, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindArray {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Kind == KindInt {
+				if token.Value == 1 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 0 {
+						t.Fatal()
+					}
+				} else if token.Value == 2 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 1 {
+						t.Fatal()
+					}
+				} else if token.Value == 3 {
+					if len(ctx.Path) != 1 {
+						t.Fatal()
+					}
+					if ctx.Path[0] != 2 {
+						t.Fatal()
+					}
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// struct
+	type foo struct {
+		Foo int
+		Bar string
+	}
+	var f foo
+	if err := Copy(
+		Marshal(foo{
+			Foo: 42,
+			Bar: "bar",
+		}),
+		TapUnmarshal(DefaultCtx, &f, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindObject {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if token.Value == "bar" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// skip struct field
+	if err := Copy(
+		Marshal(struct {
+			Foo int
+			Bar string
+			Baz int
+		}{
+			Foo: 42,
+			Bar: "bar",
+			Baz: 1,
+		}),
+		TapUnmarshal(DefaultCtx, &f, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindObject {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if token.Value == "bar" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			} else if token.Value == 1 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Baz" {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// new struct
+	if err := Copy(
+		Marshal(foo{
+			Foo: 42,
+			Bar: "bar",
+		}),
+		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindObject {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if token.Value == "bar" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// map
+	var m map[any]any
+	if err := Copy(
+		Marshal(map[any]any{
+			"Foo": 42,
+			"Bar": "bar",
+		}),
+		TapUnmarshal(DefaultCtx, &m, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindMap {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if token.Value == "bar" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// generic map
+	if err := Copy(
+		Marshal(map[any]any{
+			"Foo": 42,
+			"Bar": "bar",
+		}),
+		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindMap {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Foo" {
+					t.Fatal()
+				}
+			} else if token.Value == "bar" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != "Bar" {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// tuple
+	var tuple func() (int, string)
+	if err := Copy(
+		Marshal(func() (int, string) {
+			return 42, "foo"
+		}),
+		TapUnmarshal(DefaultCtx, &tuple, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindTuple {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 0 {
+					t.Fatal()
+				}
+			} else if token.Value == "foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 1 {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// generic tuple
+	if err := Copy(
+		Marshal(func() (int, string) {
+			return 42, "foo"
+		}),
+		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindTuple {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 0 {
+					t.Fatal()
+				}
+			} else if token.Value == "foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 1 {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// Tuple
+	var tuple2 Tuple
+	if err := Copy(
+		Marshal(func() (int, string) {
+			return 42, "foo"
+		}),
+		TapUnmarshal(DefaultCtx, &tuple2, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindTuple {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 0 {
+					t.Fatal()
+				}
+			} else if token.Value == "foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 1 {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	// TypedTuple
+	tuple3 := TypedTuple{
+		Spec: func(int, string) {},
+	}
+	if err := Copy(
+		Marshal(func() (int, string) {
+			return 42, "foo"
+		}),
+		TapUnmarshal(DefaultCtx, &tuple3, func(ctx Ctx, token Token, target reflect.Value) {
+			if token.Kind == KindTuple {
+				if len(ctx.Path) != 0 {
+					t.Fatal()
+				}
+			}
+			if token.Value == 42 {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 0 {
+					t.Fatal()
+				}
+			} else if token.Value == "foo" {
+				if len(ctx.Path) != 1 {
+					t.Fatal()
+				}
+				if ctx.Path[0] != 1 {
+					t.Fatal()
+				}
+			}
+		}),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+}
