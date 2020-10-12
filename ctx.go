@@ -9,7 +9,8 @@ type Ctx struct {
 	SkipEmptyStructFields       bool
 	DisallowUnknownStructFields bool
 
-	Path []any //TODO
+	// array index, slice index, struct field name, map key, tuple index
+	Path []any
 
 	pointerDepth       int
 	detectCycleEnabled bool
@@ -28,5 +29,10 @@ func (c Ctx) SkipEmpty() Ctx {
 
 func (c Ctx) Strict() Ctx {
 	c.DisallowUnknownStructFields = true
+	return c
+}
+
+func (c Ctx) WithPath(path any) Ctx {
+	c.Path = append(c.Path, path)
 	return c
 }

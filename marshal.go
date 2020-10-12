@@ -18,10 +18,6 @@ func Marshal(value any) *Proc {
 	return &marshaler
 }
 
-func MarshalAny(ctx Ctx, value any, cont Proc) Proc {
-	return ctx.Marshal(ctx, reflect.ValueOf(value), cont)
-}
-
 func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	if ctx.Marshal == nil {
 		ctx.Marshal = MarshalValue
@@ -274,7 +270,7 @@ func MarshalArray(ctx Ctx, value reflect.Value, index int, cont Proc) Proc {
 		v := value.Index(index)
 		index++
 		return nil, ctx.Marshal(
-			ctx,
+			ctx.WithPath(index-1),
 			v,
 			proc,
 		), nil
@@ -330,11 +326,11 @@ func MarshalStructFields(ctx Ctx, value reflect.Value, fields []reflect.StructFi
 		field := fields[0]
 		fields = fields[1:]
 		return nil, ctx.Marshal(
-			ctx,
+			ctx.WithPath(field.Name),
 			reflect.ValueOf(field.Name),
 			func() (*Token, Proc, error) {
 				return nil, ctx.Marshal(
-					ctx,
+					ctx.WithPath(field.Name),
 					value.FieldByIndex(field.Index),
 					proc,
 				), nil
@@ -418,13 +414,14 @@ func MarshalMapTuples(ctx Ctx, tuples []*MapTuple, cont Proc) Proc {
 		}
 		tuple := tuples[0]
 		tuples = tuples[1:]
+		path := tuple.Key.Interface()
 		return nil, ctx.Marshal(
-			ctx,
+			ctx.WithPath(path),
 			tuple.Key,
 			// must wrap in closure to delay value marshaling
 			func() (*Token, Proc, error) {
 				return nil, ctx.Marshal(
-					ctx,
+					ctx.WithPath(path),
 					tuple.Value,
 					proc,
 				), nil
@@ -444,6 +441,7 @@ var tupleToken = &Token{
 
 func MarshalTuple(ctx Ctx, items []reflect.Value, cont Proc) Proc {
 	var proc Proc
+	var n int
 	proc = func() (*Token, Proc, error) {
 		if len(items) == 0 {
 			return nil, ctx.Marshal(
@@ -454,8 +452,9 @@ func MarshalTuple(ctx Ctx, items []reflect.Value, cont Proc) Proc {
 		} else {
 			v := items[0]
 			items = items[1:]
+			n++
 			return nil, ctx.Marshal(
-				ctx,
+				ctx.WithPath(n-1),
 				v,
 				proc,
 			), nil

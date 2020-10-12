@@ -555,7 +555,7 @@ var _ SBMarshaler = marshalStringAsInt("")
 
 func (m marshalStringAsInt) MarshalSB(ctx Ctx, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
-		return nil, MarshalAny(ctx, len(m), cont), nil
+		return nil, MarshalValue(ctx, reflect.ValueOf(len(m)), cont), nil
 	}
 }
 
