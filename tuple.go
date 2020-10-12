@@ -70,7 +70,26 @@ func (t *Tuple) unmarshal(ctx Ctx, cont Sink) Sink {
 	}
 }
 
-func UnmarshalTupleTyped(ctx Ctx, typeSpec any, target *Tuple, cont Sink) Sink {
+func TupleTypes(typeSpec any) []reflect.Type {
+	var types []reflect.Type
+	spec := reflect.ValueOf(typeSpec)
+	specType := spec.Type()
+	switch specType.Kind() {
+	case reflect.Func:
+		for i := 0; i < specType.NumIn(); i++ {
+			types = append(types, specType.In(i))
+		}
+	case reflect.Struct:
+		for i := 0; i < specType.NumField(); i++ {
+			types = append(types, specType.Field(i).Type)
+		}
+	default: // NOCOVER
+		panic(fmt.Errorf("bad type: %T", typeSpec))
+	}
+	return types
+}
+
+func UnmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, NewUnmarshalError(ctx, ExpectingTuple)
@@ -78,36 +97,19 @@ func UnmarshalTupleTyped(ctx Ctx, typeSpec any, target *Tuple, cont Sink) Sink {
 		if token.Kind != KindTuple {
 			return nil, NewUnmarshalError(ctx, ExpectingTuple)
 		}
-
-		var types []reflect.Type
-		spec := reflect.ValueOf(typeSpec)
-		specType := spec.Type()
-		switch specType.Kind() {
-		case reflect.Func:
-			for i := 0; i < specType.NumIn(); i++ {
-				types = append(types, specType.In(i))
-			}
-		case reflect.Struct:
-			for i := 0; i < specType.NumField(); i++ {
-				types = append(types, specType.Field(i).Type)
-			}
-		default: // NOCOVER
-			panic(fmt.Errorf("bad type: %T", typeSpec))
-		}
-
 		return unmarshalTupleTyped(ctx, types, target, cont), nil
 	}
 }
 
 type TypedTuple struct {
-	Spec   any
+	Types  []reflect.Type
 	Values Tuple
 }
 
 var _ SBUnmarshaler = new(TypedTuple)
 
 func (t *TypedTuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
-	return UnmarshalTupleTyped(ctx, t.Spec, &t.Values, cont)
+	return UnmarshalTupleTyped(ctx, t.Types, &t.Values, cont)
 }
 
 func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink) Sink {
