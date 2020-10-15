@@ -223,9 +223,9 @@ func TestTupleUnmarshalExisted(t *testing.T) {
 
 func TestTupleUnmarshalInterface(t *testing.T) {
 	var tokens Tokens
-	tuple := Tuple{CollectValueTokens(&tokens)}
+	tuple := Tuple{nil, CollectValueTokens(&tokens)}
 	if err := Copy(
-		Marshal(Tuple{[]int{1, 2, 3}}),
+		Marshal(Tuple{42, []int{1, 2, 3}}),
 		Unmarshal(&tuple),
 	); err != nil {
 		t.Fatal(err)
@@ -233,19 +233,25 @@ func TestTupleUnmarshalInterface(t *testing.T) {
 	if len(tokens) == 0 {
 		t.Fatal()
 	}
+	if tuple[0] != 42 {
+		t.Fatal()
+	}
 
 	tokens = tokens[:0]
 	typed := TypedTuple{
-		Types:  TupleTypes(func(Sink) {}),
-		Values: Tuple{CollectValueTokens(&tokens)},
+		Types:  TupleTypes(func(int, Sink) {}),
+		Values: Tuple{nil, CollectValueTokens(&tokens)},
 	}
 	if err := Copy(
-		Marshal(Tuple{[]int{1, 2, 3}}),
+		Marshal(Tuple{42, []int{1, 2, 3}}),
 		Unmarshal(&typed),
 	); err != nil {
 		t.Fatal(err)
 	}
 	if len(tokens) == 0 {
+		t.Fatal()
+	}
+	if typed.Values[0] != 42 {
 		t.Fatal()
 	}
 }

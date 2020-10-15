@@ -150,10 +150,11 @@ func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink
 			return nil, NewUnmarshalError(ctx, TooManyElement)
 		}
 
-		var elem reflect.Value
 		if i < len(*target) {
-			elem = reflect.New(types[i])
-			elem.Elem().Set(reflect.ValueOf((*target)[i]))
+			elem := reflect.New(types[i])
+			if (*target)[i] != nil {
+				elem.Elem().Set(reflect.ValueOf((*target)[i]))
+			}
 			return ctx.Unmarshal(
 				ctx.WithPath(i),
 				elem,
@@ -164,7 +165,7 @@ func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink
 				},
 			)(token)
 		} else {
-			elem = reflect.New(types[i])
+			elem := reflect.New(types[i])
 			return ctx.Unmarshal(
 				ctx.WithPath(i),
 				elem,
