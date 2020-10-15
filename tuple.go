@@ -3,7 +3,6 @@ package sb
 import (
 	"fmt"
 	"reflect"
-	"unsafe"
 )
 
 type Tuple []any
@@ -153,10 +152,8 @@ func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink
 
 		var elem reflect.Value
 		if i < len(*target) {
-			elem = reflect.NewAt(
-				types[i],
-				unsafe.Pointer(&(*target)[i]),
-			)
+			elem = reflect.New(types[i])
+			elem.Elem().Set(reflect.ValueOf((*target)[i]))
 			return ctx.Unmarshal(
 				ctx.WithPath(i),
 				elem,

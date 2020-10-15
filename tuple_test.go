@@ -233,4 +233,19 @@ func TestTupleUnmarshalInterface(t *testing.T) {
 	if len(tokens) == 0 {
 		t.Fatal()
 	}
+
+	tokens = tokens[:0]
+	typed := TypedTuple{
+		Types:  TupleTypes(func(Sink) {}),
+		Values: Tuple{CollectValueTokens(&tokens)},
+	}
+	if err := Copy(
+		Marshal(Tuple{[]int{1, 2, 3}}),
+		Unmarshal(&typed),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if len(tokens) == 0 {
+		t.Fatal()
+	}
 }
