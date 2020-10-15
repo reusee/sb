@@ -220,3 +220,17 @@ func TestTupleUnmarshalExisted(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestTupleUnmarshalInterface(t *testing.T) {
+	var tokens Tokens
+	tuple := Tuple{CollectValueTokens(&tokens)}
+	if err := Copy(
+		Marshal(Tuple{[]int{1, 2, 3}}),
+		Unmarshal(&tuple),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if len(tokens) == 0 {
+		t.Fatal()
+	}
+}

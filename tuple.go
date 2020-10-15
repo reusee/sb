@@ -62,16 +62,14 @@ func (t *Tuple) unmarshal(i int, ctx Ctx, cont Sink) Sink {
 		if i < len(*t) {
 			var elem reflect.Value
 			if (*t)[i] != nil {
-				elem = reflect.NewAt(
-					reflect.TypeOf((*t)[i]),
-					unsafe.Pointer(&(*t)[i]),
-				)
+				elem = reflect.New(reflect.TypeOf((*t)[i]))
+				elem.Elem().Set(reflect.ValueOf((*t)[i]))
 			} else {
 				var value any
 				elem = reflect.ValueOf(&value)
 			}
 			return ctx.Unmarshal(
-				ctx.WithPath(len(*t)),
+				ctx.WithPath(i),
 				elem,
 				func(token *Token) (Sink, error) {
 					(*t)[i] = elem.Elem().Interface()
@@ -81,7 +79,7 @@ func (t *Tuple) unmarshal(i int, ctx Ctx, cont Sink) Sink {
 		} else {
 			var value any
 			return ctx.Unmarshal(
-				ctx.WithPath(len(*t)),
+				ctx.WithPath(i),
 				reflect.ValueOf(&value),
 				func(token *Token) (Sink, error) {
 					*t = append(*t, value)
