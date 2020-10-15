@@ -114,29 +114,39 @@ func (t *TypedTuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 
 func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink) Sink {
 	var sink Sink
+	i := 0
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, NewUnmarshalError(ctx, ExpectingValue)
 		}
 
 		if token.Kind == KindTupleEnd {
-			if len(types) > 0 {
+			if i != len(types) {
 				return nil, NewUnmarshalError(ctx, ExpectingValue)
 			}
 			return cont, nil
 		}
 
-		if len(types) == 0 {
+		if i == len(types) {
 			return nil, NewUnmarshalError(ctx, TooManyElement)
 		}
 
-		elem := reflect.New(types[0])
+		var elem reflect.Value
+		if i < len(*target) {
+			elem = reflect.ValueOf(*target).Index(i).Addr()
+		} else {
+			elem = reflect.New(types[i])
+		}
 		return ctx.Unmarshal(
 			ctx.WithPath(len(*target)),
 			elem,
 			func(token *Token) (Sink, error) {
-				*target = append(*target, elem.Elem().Interface())
-				types = types[1:]
+				if i < len(*target) {
+					(*target)[i] = elem.Elem().Interface()
+				} else {
+					*target = append(*target, elem.Elem().Interface())
+				}
+				i++
 				return sink(token)
 			},
 		)(token)

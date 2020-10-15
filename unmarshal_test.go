@@ -1720,7 +1720,7 @@ func TestUnmarshalPath(t *testing.T) {
 
 	// TypedTuple
 	tuple3 := TypedTuple{
-		Spec: func(int, string) {},
+		Types: TupleTypes(func(int, string) {}),
 	}
 	if err := Copy(
 		Marshal(func() (int, string) {

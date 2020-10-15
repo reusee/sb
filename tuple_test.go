@@ -28,7 +28,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		Marshal(Tuple{
 			42, true, "foo",
 		}),
-		UnmarshalTupleTyped(DefaultCtx, func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
 	); err != nil {
 		t.Fatal(err)
 	}
@@ -46,27 +46,27 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		Marshal(Tuple{
 			1, false, "bar",
 		}),
-		UnmarshalTupleTyped(DefaultCtx, struct {
+		UnmarshalTupleTyped(DefaultCtx, TupleTypes(struct {
 			int
 			bool
 			string
-		}{}, &tuple, nil),
+		}{}), &tuple, nil),
 	); err != nil {
 		t.Fatal(err)
 	}
-	if tuple[0] != 42 {
+	if tuple[0] != 1 {
 		t.Fatal()
 	}
-	if tuple[1] != true {
+	if tuple[1] != false {
 		t.Fatal()
 	}
-	if tuple[2] != "foo" {
+	if tuple[2] != "bar" {
 		t.Fatal()
 	}
 
 	if err := Copy(
 		Tokens{}.Iter(),
-		UnmarshalTupleTyped(DefaultCtx, func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
 	); !is(err, ExpectingTuple) {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 				Kind: KindString,
 			},
 		}.Iter(),
-		UnmarshalTupleTyped(DefaultCtx, func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
 	); !is(err, ExpectingTuple) {
 		t.Fatal(err)
 	}
@@ -88,7 +88,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 				Kind: KindTuple,
 			},
 		}.Iter(),
-		UnmarshalTupleTyped(DefaultCtx, func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
 	); !is(err, ExpectingValue) {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		Marshal(Tuple{
 			42, true, "foo",
 		}),
-		UnmarshalTupleTyped(DefaultCtx, func(int, bool) {}, &tuple, nil),
+		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool) {}), &tuple, nil),
 	); !is(err, TooManyElement) {
 		t.Fatal(err)
 	}
@@ -106,7 +106,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 		Marshal(Tuple{
 			42, true,
 		}),
-		UnmarshalTupleTyped(DefaultCtx, func(int, bool, string) {}, &tuple, nil),
+		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
 	); !is(err, ExpectingValue) {
 		t.Fatal(err)
 	}
