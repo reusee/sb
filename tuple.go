@@ -47,11 +47,11 @@ func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 		if token.Kind != KindTuple {
 			return nil, NewUnmarshalError(ctx, ExpectingTuple)
 		}
-		return t.unmarshal(ctx, cont), nil
+		return t.unmarshal(0, ctx, cont), nil
 	}
 }
 
-func (t *Tuple) unmarshal(ctx Ctx, cont Sink) Sink {
+func (t *Tuple) unmarshal(i int, ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, NewUnmarshalError(ctx, ExpectingValue)
@@ -59,15 +59,36 @@ func (t *Tuple) unmarshal(ctx Ctx, cont Sink) Sink {
 		if token.Kind == KindTupleEnd {
 			return cont, nil
 		}
-		var value any
-		return ctx.Unmarshal(
-			ctx.WithPath(len(*t)),
-			reflect.ValueOf(&value),
-			func(token *Token) (Sink, error) {
-				*t = append(*t, value)
-				return t.unmarshal(ctx, cont)(token)
-			},
-		)(token)
+		if i < len(*t) {
+			var elem reflect.Value
+			if (*t)[i] != nil {
+				elem = reflect.NewAt(
+					reflect.TypeOf((*t)[i]),
+					unsafe.Pointer(&(*t)[i]),
+				)
+			} else {
+				var value any
+				elem = reflect.ValueOf(&value)
+			}
+			return ctx.Unmarshal(
+				ctx.WithPath(len(*t)),
+				elem,
+				func(token *Token) (Sink, error) {
+					(*t)[i] = elem.Elem().Interface()
+					return t.unmarshal(i+1, ctx, cont)(token)
+				},
+			)(token)
+		} else {
+			var value any
+			return ctx.Unmarshal(
+				ctx.WithPath(len(*t)),
+				reflect.ValueOf(&value),
+				func(token *Token) (Sink, error) {
+					*t = append(*t, value)
+					return t.unmarshal(i+1, ctx, cont)(token)
+				},
+			)(token)
+		}
 	}
 }
 

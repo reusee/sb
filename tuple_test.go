@@ -204,3 +204,19 @@ func TestMarshalEmptyTuple(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestTupleUnmarshalExisted(t *testing.T) {
+	tuple := Tuple{0, nil}
+	if err := Copy(
+		Marshal(Tuple{42, true}),
+		Unmarshal(&tuple),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if tuple[0] != 42 {
+		t.Fatal()
+	}
+	if tuple[1] != true {
+		t.Fatal()
+	}
+}
