@@ -65,7 +65,7 @@ var (
 
 type UnmarshalError struct {
 	_    [0]func()
-	Path []any
+	Path Path
 	Prev error
 }
 
@@ -74,7 +74,11 @@ func (u UnmarshalError) Unwrap() error {
 }
 
 func (u UnmarshalError) Error() string {
-	return fmt.Sprintf("UnmarshalError: %s", u.Prev.Error())
+	ret := fmt.Sprintf("UnmarshalError: %s", u.Prev.Error())
+	if pathStr := u.Path.String(); pathStr != "" {
+		ret += " at " + pathStr
+	}
+	return ret
 }
 
 func NewUnmarshalError(ctx Ctx, err error) error {
@@ -97,7 +101,7 @@ var (
 
 type MarshalError struct {
 	_    [0]func()
-	Path []any
+	Path Path
 	Prev error
 }
 
@@ -106,7 +110,11 @@ func (u MarshalError) Unwrap() error {
 }
 
 func (u MarshalError) Error() string {
-	return fmt.Sprintf("MarshalError: %s", u.Prev.Error())
+	ret := fmt.Sprintf("MarshalError: %s", u.Prev.Error())
+	if pathStr := u.Path.String(); pathStr != "" {
+		ret += " at " + pathStr
+	}
+	return ret
 }
 
 func NewMarshalError(ctx Ctx, err error) error {
@@ -135,7 +143,7 @@ func (d DecodeError) Unwrap() error {
 }
 
 func (d DecodeError) Error() string {
-	return fmt.Sprintf("DecodeError: %s", d.Prev.Error())
+	return fmt.Sprintf("DecodeError: %s at %d", d.Prev.Error(), d.Offset)
 }
 
 func NewDecodeError(offset int64, err error, datas ...any) error {

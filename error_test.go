@@ -18,14 +18,26 @@ func TestError(t *testing.T) {
 	if !errors.Is(err, StringTooLong) {
 		t.Fatal()
 	}
-	if err.Error() != "DecodeError: string too long" {
-		t.Fatal()
+	if err.Error() != "DecodeError: string too long at 0" {
+		t.Fatalf("got %s", err.Error())
 	}
 	err = NewMarshalError(DefaultCtx, BadMapKey)
 	if !errors.Is(err, BadMapKey) {
 		t.Fatal()
 	}
 	if err.Error() != "MarshalError: bad map key" {
+		t.Fatal()
+	}
+	var v map[int]map[int]string
+	err = Copy(
+		Marshal(map[int]map[int]int{
+			42: {
+				43: 44,
+			},
+		}),
+		Unmarshal(&v),
+	)
+	if err.Error() != "UnmarshalError: expecting int at /42/43" {
 		t.Fatal()
 	}
 }
