@@ -73,6 +73,18 @@ var unmarshalTestCases = []UnmarshalTestCase{
 		(func(int) int)(nil),
 		BadTupleType,
 	},
+	39: {testBool(true), testBool(false), nil},
+	40: {testUint8(42), testUint8(0), nil},
+	41: {testInt8(42), testInt8(0), nil},
+	42: {testInt16(42), testInt16(0), nil},
+	43: {testInt32(42), testInt32(0), nil},
+	44: {testInt64(42), testInt64(0), nil},
+	45: {testUint(42), testUint(0), nil},
+	46: {testUint16(42), testUint16(0), nil},
+	47: {testUint64(42), testUint64(0), nil},
+	48: {testFloat32(42), testFloat32(0), nil},
+	49: {testFloat64(42), testFloat64(0), nil},
+	50: {testString("foo"), testString(""), nil},
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -98,7 +110,7 @@ func TestUnmarshal(t *testing.T) {
 				}
 			} else {
 				if !reflect.DeepEqual(c.value, ptr.Elem().Interface()) {
-					t.Fatal()
+					t.Fatalf("not equal: %#v, %#v", c.value, ptr.Elem().Interface())
 				}
 			}
 		}
@@ -1752,4 +1764,20 @@ func TestUnmarshalPath(t *testing.T) {
 		t.Fatal(err)
 	}
 
+}
+
+func TestTapUnmarshal(t *testing.T) {
+	ok := false
+	err := Copy(
+		Tokens{}.Iter(),
+		TapUnmarshal(DefaultCtx, nil, func(ctx Ctx, token Token, target reflect.Value) {
+			ok = true
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok {
+		t.Fatal()
+	}
 }

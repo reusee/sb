@@ -31,6 +31,8 @@ type testInt64 int64
 
 type testUint uint
 
+type testUint8 uint8
+
 type testUint16 uint16
 
 type testUint64 uint64
