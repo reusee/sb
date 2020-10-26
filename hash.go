@@ -9,17 +9,17 @@ import (
 
 func Hash(
 	newState func() hash.Hash,
-	sum *[]byte,
+	target *[]byte,
 	cont Sink,
 ) Sink {
 	return HashFunc(
-		newState, sum, nil, cont,
+		newState, target, nil, cont,
 	)
 }
 
 func HashFunc(
 	newState func() hash.Hash,
-	sum *[]byte,
+	target *[]byte,
 	fn func([]byte, *Token) error,
 	cont Sink,
 ) Sink {
@@ -54,9 +54,12 @@ func HashFunc(
 			KindObjectEnd,
 			KindMapEnd,
 			KindTupleEnd:
-			*sum = state.Sum(nil)
+			sum := state.Sum(nil)
+			if target != nil {
+				*target = sum
+			}
 			if fn != nil {
-				if err := fn(*sum, token); err != nil {
+				if err := fn(sum, token); err != nil {
 					return nil, err
 				}
 			}
@@ -94,9 +97,12 @@ func HashFunc(
 					return nil, err
 				}
 			}
-			*sum = state.Sum(nil)
+			sum := state.Sum(nil)
+			if target != nil {
+				*target = sum
+			}
 			if fn != nil {
-				if err := fn(*sum, token); err != nil {
+				if err := fn(sum, token); err != nil {
 					return nil, err
 				}
 			}
@@ -109,9 +115,12 @@ func HashFunc(
 				state,
 				fn,
 				func(token *Token) (Sink, error) {
-					*sum = state.Sum(nil)
+					sum := state.Sum(nil)
+					if target != nil {
+						*target = sum
+					}
 					if fn != nil {
-						if err := fn(*sum, t); err != nil {
+						if err := fn(sum, t); err != nil {
 							return nil, err
 						}
 					}
