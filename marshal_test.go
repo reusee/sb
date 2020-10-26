@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 	"testing"
@@ -17,6 +18,28 @@ type MarshalTestCase struct {
 }
 
 type foo int
+
+type testBool bool
+
+type testInt8 int8
+
+type testInt16 int16
+
+type testInt32 int32
+
+type testInt64 int64
+
+type testUint uint
+
+type testUint16 uint16
+
+type testUint64 uint64
+
+type testFloat32 float32
+
+type testFloat64 float64
+
+type testString string
 
 var marshalTestCases = []MarshalTestCase{
 	0: {
@@ -344,6 +367,97 @@ var marshalTestCases = []MarshalTestCase{
 		marshalStringAsInt("foo"),
 		[]Token{
 			{Kind: KindInt, Value: int(3)},
+		},
+	},
+
+	29: {
+		testBool(true),
+		[]Token{
+			{Kind: KindBool, Value: true},
+		},
+	},
+
+	30: {
+		testInt8(42),
+		[]Token{
+			{Kind: KindInt8, Value: int8(42)},
+		},
+	},
+
+	31: {
+		testInt16(42),
+		[]Token{
+			{Kind: KindInt16, Value: int16(42)},
+		},
+	},
+
+	32: {
+		testInt32(42),
+		[]Token{
+			{Kind: KindInt32, Value: int32(42)},
+		},
+	},
+
+	33: {
+		testInt64(42),
+		[]Token{
+			{Kind: KindInt64, Value: int64(42)},
+		},
+	},
+
+	34: {
+		testUint(42),
+		[]Token{
+			{Kind: KindUint, Value: uint(42)},
+		},
+	},
+
+	35: {
+		testUint16(42),
+		[]Token{
+			{Kind: KindUint16, Value: uint16(42)},
+		},
+	},
+
+	36: {
+		testUint64(42),
+		[]Token{
+			{Kind: KindUint64, Value: uint64(42)},
+		},
+	},
+
+	37: {
+		testFloat32(42),
+		[]Token{
+			{Kind: KindFloat32, Value: float32(42)},
+		},
+	},
+
+	38: {
+		testFloat64(42),
+		[]Token{
+			{Kind: KindFloat64, Value: float64(42)},
+		},
+	},
+
+	39: {
+		testString("42"),
+		[]Token{
+			{Kind: KindString, Value: "42"},
+		},
+	},
+
+	40: {
+		testFloat32(math.NaN()),
+		[]Token{
+			{Kind: KindNaN},
+		},
+	},
+
+	41: {
+		testFloat64(math.NaN()),
+		[]Token{
+			{Kind: KindNaN},
 		},
 	},
 }
