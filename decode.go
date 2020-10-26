@@ -27,9 +27,8 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 				return nil, nil, nil
 			} else if err != nil {
 				return nil, nil, NewDecodeError(offset, err)
-			} else {
-				offset += 1
 			}
+			offset += 1
 			kind = Kind(buf[0])
 		}
 
