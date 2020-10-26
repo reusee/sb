@@ -155,7 +155,7 @@ func NewDecodeError(offset int64, err error, datas ...any) error {
 		case Kind:
 			ret.Kind = &data
 		default:
-			panic(fmt.Errorf("bad data: %T", data))
+			panic(fmt.Sprintf("bad data: %T", data))
 		}
 	}
 	return ret
