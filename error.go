@@ -148,7 +148,8 @@ func (d DecodeError) Error() string {
 
 func NewDecodeError(offset int64, err error, datas ...any) error {
 	ret := DecodeError{
-		Prev: err,
+		Offset: offset,
+		Prev:   err,
 	}
 	for _, data := range datas {
 		switch data := data.(type) {
