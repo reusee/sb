@@ -2,7 +2,6 @@ package sb
 
 import (
 	"fmt"
-	"hash"
 )
 
 var (
@@ -62,16 +61,4 @@ func MustTreeFromStream(stream Stream) *Tree {
 		panic(err)
 	}
 	return t
-}
-
-func (t *Tree) HashSum(
-	newState func() hash.Hash,
-) (
-	sum []byte,
-	err error,
-) {
-	if err := t.FillHash(newState); err != nil { // NOCOVER
-		return nil, err
-	}
-	return t.Hash, nil
 }
