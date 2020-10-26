@@ -23,7 +23,7 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 			return cont, nil
 		}
 		if byteWriter != nil {
-			if err := byteWriter.WriteByte(byte(token.Kind)); err != nil {
+			if err := byteWriter.WriteByte(byte(token.Kind)); err != nil { // NOCOVER
 				return nil, err
 			}
 		} else {
@@ -37,7 +37,7 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 			case bool:
 				if value {
 					if byteWriter != nil {
-						if err := byteWriter.WriteByte(1); err != nil {
+						if err := byteWriter.WriteByte(1); err != nil { // NOCOVER
 							return nil, err
 						}
 					} else {
@@ -47,7 +47,7 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 					}
 				} else {
 					if byteWriter != nil {
-						if err := byteWriter.WriteByte(0); err != nil {
+						if err := byteWriter.WriteByte(0); err != nil { // NOCOVER
 							return nil, err
 						}
 					} else {
@@ -78,7 +78,7 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 				l := uint64(len(value))
 				if l < 128 {
 					if byteWriter != nil {
-						if err := byteWriter.WriteByte(byte(l)); err != nil {
+						if err := byteWriter.WriteByte(byte(l)); err != nil { // NOCOVER
 							return nil, err
 						}
 					} else {
@@ -89,7 +89,7 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 				} else {
 					n := binary.PutUvarint(buf, l)
 					if byteWriter != nil {
-						if err := byteWriter.WriteByte(byte(^n)); err != nil {
+						if err := byteWriter.WriteByte(byte(^n)); err != nil { // NOCOVER
 							return nil, err
 						}
 					} else {
@@ -109,7 +109,7 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 				l := uint64(len(value))
 				if l < 128 {
 					if byteWriter != nil {
-						if err := byteWriter.WriteByte(byte(l)); err != nil {
+						if err := byteWriter.WriteByte(byte(l)); err != nil { // NOCOVER
 							return nil, err
 						}
 					} else {
@@ -120,7 +120,7 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 				} else {
 					n := binary.PutUvarint(buf, l)
 					if byteWriter != nil {
-						if err := byteWriter.WriteByte(byte(^n)); err != nil {
+						if err := byteWriter.WriteByte(byte(^n)); err != nil { // NOCOVER
 							return nil, err
 						}
 					} else {
