@@ -23,7 +23,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		); err != nil {
 			var decodeErr DecodeError
 			var unmarshalErr UnmarshalError
-			if !as(err, &decodeErr) && !as(err, &unmarshalErr) {
+			if !as(err, &decodeErr) && !as(err, &unmarshalErr) { // NOCOVER
 				panic("should be decode or unmarshal error")
 			}
 			return 0
@@ -72,7 +72,7 @@ func Fuzz(data []byte) int { // NOCOVER
 					pt("%+v\n%+v\n\n", token, tokens2[i])
 				}
 			}
-			for _, token := range tokens2[len(tokens1):] {
+			for _, token := range tokens2[len(tokens1):] { // NOCOVER
 				pt("---\n%+v\n\n", token)
 			}
 			panic("not equal") // NOCOVER
@@ -83,13 +83,13 @@ func Fuzz(data []byte) int { // NOCOVER
 		if err := Copy(
 			Marshal(obj2),
 			Hash(fnv.New128, &sum1, nil),
-		); err != nil {
+		); err != nil { // NOCOVER
 			panic(err)
 		}
 		if err := Copy(
 			Marshal(obj2),
 			Hash(fnv.New128a, &sum2, nil),
-		); err != nil {
+		); err != nil { // NOCOVER
 			panic(err)
 		}
 		if bytes.Equal(sum1, sum2) { // NOCOVER
@@ -124,7 +124,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		if err := Copy(
 			Marshal(obj2),
 			Hash(newMapHashState, &mapHashSum, nil),
-		); err != nil {
+		); err != nil { // NOCOVER
 			panic(err)
 		}
 
@@ -271,7 +271,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			// collect value tokens
 			func(in Stream) Stream {
 				var tokens Tokens
-				if err := Copy(in, CollectValueTokens(&tokens)); err != nil {
+				if err := Copy(in, CollectValueTokens(&tokens)); err != nil { // NOCOVER
 					panic(err)
 				}
 				return tokens.Iter()
@@ -311,13 +311,13 @@ func Fuzz(data []byte) int { // NOCOVER
 		if err := Copy(
 			tree.Iter(),
 			Hash(newMapHashState, &sum1, nil),
-		); err != nil {
+		); err != nil { // NOCOVER
 			panic(err)
 		}
 		if err := Copy(
 			fn(tree.Iter()),
 			Hash(newMapHashState, &sum2, nil),
-		); err != nil {
+		); err != nil { // NOCOVER
 			panic(err)
 		}
 		if !bytes.Equal(sum1, sum2) { // NOCOVER

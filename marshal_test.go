@@ -783,9 +783,7 @@ func TestMarshalUnexportedField(t *testing.T) {
 }
 
 func TestMarshalNonEmpty(t *testing.T) {
-	proc1 := MarshalValue(Ctx{
-		SkipEmptyStructFields: true,
-	}, reflect.ValueOf(struct {
+	proc1 := MarshalValue(Ctx{}.SkipEmpty(), reflect.ValueOf(struct {
 		Foo  int
 		Bar  string
 		Ints []int

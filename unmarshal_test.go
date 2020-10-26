@@ -1287,9 +1287,7 @@ func TestUnmarshalStructUnknownField(t *testing.T) {
 			B int
 		}{}),
 		UnmarshalValue(
-			Ctx{
-				DisallowUnknownStructFields: true,
-			},
+			Ctx{}.Strict(),
 			reflect.ValueOf(&s),
 			nil,
 		),
