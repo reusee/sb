@@ -120,12 +120,25 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("not equal")
 		}
 
+		// map hash sum
 		var mapHashSum []byte
 		if err := Copy(
 			Marshal(obj2),
 			Hash(newMapHashState, &mapHashSum, nil),
 		); err != nil { // NOCOVER
 			panic(err)
+		}
+
+		// tree with hash
+		treeWithHash, err := TreeFromStream(
+			Decode(bytes.NewReader(bs)),
+			WithHash{newMapHashState},
+		)
+		if err != nil { // NOCOVER
+			panic(err)
+		}
+		if !bytes.Equal(treeWithHash.Hash, mapHashSum) { // NOCOVER
+			panic("should equal")
 		}
 
 		// random transform

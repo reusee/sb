@@ -1,6 +1,8 @@
 package sb
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestTree(t *testing.T) {
 	for _, c := range marshalTestCases {
