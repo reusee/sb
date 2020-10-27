@@ -26,6 +26,12 @@ type WithHash struct {
 
 func (_ WithHash) IsTreeOption() {}
 
+type TapTree struct {
+	Func func(*Tree)
+}
+
+func (_ TapTree) IsTreeOption() {}
+
 func TreeFromStream(
 	stream Stream,
 	options ...TreeOption,
@@ -36,6 +42,7 @@ func TreeFromStream(
 		root,
 	}
 	var hash []byte
+	var tap func(*Tree)
 
 	for _, option := range options {
 		switch option := option.(type) {
@@ -48,11 +55,16 @@ func TreeFromStream(
 				func(h []byte, _ *Token) error {
 					if len(h) > 0 {
 						hash = h
+					} else {
+						hash = nil
 					}
 					return nil
 				},
 				nil,
 			))
+
+		case TapTree:
+			tap = option.Func
 
 		}
 	}
@@ -68,6 +80,9 @@ func TreeFromStream(
 		node := &Tree{
 			Token: token,
 			Hash:  hash,
+		}
+		if tap != nil {
+			tap(node)
 		}
 		parent := stack[len(stack)-1]
 		parent.Subs = append(parent.Subs, node)
@@ -89,7 +104,11 @@ func TreeFromStream(
 	if len(root.Subs) == 1 {
 		root = root.Subs[0]
 	}
+
 	root.Hash = hash
+	if tap != nil {
+		tap(root)
+	}
 
 	return root, nil
 }
