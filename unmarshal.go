@@ -877,9 +877,9 @@ func unmarshalGenericMap(
 					return nil, NewUnmarshalError(ctx, ExpectingValue)
 				} else if !reflect.TypeOf(key).Comparable() {
 					return nil, NewUnmarshalError(ctx, BadMapKey)
-				} else if f, ok := key.(float64); ok && math.IsNaN(f) {
+				} else if f, ok := key.(float64); ok && f != f {
 					return nil, NewUnmarshalError(ctx, BadMapKey)
-				} else if f, ok := key.(float32); ok && math.IsNaN(float64(f)) {
+				} else if f, ok := key.(float32); ok && f != f {
 					return nil, NewUnmarshalError(ctx, BadMapKey)
 				}
 				var value any

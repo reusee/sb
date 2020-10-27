@@ -123,7 +123,7 @@ func TestUnmarshalNaN(t *testing.T) {
 	if err := Copy(stream, Unmarshal(&f)); err != nil {
 		t.Fatal(err)
 	}
-	if !math.IsNaN(f) {
+	if f == f {
 		t.Fatal()
 	}
 }

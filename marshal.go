@@ -2,7 +2,6 @@ package sb
 
 import (
 	"encoding"
-	"math"
 	"reflect"
 	"sort"
 )
@@ -70,7 +69,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 				return &Token{Kind: KindUint, Value: v}, cont, nil
 
 			case float64:
-				if math.IsNaN(v) {
+				if v != v {
 					return NaN, cont, nil
 				} else {
 					return &Token{Kind: KindFloat64, Value: v}, cont, nil
@@ -80,7 +79,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 				return &Token{Kind: KindInt8, Value: v}, cont, nil
 
 			case float32:
-				if math.IsNaN(float64(v)) {
+				if v != v {
 					return NaN, cont, nil
 				} else {
 					return &Token{Kind: KindFloat32, Value: v}, cont, nil
@@ -204,22 +203,24 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			}, cont, nil
 
 		case reflect.Float32:
-			if math.IsNaN(value.Float()) {
+			f := value.Float()
+			if f != f {
 				return NaN, cont, nil
 			} else {
 				return &Token{
 					Kind:  KindFloat32,
-					Value: float32(value.Float()),
+					Value: float32(f),
 				}, cont, nil
 			}
 
 		case reflect.Float64:
-			if math.IsNaN(value.Float()) {
+			f := value.Float()
+			if f != f {
 				return NaN, cont, nil
 			} else {
 				return &Token{
 					Kind:  KindFloat64,
-					Value: float64(value.Float()),
+					Value: f,
 				}, cont, nil
 			}
 
