@@ -19,33 +19,27 @@ func FindByHash(
 	err error,
 ) {
 
-	tree, err := TreeFromStream(stream)
+	var result *Tree
+
+	_, err = TreeFromStream(
+		stream,
+		WithHash{newState},
+		TapTree{
+			func(tree *Tree) {
+				if len(tree.Hash) > 0 &&
+					bytes.Equal(tree.Hash, hash) {
+					result = tree
+				}
+			},
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
-	if err := tree.FillHash(newState); err != nil { // NOCOVER
-		return nil, err
+
+	if result == nil {
+		return nil, NotFound
 	}
 
-	var iter func(*Tree) (Stream, error)
-	iter = func(tree *Tree) (Stream, error) {
-		if bytes.Equal(tree.Hash, hash) {
-			return tree.Iter(), nil
-		}
-		for _, sub := range tree.Subs {
-			if subStream, err := iter(sub); err != nil { // NOCOVER
-				return nil, err
-			} else if subStream != nil {
-				return subStream, nil
-			}
-		}
-		return nil, nil
-	}
-
-	subStream, err = iter(tree)
-	if subStream == nil {
-		err = NotFound
-	}
-
-	return
+	return result.Iter(), nil
 }
