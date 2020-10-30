@@ -13,12 +13,12 @@ type Ctx struct {
 	SkipEmptyStructFields       bool
 	DisallowUnknownStructFields bool
 
+	detectCycleEnabled bool
+	pointerDepth       int
+	visitedPointers    []uintptr
+
 	// array index, slice index, struct field name, map key, tuple index
 	Path Path
-
-	pointerDepth       int
-	detectCycleEnabled bool
-	visitedPointers    []uintptr
 }
 
 type Path []any
