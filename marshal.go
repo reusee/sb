@@ -301,42 +301,44 @@ var objectToken = &Token{
 }
 
 func MarshalStruct(ctx Ctx, value reflect.Value, cont Proc) Proc {
-	var fields []reflect.StructField
-	valueType := value.Type()
-	numField := valueType.NumField()
-	for i := 0; i < numField; i++ {
-		field := valueType.Field(i)
-		if ctx.SkipEmptyStructFields {
-			fieldValue := value.Field(i)
-			if fieldValue.IsZero() {
-				continue
-			}
-			if field.Type.Kind() == reflect.Slice && fieldValue.Len() == 0 {
-				continue
-			}
-		}
-		if field.PkgPath == "" {
-			// exported field
-			fields = append(fields, field)
-		}
-	}
 	return func() (*Token, Proc, error) {
-		return objectToken, MarshalStructFields(ctx, value, fields, cont), nil
+		return objectToken, MarshalStructFields(ctx, value, cont), nil
 	}
 }
 
-func MarshalStructFields(ctx Ctx, value reflect.Value, fields []reflect.StructField, cont Proc) Proc {
+func MarshalStructFields(ctx Ctx, value reflect.Value, cont Proc) Proc {
+	valueType := value.Type()
+	numField := valueType.NumField()
+	fieldIdx := 0
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
-		if len(fields) == 0 {
+		if fieldIdx == numField {
 			return nil, ctx.Marshal(
 				ctx,
 				objectEndToken,
 				cont,
 			), nil
 		}
-		field := fields[0]
-		fields = fields[1:]
+
+		field := valueType.Field(fieldIdx)
+		if ctx.SkipEmptyStructFields {
+			fieldValue := value.Field(fieldIdx)
+			if fieldValue.IsZero() {
+				fieldIdx++
+				return nil, proc, nil
+			}
+			if field.Type.Kind() == reflect.Slice && fieldValue.Len() == 0 {
+				fieldIdx++
+				return nil, proc, nil
+			}
+		}
+		if field.PkgPath != "" {
+			// unexported field
+			fieldIdx++
+			return nil, proc, nil
+		}
+
+		fieldIdx++
 		return nil, ctx.Marshal(
 			ctx.WithPath(field.Name),
 			reflect.ValueOf(field.Name),
