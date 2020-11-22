@@ -24,7 +24,7 @@ func TestEncode(t *testing.T) {
 	} {
 		if err := Copy(
 			Marshal(v),
-			Encode(io.Discard),
+			Encode(ioutil.Discard),
 		); err != nil {
 			t.Fatal(err)
 		}
