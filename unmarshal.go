@@ -23,8 +23,7 @@ func Unmarshal(target any) Sink {
 }
 
 func TapUnmarshal(ctx Ctx, target any, fn func(Ctx, Token, reflect.Value)) Sink {
-	var unmarshal func(Ctx, reflect.Value, Sink) Sink
-	unmarshal = func(ctx Ctx, target reflect.Value, cont Sink) Sink {
+	unmarshal := func(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		return func(token *Token) (Sink, error) {
 			if token == nil {
 				return cont, nil

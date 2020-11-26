@@ -18,8 +18,7 @@ func Marshal(value any) *Proc {
 }
 
 func TapMarshal(ctx Ctx, value any, fn func(Ctx, reflect.Value)) *Proc {
-	var marshal func(Ctx, reflect.Value, Proc) Proc
-	marshal = func(ctx Ctx, value reflect.Value, cont Proc) Proc {
+	marshal := func(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		fn(ctx, value)
 		return MarshalValue(ctx, value, cont)
 	}
