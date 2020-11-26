@@ -11,9 +11,9 @@ var (
 
 type Tree struct {
 	*Token
+	Paired *Tree
 	Hash   []byte
 	Subs   []*Tree
-	Paired *Tree
 }
 
 type TreeOption interface {

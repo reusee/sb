@@ -355,9 +355,9 @@ func MarshalStructFields(ctx Ctx, value reflect.Value, cont Proc) Proc {
 }
 
 type MapTuple struct {
-	KeyTokens Tokens
 	Key       reflect.Value
 	Value     reflect.Value
+	KeyTokens Tokens
 }
 
 func MarshalMap(ctx Ctx, value reflect.Value, cont Proc) Proc {

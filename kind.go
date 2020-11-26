@@ -3,8 +3,8 @@ package sb
 type Kind uint8
 
 const (
-	KindInvalid Kind = iota
-	KindMin
+	KindInvalid Kind = 0
+	KindMin     Kind = 1
 
 	KindArrayEnd  Kind = 10
 	KindObjectEnd Kind = 20

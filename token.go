@@ -1,8 +1,8 @@
 package sb
 
 type Token struct {
-	Kind  Kind
 	Value any
+	Kind  Kind
 }
 
 type min struct{}

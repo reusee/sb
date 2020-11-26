@@ -185,8 +185,8 @@ func Fuzz(data []byte) int { // NOCOVER
 			// ref and deref
 			func(in Stream) Stream {
 				type ref struct {
-					Hash []byte
 					Tree *Tree
+					Hash []byte
 				}
 				var refs []ref
 				tree := MustTreeFromStream(in)

@@ -65,8 +65,8 @@ var (
 
 type UnmarshalError struct {
 	_    [0]func()
-	Path Path
 	Prev error
+	Path Path
 }
 
 func (u UnmarshalError) Unwrap() error {
@@ -101,8 +101,8 @@ var (
 
 type MarshalError struct {
 	_    [0]func()
-	Path Path
 	Prev error
+	Path Path
 }
 
 func (u MarshalError) Unwrap() error {
@@ -132,10 +132,9 @@ var (
 
 type DecodeError struct {
 	_      [0]func()
-	Offset int64
 	Prev   error
-
-	Kind *Kind
+	Kind   *Kind
+	Offset int64
 }
 
 func (d DecodeError) Unwrap() error {

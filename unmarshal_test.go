@@ -195,12 +195,12 @@ func TestUnmarshalIncompleteStream(t *testing.T) {
 		},
 		{
 			{Kind: KindObject},
-			{KindString, "Foo"},
+			{Kind: KindString, Value: "Foo"},
 		},
 		{
 			{Kind: KindObject},
-			{KindString, "Foo"},
-			{KindString, "Bar"},
+			{Kind: KindString, Value: "Foo"},
+			{Kind: KindString, Value: "Bar"},
 			{KindInt, 42},
 		},
 		{},
@@ -267,7 +267,7 @@ func TestUnmarshalBadBinaryUnmarshaler(t *testing.T) {
 	// bad unmarshaler
 	if err := Copy(
 		Tokens{
-			{KindString, "foo"},
+			{Kind: KindString, Value: "foo"},
 		}.Iter(),
 		Unmarshal(&b),
 	); err == nil {
@@ -318,7 +318,7 @@ func TestUnmarshalBadTextUnmarshaler(t *testing.T) {
 	// bad unmarshaler
 	if err := Copy(
 		Tokens{
-			{KindString, "foo"},
+			{Kind: KindString, Value: "foo"},
 		}.Iter(),
 		Unmarshal(&b),
 	); err == nil {
@@ -330,7 +330,7 @@ func TestUnmarshalBadTextUnmarshaler(t *testing.T) {
 func TestUnmarshalToNilPtr(t *testing.T) {
 	if err := Copy(
 		Tokens{
-			{KindInt, 42},
+			{Kind: KindInt, Value: 42},
 		}.Iter(),
 		Unmarshal((*int)(nil)),
 	); err != nil {
@@ -384,7 +384,7 @@ func TestBadArray(t *testing.T) {
 		Tokens{
 			{Kind: KindArray},
 			{KindInt, 42},
-			{KindInt8, int8(42)},
+			{Kind: KindInt8, Value: int8(42)},
 		}.Iter(),
 		Unmarshal(&v),
 	)
@@ -424,7 +424,7 @@ func TestBadSlice(t *testing.T) {
 		Tokens{
 			{Kind: KindArray},
 			{KindInt, 42},
-			{KindInt8, int8(42)},
+			{Kind: KindInt8, Value: int8(42)},
 		}.Iter(),
 		Unmarshal(&v),
 	)
@@ -477,8 +477,8 @@ func TestBadObject(t *testing.T) {
 	err = Copy(
 		Tokens{
 			{Kind: KindObject},
-			{KindString, "42"},
-			{KindInt8, int8(42)},
+			{Kind: KindString, Value: "42"},
+			{Kind: KindInt8, Value: int8(42)},
 		}.Iter(),
 		Unmarshal(&v),
 	)
@@ -544,7 +544,7 @@ func TestBadMap(t *testing.T) {
 	err = Copy(
 		Tokens{
 			{Kind: KindMap},
-			{KindString, "foo"},
+			{Kind: KindString, Value: "foo"},
 		}.Iter(),
 		Unmarshal(&m),
 	)
@@ -556,8 +556,8 @@ func TestBadMap(t *testing.T) {
 	err = Copy(
 		Tokens{
 			{Kind: KindMap},
-			{KindString, "42"},
-			{KindInt8, int8(42)},
+			{Kind: KindString, Value: "42"},
+			{Kind: KindInt8, Value: int8(42)},
 		}.Iter(),
 		Unmarshal(&m),
 	)
@@ -653,7 +653,7 @@ func TestBadMapGeneric(t *testing.T) {
 	err = Copy(
 		Tokens{
 			{Kind: KindMap},
-			{KindString, "foo"},
+			{Kind: KindString, Value: "foo"},
 		}.Iter(), Unmarshal(
 
 			&m))
@@ -666,8 +666,8 @@ func TestBadMapGeneric(t *testing.T) {
 	err = Copy(
 		Tokens{
 			{Kind: KindMap},
-			{KindString, "42"},
-			{KindInt8, int8(42)},
+			{Kind: KindString, Value: "42"},
+			{Kind: KindInt8, Value: int8(42)},
 		}.Iter(), Unmarshal(
 
 			&m))
@@ -727,7 +727,7 @@ func TestBadMapGeneric(t *testing.T) {
 func TestUnmarshalDeepRef(t *testing.T) {
 	var p ****int
 	err := Copy(Tokens{
-		{KindInt, 42},
+		{Kind: KindInt, Value: 42},
 	}.Iter(), Unmarshal(
 
 		&p))
@@ -744,7 +744,7 @@ func TestUnmarshalDeepRef(t *testing.T) {
 
 	var p2 *int
 	err = Copy(Tokens{
-		{KindInt, 42},
+		{Kind: KindInt, Value: 42},
 	}.Iter(), Unmarshal(
 
 		&p2))
