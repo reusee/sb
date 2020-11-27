@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
+func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
 	var proc Proc
 	var offset int64
 	proc = Proc(func() (token *Token, next Proc, err error) {
@@ -308,6 +308,6 @@ func Decode(r io.Reader) *Proc {
 		byteReader = rd
 	}
 	buf := decodeBufPool.Get().(*[]byte)
-	proc := decodeBuffer(r, byteReader, *buf, nil)
+	proc := DecodeBuffer(r, byteReader, *buf, nil)
 	return &proc
 }
