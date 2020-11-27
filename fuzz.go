@@ -78,6 +78,11 @@ func Fuzz(data []byte) int { // NOCOVER
 			panic("not equal") // NOCOVER
 		}
 
+		// compare bytes
+		if MustCompareBytes(bs, bs) != 0 {
+			panic("not equal")
+		}
+
 		// sum
 		var sum1, sum2 []byte
 		if err := Copy(

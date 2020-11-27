@@ -142,7 +142,11 @@ func (d DecodeError) Unwrap() error {
 }
 
 func (d DecodeError) Error() string {
-	return fmt.Sprintf("DecodeError: %s at %d", d.Prev.Error(), d.Offset)
+	s := fmt.Sprintf("DecodeError: %s at %d", d.Prev.Error(), d.Offset)
+	if d.Kind != nil {
+		s += fmt.Sprintf(" kind %v", d.Kind)
+	}
+	return s
 }
 
 func NewDecodeError(offset int64, err error, datas ...any) error {

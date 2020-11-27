@@ -130,6 +130,19 @@ func TestCompare(t *testing.T) {
 			t.Fatal()
 		}
 
+		if MustCompareBytes(bs1, bs2) != -1 {
+			t.Fatalf("%#v %#v\n", c[0], c[1])
+		}
+		if MustCompareBytes(bs2, bs1) != 1 {
+			t.Fatal()
+		}
+		if MustCompareBytes(bs1, bs1) != 0 {
+			t.Fatal()
+		}
+		if MustCompareBytes(bs2, bs2) != 0 {
+			t.Fatal()
+		}
+
 	}
 
 	if MustCompare(Tokens{

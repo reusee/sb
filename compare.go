@@ -2,7 +2,10 @@ package sb
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
+	"io"
+	"math"
 )
 
 func Compare(stream1, stream2 Stream) (int, error) {
@@ -171,6 +174,261 @@ func Compare(stream1, stream2 Stream) (int, error) {
 func MustCompare(stream1, stream2 Stream) int {
 	res, err := Compare(stream1, stream2)
 	if err != nil { // NOCOVER
+		panic(err)
+	}
+	return res
+}
+
+func CompareBytes(a, b []byte) (int, error) {
+
+	var offsetA int64
+	var offsetB int64
+	readA := func(l int) (ret []byte, err error) {
+		if len(a) < l {
+			return nil, NewDecodeError(offsetA, io.ErrUnexpectedEOF)
+		}
+		ret = a[:l]
+		a = a[l:]
+		offsetA += int64(l)
+		return
+	}
+	readB := func(l int) (ret []byte, err error) {
+		if len(b) < l {
+			return nil, NewDecodeError(offsetB, io.ErrUnexpectedEOF)
+		}
+		ret = b[:l]
+		b = b[l:]
+		offsetB += int64(l)
+		return
+	}
+
+	for {
+
+		if len(a) == 0 && len(b) == 0 {
+			return 0, nil
+		}
+		if len(a) == 0 && len(b) != 0 {
+			return -1, nil
+		}
+		if len(a) != 0 && len(b) == 0 {
+			return 1, nil
+		}
+
+		bs, err := readA(1)
+		if err != nil {
+			return 0, err
+		}
+		kindA := Kind(bs[0])
+		bs, err = readB(1)
+		if err != nil {
+			return 0, err
+		}
+		kindB := Kind(bs[0])
+		if kindA < kindB {
+			return -1, nil
+		}
+		if kindA > kindB {
+			return 1, nil
+		}
+
+		switch kindA {
+
+		case KindBool:
+			bs, err = readA(1)
+			if err != nil {
+				return 0, err
+			}
+			a1 := bs[0] > 0
+			bs, err = readB(1)
+			if err != nil {
+				return 0, err
+			}
+			b1 := bs[0] > 0
+			if !a1 && b1 {
+				return -1, nil
+			} else if a1 && !b1 {
+				return 1, nil
+			}
+
+		case KindInt, KindInt64, KindUint, KindUint64:
+			bs, err = readA(8)
+			if err != nil {
+				return 0, err
+			}
+			a1 := binary.LittleEndian.Uint64(bs)
+			bs, err = readB(8)
+			if err != nil {
+				return 0, err
+			}
+			b1 := binary.LittleEndian.Uint64(bs)
+			if a1 < b1 {
+				return -1, nil
+			} else if a1 > b1 {
+				return 1, nil
+			}
+
+		case KindInt8, KindUint8:
+			bs, err = readA(1)
+			if err != nil {
+				return 0, err
+			}
+			a1 := bs[0]
+			bs, err = readB(1)
+			if err != nil {
+				return 0, err
+			}
+			b1 := bs[0]
+			if a1 < b1 {
+				return -1, nil
+			} else if a1 > b1 {
+				return 1, nil
+			}
+
+		case KindInt16, KindUint16:
+			bs, err = readA(2)
+			if err != nil {
+				return 0, err
+			}
+			a1 := binary.LittleEndian.Uint16(bs)
+			bs, err = readB(2)
+			if err != nil {
+				return 0, err
+			}
+			b1 := binary.LittleEndian.Uint16(bs)
+			if a1 < b1 {
+				return -1, nil
+			} else if a1 > b1 {
+				return 1, nil
+			}
+
+		case KindInt32, KindUint32:
+			bs, err = readA(4)
+			if err != nil {
+				return 0, err
+			}
+			a1 := binary.LittleEndian.Uint32(bs)
+			bs, err = readB(4)
+			if err != nil {
+				return 0, err
+			}
+			b1 := binary.LittleEndian.Uint32(bs)
+			if a1 < b1 {
+				return -1, nil
+			} else if a1 > b1 {
+				return 1, nil
+			}
+
+		case KindFloat32:
+			bs, err := readA(4)
+			if err != nil {
+				return 0, err
+			}
+			a1 := math.Float32frombits(binary.LittleEndian.Uint32(bs))
+			bs, err = readB(4)
+			if err != nil {
+				return 0, err
+			}
+			b1 := math.Float32frombits(binary.LittleEndian.Uint32(bs))
+			if a1 < b1 {
+				return -1, nil
+			} else if a1 > b1 {
+				return 1, nil
+			}
+
+		case KindFloat64:
+			bs, err := readA(8)
+			if err != nil {
+				return 0, err
+			}
+			a1 := math.Float64frombits(binary.LittleEndian.Uint64(bs))
+			bs, err = readB(8)
+			if err != nil {
+				return 0, err
+			}
+			b1 := math.Float64frombits(binary.LittleEndian.Uint64(bs))
+			if a1 < b1 {
+				return -1, nil
+			} else if a1 > b1 {
+				return 1, nil
+			}
+
+		case KindString, KindBytes:
+			var l1 int
+			bs, err := readA(1)
+			if err != nil {
+				return 0, err
+			}
+			x := bs[0]
+			if x < 128 {
+				l1 = int(x)
+			} else {
+				l := ^x
+				if l > 8 {
+					return 0, NewDecodeError(offsetA, StringTooLong)
+				}
+				bs, err = readA(int(l))
+				if err != nil {
+					return 0, err
+				}
+				n, err := binary.ReadUvarint(bytes.NewReader(bs))
+				if err != nil {
+					return 0, err
+				}
+				l1 = int(n)
+			}
+			a1, err := readA(l1)
+			if err != nil {
+				return 0, err
+			}
+			var l2 int
+			bs, err = readB(1)
+			if err != nil {
+				return 0, err
+			}
+			x = bs[0]
+			if x < 128 {
+				l2 = int(x)
+			} else {
+				l := ^x
+				if l > 8 {
+					return 0, NewDecodeError(offsetB, StringTooLong)
+				}
+				bs, err = readB(int(l))
+				if err != nil {
+					return 0, err
+				}
+				n, err := binary.ReadUvarint(bytes.NewReader(bs))
+				if err != nil {
+					return 0, err
+				}
+				l2 = int(n)
+			}
+			b1, err := readB(l2)
+			if err != nil {
+				return 0, err
+			}
+			if res := bytes.Compare(a1, b1); res != 0 {
+				return res, nil
+			}
+
+		case KindMin,
+			KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd,
+			KindNil, KindNaN,
+			KindArray, KindObject, KindMap, KindTuple,
+			KindMax:
+
+		default:
+			return 0, NewDecodeError(offsetA, BadTokenKind, kindA)
+
+		}
+
+	}
+
+}
+
+func MustCompareBytes(a, b []byte) int {
+	res, err := CompareBytes(a, b)
+	if err != nil {
 		panic(err)
 	}
 	return res
