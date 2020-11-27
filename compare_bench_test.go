@@ -8,8 +8,8 @@ import (
 func BenchmarkCompare(b *testing.B) {
 	buf := new(bytes.Buffer)
 	if err := Copy(
-		Marshal(func() int {
-			return 42
+		Marshal(func() string {
+			return "foo"
 		}),
 		Encode(buf),
 	); err != nil {
@@ -19,8 +19,8 @@ func BenchmarkCompare(b *testing.B) {
 
 	buf = new(bytes.Buffer)
 	if err := Copy(
-		Marshal(func() int {
-			return 99
+		Marshal(func() string {
+			return "FOOBAR"
 		}),
 		Encode(buf),
 	); err != nil {
@@ -32,8 +32,8 @@ func BenchmarkCompare(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		MustCompare(
-			Decode(bytes.NewReader(bs1)),
-			Decode(bytes.NewReader(bs2)),
+			DecodeForCompare(bytes.NewReader(bs1)),
+			DecodeForCompare(bytes.NewReader(bs2)),
 		)
 	}
 

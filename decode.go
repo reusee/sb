@@ -18,6 +18,14 @@ var copyBufferPool = sync.Pool{
 }
 
 func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
+	return decodeBuffer(r, byteReader, buf, false, cont)
+}
+
+func DecodeBufferForCompare(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
+	return decodeBuffer(r, byteReader, buf, true, cont)
+}
+
+func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare bool, cont Proc) Proc {
 	var proc Proc
 	var offset int64
 	proc = Proc(func() (token *Token, next Proc, err error) {
@@ -225,6 +233,32 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			if length > 128*1024*1024 {
 				return nil, nil, NewDecodeError(offset, StringTooLong)
 			}
+
+			if forCompare {
+				return &Token{
+						Kind:  kind,
+						Value: length,
+					}, func() (*Token, Proc, error) {
+						builder := new(strings.Builder)
+						builder.Grow(int(length))
+						buf := copyBufferPool.Get().(*[]byte)
+						defer copyBufferPool.Put(buf)
+						if n, err := io.CopyBuffer(
+							builder,
+							io.LimitReader(r, int64(length)),
+							*buf,
+						); err != nil || n != int64(length) {
+							return nil, nil, NewDecodeError(offset, err)
+						} else {
+							offset += int64(length)
+						}
+						return &Token{
+							Kind:  kind,
+							Value: builder.String(),
+						}, cont, nil
+					}, nil
+
+			}
 			builder := new(strings.Builder)
 			builder.Grow(int(length))
 			buf := copyBufferPool.Get().(*[]byte)
@@ -312,12 +346,20 @@ var decodeBufPool = sync.Pool{
 	},
 }
 
-func Decode(r io.Reader) *Proc {
+func decode(r io.Reader, forCompare bool) *Proc {
 	var byteReader io.ByteReader
 	if rd, ok := r.(io.ByteReader); ok {
 		byteReader = rd
 	}
 	buf := decodeBufPool.Get().(*[]byte)
-	proc := DecodeBuffer(r, byteReader, *buf, nil)
+	proc := decodeBuffer(r, byteReader, *buf, forCompare, nil)
 	return &proc
+}
+
+func Decode(r io.Reader) *Proc {
+	return decode(r, false)
+}
+
+func DecodeForCompare(r io.Reader) *Proc {
+	return decode(r, true)
 }
