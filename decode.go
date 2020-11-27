@@ -10,6 +10,13 @@ import (
 	"sync"
 )
 
+var copyBufferPool = sync.Pool{
+	New: func() any {
+		bs := make([]byte, 32*1024)
+		return &bs
+	},
+}
+
 func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
 	var proc Proc
 	var offset int64
@@ -220,7 +227,13 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			}
 			builder := new(strings.Builder)
 			builder.Grow(int(length))
-			if _, err := io.CopyN(builder, r, int64(length)); err != nil {
+			buf := copyBufferPool.Get().(*[]byte)
+			defer copyBufferPool.Put(buf)
+			if n, err := io.CopyBuffer(
+				builder,
+				io.LimitReader(r, int64(length)),
+				*buf,
+			); err != nil || n != int64(length) {
 				return nil, nil, NewDecodeError(offset, err)
 			} else {
 				offset += int64(length)
