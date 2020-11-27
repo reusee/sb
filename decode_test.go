@@ -7,6 +7,10 @@ import (
 	"testing"
 )
 
+func init() {
+	initDecodeStep = 2
+}
+
 type badReader struct{}
 
 var _ io.Reader = badReader{}

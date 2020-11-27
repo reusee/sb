@@ -25,6 +25,8 @@ func DecodeBufferForCompare(r io.Reader, byteReader io.ByteReader, buf []byte, c
 	return decodeBuffer(r, byteReader, buf, true, cont)
 }
 
+var initDecodeStep = 8
+
 func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare bool, cont Proc) Proc {
 	var proc Proc
 	var offset int64
@@ -236,7 +238,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 			if forCompare {
 				length := int(length)
-				step := 2
+				step := initDecodeStep
 				var segments func() (*Token, Proc, error)
 				segments = func() (*Token, Proc, error) {
 					if length == 0 {
@@ -329,7 +331,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 			if forCompare {
 				length := int(length)
-				step := 2
+				step := initDecodeStep
 				var segments func() (*Token, Proc, error)
 				segments = func() (*Token, Proc, error) {
 					if length == 0 {
