@@ -9,10 +9,15 @@ import (
 	"sync"
 )
 
-func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
+func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
 	var proc Proc
 	var offset int64
-	proc = Proc(func() (*Token, Proc, error) {
+	proc = Proc(func() (token *Token, next Proc, err error) {
+		defer func() {
+			if next == nil {
+				decodeBufPool.Put(&buf)
+			}
+		}()
 		var kind Kind
 		if byteReader != nil {
 			if b, err := byteReader.ReadByte(); errors.Is(err, io.EOF) {
@@ -34,7 +39,6 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 		}
 
 		var value any
-		var err error
 		switch kind {
 
 		case KindBool:
@@ -304,7 +308,6 @@ func Decode(r io.Reader) *Proc {
 		byteReader = rd
 	}
 	buf := decodeBufPool.Get().(*[]byte)
-	defer decodeBufPool.Put(buf)
-	proc := DecodeBuffer(r, byteReader, *buf, nil)
+	proc := decodeBuffer(r, byteReader, *buf, nil)
 	return &proc
 }

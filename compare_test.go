@@ -1,6 +1,8 @@
 package sb
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestCompare(t *testing.T) {
 	type Case [2]any
