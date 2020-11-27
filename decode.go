@@ -235,30 +235,45 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			}
 
 			if forCompare {
-				return &Token{
-						Kind:  kind,
-						Value: length,
-					}, func() (*Token, Proc, error) {
-						builder := new(strings.Builder)
-						builder.Grow(int(length))
-						buf := copyBufferPool.Get().(*[]byte)
-						defer copyBufferPool.Put(buf)
-						if n, err := io.CopyBuffer(
-							builder,
-							io.LimitReader(r, int64(length)),
-							*buf,
-						); err != nil || n != int64(length) {
-							return nil, nil, NewDecodeError(offset, err)
-						} else {
-							offset += int64(length)
-						}
+				length := int(length)
+				step := 2
+				var segments func() (*Token, Proc, error)
+				segments = func() (*Token, Proc, error) {
+					if length == 0 {
 						return &Token{
-							Kind:  kind,
-							Value: builder.String(),
-						}, cont, nil
-					}, nil
-
+							Kind: KindStringEnd,
+						}, proc, nil
+					}
+					l := step
+					step *= 2
+					if l > length {
+						l = length
+					}
+					length -= l
+					builder := new(strings.Builder)
+					builder.Grow(l)
+					buf := copyBufferPool.Get().(*[]byte)
+					defer copyBufferPool.Put(buf)
+					if n, err := io.CopyBuffer(
+						builder,
+						io.LimitReader(r, int64(l)),
+						*buf,
+					); err != nil || n != int64(l) {
+						return nil, nil, NewDecodeError(offset, err)
+					} else {
+						offset += int64(length)
+					}
+					token := &Token{
+						Kind:  kind,
+						Value: builder.String(),
+					}
+					return token, segments, nil
+				}
+				return &Token{
+					Kind: KindStringBegin,
+				}, segments, nil
 			}
+
 			builder := new(strings.Builder)
 			builder.Grow(int(length))
 			buf := copyBufferPool.Get().(*[]byte)
@@ -311,6 +326,47 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			if length > 128*1024*1024 {
 				return nil, nil, NewDecodeError(offset, BytesTooLong)
 			}
+
+			if forCompare {
+				length := int(length)
+				step := 2
+				var segments func() (*Token, Proc, error)
+				segments = func() (*Token, Proc, error) {
+					if length == 0 {
+						return &Token{
+							Kind: KindBytesEnd,
+						}, proc, nil
+					}
+					l := step
+					step *= 2
+					if l > length {
+						l = length
+					}
+					length -= l
+					builder := new(bytes.Buffer)
+					builder.Grow(l)
+					buf := copyBufferPool.Get().(*[]byte)
+					defer copyBufferPool.Put(buf)
+					if n, err := io.CopyBuffer(
+						builder,
+						io.LimitReader(r, int64(l)),
+						*buf,
+					); err != nil || n != int64(l) {
+						return nil, nil, NewDecodeError(offset, err)
+					} else {
+						offset += int64(length)
+					}
+					token := &Token{
+						Kind:  kind,
+						Value: builder.Bytes(),
+					}
+					return token, segments, nil
+				}
+				return &Token{
+					Kind: KindBytesBegin,
+				}, segments, nil
+			}
+
 			bs := make([]byte, length)
 			if _, err := io.ReadFull(r, bs); err != nil {
 				return nil, nil, NewDecodeError(offset, err)

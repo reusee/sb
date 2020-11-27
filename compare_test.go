@@ -1,6 +1,7 @@
 package sb
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -8,8 +9,9 @@ func TestCompare(t *testing.T) {
 	type Case [2]any
 
 	type Foo struct {
-		I int
-		S string
+		I  int
+		S  string
+		BS []byte
 	}
 
 	equalCases := []Case{
@@ -19,7 +21,8 @@ func TestCompare(t *testing.T) {
 		{42.0, 42.0},
 		{"foo", "foo"},
 		{[]int{1, 2, 3}, []int{1, 2, 3}},
-		{Foo{42, "foo"}, Foo{42, "foo"}},
+		{Foo{I: 42, S: "foo"}, Foo{I: 42, S: "foo"}},
+		{Foo{I: 42, BS: []byte("foo")}, Foo{I: 42, BS: []byte("foo")}},
 		{map[int]int{1: 1}, map[int]int{1: 1}},
 		{Min, Min},
 		{Max, Max},
@@ -48,8 +51,10 @@ func TestCompare(t *testing.T) {
 		{"fo", "foo"},
 		{[]int{1, 2}, []int{1, 2, 3}},
 		{[]int{1, 2, 2}, []int{1, 2, 3}},
-		{Foo{41, "foo"}, Foo{42, "foo"}},
-		{Foo{42, "aoo"}, Foo{42, "foo"}},
+		{Foo{I: 41, S: "foo"}, Foo{I: 42, S: "foo"}},
+		{Foo{I: 42, S: "aoo"}, Foo{I: 42, S: "foo"}},
+		{Foo{I: 41, BS: []byte("foo")}, Foo{I: 42, BS: []byte("foo")}},
+		{Foo{I: 42, BS: []byte("aoo")}, Foo{I: 42, BS: []byte("foo")}},
 		{42, []int{1, 2, 3}},
 		{
 			42,
@@ -95,6 +100,36 @@ func TestCompare(t *testing.T) {
 		if MustCompare(Marshal(c[1]), Marshal(c[0])) != 1 {
 			t.Fatal()
 		}
+
+		buf := new(bytes.Buffer)
+		if err := Copy(
+			Marshal(c[0]),
+			Encode(buf),
+		); err != nil {
+			t.Fatal(err)
+		}
+		bs1 := buf.Bytes()
+		buf = new(bytes.Buffer)
+		if err := Copy(
+			Marshal(c[1]),
+			Encode(buf),
+		); err != nil {
+			t.Fatal(err)
+		}
+		bs2 := buf.Bytes()
+		if res := MustCompare(
+			DecodeForCompare(bytes.NewReader(bs1)),
+			DecodeForCompare(bytes.NewReader(bs2)),
+		); res != -1 {
+			t.Fatalf("%#v, got %v", c, res)
+		}
+		if MustCompare(
+			DecodeForCompare(bytes.NewReader(bs2)),
+			DecodeForCompare(bytes.NewReader(bs1)),
+		) != 1 {
+			t.Fatal()
+		}
+
 	}
 
 	if MustCompare(Tokens{

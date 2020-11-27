@@ -16,8 +16,12 @@ func _() {
 	_ = x[KindTupleEnd-27]
 	_ = x[KindNil-30]
 	_ = x[KindBool-40]
+	_ = x[KindStringEnd-49]
 	_ = x[KindString-50]
+	_ = x[KindStringBegin-51]
+	_ = x[KindBytesEnd-54]
 	_ = x[KindBytes-55]
+	_ = x[KindBytesBegin-56]
 	_ = x[KindInt-60]
 	_ = x[KindInt8-70]
 	_ = x[KindInt16-80]
@@ -39,7 +43,7 @@ func _() {
 	_ = x[KindMax-255]
 }
 
-const _Kind_name = "KindInvalidKindMinKindArrayEndKindObjectEndKindMapEndKindTupleEndKindNilKindBoolKindStringKindBytesKindIntKindInt8KindInt16KindInt32KindInt64KindUintKindUint8KindUint16KindUint32KindUint64KindFloat32KindFloat64KindNaNKindArrayKindObjectKindMapKindTupleKindPostTagKindRefKindMax"
+const _Kind_name = "KindInvalidKindMinKindArrayEndKindObjectEndKindMapEndKindTupleEndKindNilKindBoolKindStringEndKindStringKindStringBeginKindBytesEndKindBytesKindBytesBeginKindIntKindInt8KindInt16KindInt32KindInt64KindUintKindUint8KindUint16KindUint32KindUint64KindFloat32KindFloat64KindNaNKindArrayKindObjectKindMapKindTupleKindRefKindMax"
 
 var _Kind_map = map[Kind]string{
 	0:   _Kind_name[0:11],
@@ -50,28 +54,31 @@ var _Kind_map = map[Kind]string{
 	27:  _Kind_name[53:65],
 	30:  _Kind_name[65:72],
 	40:  _Kind_name[72:80],
-	50:  _Kind_name[80:90],
-	55:  _Kind_name[90:99],
-	60:  _Kind_name[99:106],
-	70:  _Kind_name[106:114],
-	80:  _Kind_name[114:123],
-	90:  _Kind_name[123:132],
-	100: _Kind_name[132:141],
-	110: _Kind_name[141:149],
-	120: _Kind_name[149:158],
-	130: _Kind_name[158:168],
-	140: _Kind_name[168:178],
-	150: _Kind_name[178:188],
-	160: _Kind_name[188:199],
-	170: _Kind_name[199:210],
-	175: _Kind_name[210:217],
-	180: _Kind_name[217:226],
-	190: _Kind_name[226:236],
-	200: _Kind_name[236:243],
-	210: _Kind_name[243:252],
-	250: _Kind_name[252:263],
-	251: _Kind_name[263:270],
-	255: _Kind_name[270:277],
+	49:  _Kind_name[80:93],
+	50:  _Kind_name[93:103],
+	51:  _Kind_name[103:118],
+	54:  _Kind_name[118:130],
+	55:  _Kind_name[130:139],
+	56:  _Kind_name[139:153],
+	60:  _Kind_name[153:160],
+	70:  _Kind_name[160:168],
+	80:  _Kind_name[168:177],
+	90:  _Kind_name[177:186],
+	100: _Kind_name[186:195],
+	110: _Kind_name[195:203],
+	120: _Kind_name[203:212],
+	130: _Kind_name[212:222],
+	140: _Kind_name[222:232],
+	150: _Kind_name[232:242],
+	160: _Kind_name[242:253],
+	170: _Kind_name[253:264],
+	175: _Kind_name[264:271],
+	180: _Kind_name[271:280],
+	190: _Kind_name[280:290],
+	200: _Kind_name[290:297],
+	210: _Kind_name[297:306],
+	251: _Kind_name[306:313],
+	255: _Kind_name[313:320],
 }
 
 func (i Kind) String() string {

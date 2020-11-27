@@ -11,10 +11,14 @@ const (
 	KindMapEnd    Kind = 25
 	KindTupleEnd  Kind = 27
 
-	KindNil    Kind = 30
-	KindBool   Kind = 40
-	KindString Kind = 50
-	KindBytes  Kind = 55
+	KindNil         Kind = 30
+	KindBool        Kind = 40
+	KindStringEnd   Kind = 49
+	KindString      Kind = 50
+	KindStringBegin Kind = 51
+	KindBytesEnd    Kind = 54
+	KindBytes       Kind = 55
+	KindBytesBegin  Kind = 56
 
 	KindInt   Kind = 60
 	KindInt8  Kind = 70
