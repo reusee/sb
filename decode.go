@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"math"
+	"sync"
 )
 
 func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
@@ -290,12 +291,20 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 	return proc
 }
 
+var decodeBufPool = sync.Pool{
+	New: func() any {
+		bs := make([]byte, 8)
+		return &bs
+	},
+}
+
 func Decode(r io.Reader) *Proc {
 	var byteReader io.ByteReader
 	if rd, ok := r.(io.ByteReader); ok {
 		byteReader = rd
 	}
-	buf := make([]byte, 8)
-	proc := DecodeBuffer(r, byteReader, buf, nil)
+	buf := decodeBufPool.Get().(*[]byte)
+	defer decodeBufPool.Put(buf)
+	proc := DecodeBuffer(r, byteReader, *buf, nil)
 	return &proc
 }
