@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"math"
+	"strings"
 	"sync"
 )
 
@@ -217,18 +218,14 @@ func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) 
 			if length > 128*1024*1024 {
 				return nil, nil, NewDecodeError(offset, StringTooLong)
 			}
-			var bs []byte
-			if int(length) <= len(buf) {
-				bs = buf[:length]
-			} else {
-				bs = make([]byte, length)
-			}
-			if _, err := io.ReadFull(r, bs); err != nil {
+			builder := new(strings.Builder)
+			builder.Grow(int(length))
+			if _, err := io.CopyN(builder, r, int64(length)); err != nil {
 				return nil, nil, NewDecodeError(offset, err)
 			} else {
 				offset += int64(length)
 			}
-			value = string(bs)
+			value = builder.String()
 
 		case KindBytes:
 			var length uint64
