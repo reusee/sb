@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
 )
 
 func Encode(w io.Writer) Sink {
@@ -58,19 +59,72 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 				}
 
 			case int:
-				if err := binary.Write(w, binary.LittleEndian, int64(value)); err != nil { // NOCOVER
+				binary.LittleEndian.PutUint64(buf, uint64(int64(value)))
+				if _, err := w.Write(buf); err != nil {
+					return nil, err
+				}
+
+			case int8:
+				if _, err := w.Write([]byte{uint8(value)}); err != nil {
+					return nil, err
+				}
+
+			case int16:
+				binary.LittleEndian.PutUint16(buf, uint16(value))
+				if _, err := w.Write((buf)[:2]); err != nil {
+					return nil, err
+				}
+
+			case int32:
+				binary.LittleEndian.PutUint32(buf, uint32(value))
+				if _, err := w.Write((buf)[:4]); err != nil {
+					return nil, err
+				}
+
+			case int64:
+				binary.LittleEndian.PutUint64(buf, uint64(value))
+				if _, err := w.Write((buf)); err != nil {
 					return nil, err
 				}
 
 			case uint:
-				if err := binary.Write(w, binary.LittleEndian, uint64(value)); err != nil { // NOCOVER
+				binary.LittleEndian.PutUint64(buf, uint64(value))
+				if _, err := w.Write(buf); err != nil {
 					return nil, err
 				}
 
-			case int8, int16, int32, int64,
-				uint8, uint16, uint32, uint64,
-				float32, float64:
-				if err := binary.Write(w, binary.LittleEndian, value); err != nil { // NOCOVER
+			case uint8:
+				if _, err := w.Write([]byte{value}); err != nil {
+					return nil, err
+				}
+
+			case uint16:
+				binary.LittleEndian.PutUint16(buf, value)
+				if _, err := w.Write((buf)[:2]); err != nil {
+					return nil, err
+				}
+
+			case uint32:
+				binary.LittleEndian.PutUint32(buf, value)
+				if _, err := w.Write((buf)[:4]); err != nil {
+					return nil, err
+				}
+
+			case uint64:
+				binary.LittleEndian.PutUint64(buf, value)
+				if _, err := w.Write((buf)); err != nil {
+					return nil, err
+				}
+
+			case float32:
+				binary.LittleEndian.PutUint32(buf, math.Float32bits(value))
+				if _, err := w.Write((buf)[:4]); err != nil {
+					return nil, err
+				}
+
+			case float64:
+				binary.LittleEndian.PutUint64(buf, math.Float64bits(value))
+				if _, err := w.Write((buf)); err != nil {
 					return nil, err
 				}
 
