@@ -7,15 +7,7 @@ import (
 	"io"
 	"math"
 	"strings"
-	"sync"
 )
-
-var copyBufferPool = sync.Pool{
-	New: func() any {
-		bs := make([]byte, 32*1024)
-		return &bs
-	},
-}
 
 func DecodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, cont Proc) Proc {
 	return decodeBuffer(r, byteReader, buf, false, cont)
@@ -33,7 +25,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 	proc = Proc(func() (token *Token, next Proc, err error) {
 		defer func() {
 			if next == nil {
-				decodeBufPool.Put(&buf)
+				eightBytesPool.Put(&buf)
 			}
 		}()
 		var kind Kind
@@ -397,19 +389,12 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 	return proc
 }
 
-var decodeBufPool = sync.Pool{
-	New: func() any {
-		bs := make([]byte, 8)
-		return &bs
-	},
-}
-
 func decode(r io.Reader, forCompare bool) *Proc {
 	var byteReader io.ByteReader
 	if rd, ok := r.(io.ByteReader); ok {
 		byteReader = rd
 	}
-	buf := decodeBufPool.Get().(*[]byte)
+	buf := eightBytesPool.Get().(*[]byte)
 	proc := decodeBuffer(r, byteReader, *buf, forCompare, nil)
 	return &proc
 }
