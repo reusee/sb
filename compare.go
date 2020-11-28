@@ -370,9 +370,9 @@ func CompareBytes(a, b []byte) (int, error) {
 				if err != nil {
 					return 0, err
 				}
-				n, err := binary.ReadUvarint(bytes.NewReader(bs))
-				if err != nil {
-					return 0, err
+				n, _ := binary.Uvarint(bs)
+				if n == 0 {
+					return 0, NewDecodeError(offsetA, BadStringLength)
 				}
 				l1 = int(n)
 			}
@@ -397,9 +397,9 @@ func CompareBytes(a, b []byte) (int, error) {
 				if err != nil {
 					return 0, err
 				}
-				n, err := binary.ReadUvarint(bytes.NewReader(bs))
-				if err != nil {
-					return 0, err
+				n, _ := binary.Uvarint(bs)
+				if n == 0 {
+					return 0, NewDecodeError(offsetB, BadStringLength)
 				}
 				l2 = int(n)
 			}

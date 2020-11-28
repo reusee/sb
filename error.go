@@ -166,6 +166,7 @@ func NewDecodeError(offset int64, err error, datas ...any) error {
 }
 
 var (
-	StringTooLong = fmt.Errorf("string too long")
-	BytesTooLong  = fmt.Errorf("bytes too long")
+	StringTooLong   = fmt.Errorf("string too long")
+	BytesTooLong    = fmt.Errorf("bytes too long")
+	BadStringLength = fmt.Errorf("bad string length")
 )
