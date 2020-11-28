@@ -29,9 +29,6 @@ func HashFunc(
 			return nil, ExpectingValue
 		}
 
-		buf := eightBytesPool.Get().(*[]byte)
-		defer eightBytesPool.Put(buf)
-
 		state := newState()
 		if _, err := state.Write([]byte{
 			byte(token.Kind),
@@ -82,6 +79,9 @@ func HashFunc(
 			KindUint64,
 			KindFloat32,
 			KindFloat64:
+
+			buf := eightBytesPool.Get().(*[]byte)
+			defer eightBytesPool.Put(buf)
 
 			switch token.Kind {
 			case KindBool:
