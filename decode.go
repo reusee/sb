@@ -23,15 +23,10 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 	var proc Proc
 	var offset int64
 	proc = Proc(func() (token *Token, next Proc, err error) {
-		defer func() {
-			if next == nil {
-				eightBytesPool.Put(&buf)
-			}
-		}()
 		var kind Kind
 		if byteReader != nil {
 			if b, err := byteReader.ReadByte(); errors.Is(err, io.EOF) {
-				return nil, nil, nil
+				return nil, cont, nil
 			} else if err != nil {
 				return nil, nil, NewDecodeError(offset, err)
 			} else {
@@ -40,7 +35,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			}
 		} else {
 			if _, err := io.ReadFull(r, buf[:1]); errors.Is(err, io.EOF) {
-				return nil, nil, nil
+				return nil, cont, nil
 			} else if err != nil {
 				return nil, nil, NewDecodeError(offset, err)
 			}
@@ -246,12 +241,12 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 					length -= l
 					builder := new(strings.Builder)
 					builder.Grow(l)
-					buf := copyBufferPool.Get().(*[]byte)
-					defer copyBufferPool.Put(buf)
+					buf, put := get32KBytes()
+					defer put()
 					if n, err := io.CopyBuffer(
 						builder,
 						io.LimitReader(r, int64(l)),
-						*buf,
+						buf,
 					); err != nil || n != int64(l) {
 						return nil, nil, NewDecodeError(offset, err)
 					} else {
@@ -270,12 +265,12 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 			builder := new(strings.Builder)
 			builder.Grow(int(length))
-			buf := copyBufferPool.Get().(*[]byte)
-			defer copyBufferPool.Put(buf)
+			buf, put := get32KBytes()
+			defer put()
 			if n, err := io.CopyBuffer(
 				builder,
 				io.LimitReader(r, int64(length)),
-				*buf,
+				buf,
 			); err != nil || n != int64(length) {
 				return nil, nil, NewDecodeError(offset, err)
 			} else {
@@ -339,12 +334,12 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 					length -= l
 					builder := new(bytes.Buffer)
 					builder.Grow(l)
-					buf := copyBufferPool.Get().(*[]byte)
-					defer copyBufferPool.Put(buf)
+					buf, put := get32KBytes()
+					defer put()
 					if n, err := io.CopyBuffer(
 						builder,
 						io.LimitReader(r, int64(l)),
-						*buf,
+						buf,
 					); err != nil || n != int64(l) {
 						return nil, nil, NewDecodeError(offset, err)
 					} else {
@@ -394,8 +389,11 @@ func decode(r io.Reader, forCompare bool) *Proc {
 	if rd, ok := r.(io.ByteReader); ok {
 		byteReader = rd
 	}
-	buf := eightBytesPool.Get().(*[]byte)
-	proc := decodeBuffer(r, byteReader, *buf, forCompare, nil)
+	buf, put := getEightBytes()
+	proc := decodeBuffer(r, byteReader, buf, forCompare, func() (*Token, Proc, error) {
+		put()
+		return nil, nil, nil
+	})
 	return &proc
 }
 

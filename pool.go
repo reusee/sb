@@ -1,17 +1,11 @@
 package sb
 
-import "sync"
+import (
+	"github.com/reusee/pr"
+)
 
-var eightBytesPool = sync.Pool{
-	New: func() any {
-		bs := make([]byte, 8)
-		return &bs
-	},
-}
+// 8K
+var getEightBytes = pr.NewBytesPool(8, 1024)
 
-var copyBufferPool = sync.Pool{
-	New: func() any {
-		bs := make([]byte, 32*1024)
-		return &bs
-	},
-}
+// 1M
+var get32KBytes = pr.NewBytesPool(32*1024, 32)

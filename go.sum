@@ -1,4 +1,2 @@
-github.com/dvyukov/go-fuzz v0.0.0-20191206100749-a378175e205c h1:/bXaeEuNG6V0HeyEGw11DYLW5BGsOPlcVRIXbHNUWSo=
-github.com/dvyukov/go-fuzz v0.0.0-20191206100749-a378175e205c/go.mod h1:11Gm+ccJnvAhCNLlf5+cS9KjtbaD5I5zaZpFMsTHWTw=
-github.com/dvyukov/go-fuzz v0.0.0-20200916044129-21309f307f61 h1:u7QPBOrJA2lSn2FBupeLsx8pLb7SpCfc6DCutrAo+v8=
-github.com/dvyukov/go-fuzz v0.0.0-20200916044129-21309f307f61/go.mod h1:11Gm+ccJnvAhCNLlf5+cS9KjtbaD5I5zaZpFMsTHWTw=
+github.com/reusee/pr v0.0.0-20201128163211-cd840e67afb7 h1:tJzzlQFVM/+ahlt4bRlMn6PowgOwzlmHV/Y+SxSTi4I=
+github.com/reusee/pr v0.0.0-20201128163211-cd840e67afb7/go.mod h1:yDr3ReZyWYFsHDC9Gxj8Udlcd1Fxm0N+QGMWkI5G5xE=
