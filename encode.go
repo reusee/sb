@@ -8,8 +8,15 @@ import (
 )
 
 func Encode(w io.Writer) Sink {
-	buf := make([]byte, 8)
-	return EncodeBuffer(w, buf, nil)
+	buf, put := getEightBytes()
+	return EncodeBuffer(
+		w,
+		buf,
+		func(_ *Token) (Sink, error) {
+			put()
+			return nil, nil
+		},
+	)
 }
 
 func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
