@@ -1,2 +1,4 @@
 github.com/reusee/pr v0.0.0-20201128163211-cd840e67afb7 h1:tJzzlQFVM/+ahlt4bRlMn6PowgOwzlmHV/Y+SxSTi4I=
 github.com/reusee/pr v0.0.0-20201128163211-cd840e67afb7/go.mod h1:yDr3ReZyWYFsHDC9Gxj8Udlcd1Fxm0N+QGMWkI5G5xE=
+github.com/reusee/pr v0.0.0-20201130065356-91b192870a84 h1:XJqkwp8jx+acwQKB5qxRYS7RgwfJzRLxAQXqKqsxG6U=
+github.com/reusee/pr v0.0.0-20201130065356-91b192870a84/go.mod h1:yDr3ReZyWYFsHDC9Gxj8Udlcd1Fxm0N+QGMWkI5G5xE=
