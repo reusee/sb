@@ -10,14 +10,10 @@ import (
 //TODO add io.Reader encoder
 
 func Encode(w io.Writer) Sink {
-	buf, put := getEightBytes()
 	return EncodeBuffer(
 		w,
-		buf,
-		func(_ *Token) (Sink, error) {
-			put()
-			return nil, nil
-		},
+		make([]byte, 8),
+		nil,
 	)
 }
 

@@ -4,8 +4,14 @@ import (
 	"github.com/reusee/pr"
 )
 
-// 8K
-var getEightBytes = pr.NewBytesPool(8, 1024)
+// 8 * 1024 = 8K
+var bytesPool8 = pr.NewPool(1024, func() any {
+	bs := make([]byte, 8)
+	return &bs
+})
 
-// 1M
-var get32KBytes = pr.NewBytesPool(32*1024, 32)
+// 32K * 32 = 1M
+var bytesPool32K = pr.NewPool(32, func() any {
+	bs := make([]byte, 32*1024)
+	return &bs
+})
