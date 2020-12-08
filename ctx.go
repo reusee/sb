@@ -10,15 +10,16 @@ type Ctx struct {
 	Marshal   func(Ctx, reflect.Value, Proc) Proc
 	Unmarshal func(Ctx, reflect.Value, Sink) Sink
 
-	SkipEmptyStructFields       bool
-	DisallowUnknownStructFields bool
-
-	detectCycleEnabled bool
-	pointerDepth       int
-	visitedPointers    []uintptr
+	visitedPointers []uintptr
 
 	// array index, slice index, struct field name, map key, tuple index
 	Path Path
+
+	pointerDepth int
+
+	SkipEmptyStructFields       bool
+	DisallowUnknownStructFields bool
+	detectCycleEnabled          bool
 }
 
 type Path []any
