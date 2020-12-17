@@ -1779,3 +1779,26 @@ func TestTapUnmarshal(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestUnmarshalByteArrayKeyMap(t *testing.T) {
+	var v any
+	if err := Copy(
+		Marshal(map[[2]byte]bool{
+			{1, 2}: true,
+		}),
+		Unmarshal(&v),
+	); err != nil {
+		t.Fatal(err)
+	}
+	m, ok := v.(map[any]any)
+	if !ok {
+		t.Fatal()
+	}
+	value, ok := m[[2]byte{1, 2}]
+	if !ok {
+		t.Fatal()
+	}
+	if value != true {
+		t.Fatal()
+	}
+}

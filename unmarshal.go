@@ -872,6 +872,7 @@ func unmarshalGenericMap(
 			ctx,
 			reflect.ValueOf(&key),
 			func(token *Token) (Sink, error) {
+				key = toComparable(key)
 				if key == nil {
 					return nil, NewUnmarshalError(ctx, ExpectingValue)
 				} else if !reflect.TypeOf(key).Comparable() {
@@ -896,6 +897,23 @@ func unmarshalGenericMap(
 		)(p)
 	}
 	return sink
+}
+
+func toComparable(value any) any {
+	if slice, ok := value.([]byte); ok {
+		array := reflect.New(
+			reflect.ArrayOf(
+				len(slice),
+				reflect.TypeOf((*byte)(nil)).Elem(),
+			),
+		).Elem()
+		reflect.Copy(
+			array.Slice(0, len(slice)),
+			reflect.ValueOf(slice),
+		)
+		return array.Interface()
+	}
+	return value
 }
 
 var ellipsesType = reflect.TypeOf((*[]any)(nil)).Elem()
