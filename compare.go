@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"math"
+
+	"github.com/reusee/e4"
 )
 
 func Compare(stream1, stream2 Stream) (int, error) {
@@ -185,7 +187,7 @@ func CompareBytes(a, b []byte) (int, error) {
 	var offsetB int64
 	readA := func(l int) (ret []byte, err error) {
 		if len(a) < l {
-			return nil, NewDecodeError(offsetA, io.ErrUnexpectedEOF)
+			return nil, we(DecodeError, e4.With(Offset(offsetA)), e4.With(io.ErrUnexpectedEOF))
 		}
 		ret = a[:l]
 		a = a[l:]
@@ -194,7 +196,7 @@ func CompareBytes(a, b []byte) (int, error) {
 	}
 	readB := func(l int) (ret []byte, err error) {
 		if len(b) < l {
-			return nil, NewDecodeError(offsetB, io.ErrUnexpectedEOF)
+			return nil, we(DecodeError, e4.With(Offset(offsetB)), e4.With(io.ErrUnexpectedEOF))
 		}
 		ret = b[:l]
 		b = b[l:]
@@ -364,7 +366,7 @@ func CompareBytes(a, b []byte) (int, error) {
 			} else {
 				l := ^x
 				if l > 8 {
-					return 0, NewDecodeError(offsetA, StringTooLong)
+					return 0, we(DecodeError, e4.With(Offset(offsetA)), e4.With(StringTooLong))
 				}
 				bs, err = readA(int(l))
 				if err != nil {
@@ -372,7 +374,7 @@ func CompareBytes(a, b []byte) (int, error) {
 				}
 				n, _ := binary.Uvarint(bs)
 				if n == 0 {
-					return 0, NewDecodeError(offsetA, BadStringLength)
+					return 0, we(DecodeError, e4.With(Offset(offsetA)), e4.With(BadStringLength))
 				}
 				l1 = int(n)
 			}
@@ -391,7 +393,7 @@ func CompareBytes(a, b []byte) (int, error) {
 			} else {
 				l := ^x
 				if l > 8 {
-					return 0, NewDecodeError(offsetB, StringTooLong)
+					return 0, we(DecodeError, e4.With(Offset(offsetB)), e4.With(StringTooLong))
 				}
 				bs, err = readB(int(l))
 				if err != nil {
@@ -399,7 +401,7 @@ func CompareBytes(a, b []byte) (int, error) {
 				}
 				n, _ := binary.Uvarint(bs)
 				if n == 0 {
-					return 0, NewDecodeError(offsetB, BadStringLength)
+					return 0, we(DecodeError, e4.With(Offset(offsetB)), e4.With(BadStringLength))
 				}
 				l2 = int(n)
 			}
@@ -418,7 +420,7 @@ func CompareBytes(a, b []byte) (int, error) {
 			KindMax:
 
 		default:
-			return 0, NewDecodeError(offsetA, BadTokenKind, kindA)
+			return 0, we(DecodeError, e4.With(Offset(offsetA)), e4.With(BadTokenKind), e4.With(kindA))
 
 		}
 

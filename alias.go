@@ -3,6 +3,8 @@ package sb
 import (
 	"errors"
 	"fmt"
+
+	"github.com/reusee/e4"
 )
 
 type (
@@ -13,4 +15,6 @@ var (
 	pt = fmt.Printf
 	is = errors.Is
 	as = errors.As
+
+	we = e4.DefaultWrap
 )

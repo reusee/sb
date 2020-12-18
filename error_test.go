@@ -1,37 +1,13 @@
 package sb
 
 import (
-	"errors"
-	"io"
 	"testing"
+
+	"github.com/reusee/e4"
 )
 
 func TestError(t *testing.T) {
 	var err error
-
-	err = NewUnmarshalError(DefaultCtx, ExpectingInt)
-	if !errors.Is(err, ExpectingInt) {
-		t.Fatal()
-	}
-	if err.Error() != "UnmarshalError: expecting int" {
-		t.Fatalf("got %s", err.Error())
-	}
-
-	err = NewDecodeError(0, StringTooLong)
-	if !errors.Is(err, StringTooLong) {
-		t.Fatal()
-	}
-	if err.Error() != "DecodeError: string too long at 0" {
-		t.Fatalf("got %s", err.Error())
-	}
-
-	err = NewMarshalError(DefaultCtx.WithPath("foo"), BadMapKey)
-	if !errors.Is(err, BadMapKey) {
-		t.Fatal()
-	}
-	if err.Error() != "MarshalError: bad map key at /foo" {
-		t.Fatal()
-	}
 
 	var v map[int]map[int]string
 	err = Copy(
@@ -42,21 +18,22 @@ func TestError(t *testing.T) {
 		}),
 		Unmarshal(&v),
 	)
-	if err.Error() != "UnmarshalError: expecting int at /42/43" {
+	var stack *e4.Stacktrace
+	if !as(err, &stack) {
 		t.Fatal()
 	}
-
-	func() {
-		defer func() {
-			p := recover()
-			if p == nil {
-				t.Fatal()
-			}
-			if p != "bad data: string" {
-				t.Fatalf("got %v", p)
-			}
-		}()
-		NewDecodeError(0, io.EOF, "foo")
-	}()
+	if !is(err, ExpectingInt) {
+		t.Fatal()
+	}
+	var path Path
+	if !as(err, &path) {
+		t.Fatal()
+	}
+	if path.String() != "/42/43" {
+		t.Fatal()
+	}
+	if !is(err, UnmarshalError) {
+		t.Fatal()
+	}
 
 }

@@ -1095,6 +1095,7 @@ func TestBadUnmarshalTarget(t *testing.T) {
 }
 
 func TestUnmarshalTupleToErrCaller(t *testing.T) {
+	errFoo := fmt.Errorf("foo")
 	err := Copy(
 		Marshal(func() int {
 			return 42
@@ -1104,16 +1105,20 @@ func TestUnmarshalTupleToErrCaller(t *testing.T) {
 				if i != 42 {
 					t.Fatal()
 				}
-				return fmt.Errorf("foo")
+				return errFoo
 			},
 		),
 	)
-	if err.Error() != "UnmarshalError: foo" {
-		t.Fatalf("got %s", err.Error())
+	if !is(err, errFoo) {
+		t.Fatal()
+	}
+	if !is(err, UnmarshalError) {
+		t.Fatal()
 	}
 }
 
 func TestUnmarshalTupleToErrVariadicCaller(t *testing.T) {
+	errFoo := fmt.Errorf("foo")
 	err := Copy(
 		Marshal(func() int {
 			return 42
@@ -1126,11 +1131,14 @@ func TestUnmarshalTupleToErrVariadicCaller(t *testing.T) {
 				if args[0].(int) != 42 {
 					t.Fatal()
 				}
-				return fmt.Errorf("foo")
+				return errFoo
 			},
 		),
 	)
-	if err.Error() != "UnmarshalError: foo" {
+	if !is(err, errFoo) {
+		t.Fatal()
+	}
+	if !is(err, UnmarshalError) {
 		t.Fatal()
 	}
 }

@@ -21,9 +21,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			Decode(io.TeeReader(r, tee)),
 			Unmarshal(&obj),
 		); err != nil {
-			var decodeErr DecodeError
-			var unmarshalErr UnmarshalError
-			if !as(err, &decodeErr) && !as(err, &unmarshalErr) { // NOCOVER
+			if !is(err, DecodeError) && !is(err, UnmarshalError) { // NOCOVER
 				panic("should be decode or unmarshal error")
 			}
 			return 0

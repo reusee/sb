@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/reusee/e4"
 )
 
 type Ctx struct {
@@ -30,6 +32,21 @@ func (p Path) String() string {
 		b.WriteString(fmt.Sprintf("/%v", elem))
 	}
 	return b.String()
+}
+
+func WithPath(ctx Ctx) e4.WrapFunc {
+	return func(prev error) error {
+		return e4.Chain{
+			Err:  append(ctx.Path[:0:0], ctx.Path...),
+			Prev: prev,
+		}
+	}
+}
+
+var _ error = Path{}
+
+func (p Path) Error() string {
+	return "path: " + p.String()
 }
 
 var DefaultCtx = Ctx{

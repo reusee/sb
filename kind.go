@@ -45,3 +45,9 @@ const (
 
 	KindMax Kind = 0xFF
 )
+
+var _ error = Kind(0)
+
+func (k Kind) Error() string {
+	return "kind: " + k.String()
+}

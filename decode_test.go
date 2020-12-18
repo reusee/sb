@@ -62,7 +62,17 @@ func TestDecodeError(t *testing.T) {
 		if err == nil {
 			t.Fatal()
 		}
-		if err.Error() != "DecodeError: EOF at 1" {
+		if !is(err, DecodeError) {
+			t.Fatal()
+		}
+		if !is(err, io.EOF) {
+			t.Fatal()
+		}
+		var offset Offset
+		if !as(err, &offset) {
+			t.Fatal()
+		}
+		if offset != 1 {
 			t.Fatal()
 		}
 	}

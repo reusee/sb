@@ -1,6 +1,8 @@
 package sb
 
-import "fmt"
+import (
+	"fmt"
+)
 
 var (
 	BadMapKey    = fmt.Errorf("bad map key")
@@ -63,30 +65,7 @@ var (
 
 // unmarshal
 
-type UnmarshalError struct {
-	_    [0]func()
-	Prev error
-	Path Path
-}
-
-func (u UnmarshalError) Unwrap() error {
-	return u.Prev
-}
-
-func (u UnmarshalError) Error() string {
-	ret := fmt.Sprintf("UnmarshalError: %s", u.Prev.Error())
-	if pathStr := u.Path.String(); pathStr != "" {
-		ret += " at " + pathStr
-	}
-	return ret
-}
-
-func NewUnmarshalError(ctx Ctx, err error) error {
-	return UnmarshalError{
-		Path: append(ctx.Path[:0:0], ctx.Path...),
-		Prev: err,
-	}
-}
+var UnmarshalError = fmt.Errorf("unmarshal error")
 
 var (
 	BadFieldName        = fmt.Errorf("bad field name")
@@ -99,30 +78,7 @@ var (
 
 // marshal
 
-type MarshalError struct {
-	_    [0]func()
-	Prev error
-	Path Path
-}
-
-func (u MarshalError) Unwrap() error {
-	return u.Prev
-}
-
-func (u MarshalError) Error() string {
-	ret := fmt.Sprintf("MarshalError: %s", u.Prev.Error())
-	if pathStr := u.Path.String(); pathStr != "" {
-		ret += " at " + pathStr
-	}
-	return ret
-}
-
-func NewMarshalError(ctx Ctx, err error) error {
-	return MarshalError{
-		Path: append(ctx.Path[:0:0], ctx.Path...),
-		Prev: err,
-	}
-}
+var MarshalError = fmt.Errorf("marshal error")
 
 var (
 	CyclicPointer = fmt.Errorf("cyclic pointer")
@@ -130,40 +86,7 @@ var (
 
 // decode
 
-type DecodeError struct {
-	_      [0]func()
-	Prev   error
-	Kind   *Kind
-	Offset int64
-}
-
-func (d DecodeError) Unwrap() error {
-	return d.Prev
-}
-
-func (d DecodeError) Error() string {
-	s := fmt.Sprintf("DecodeError: %s at %d", d.Prev.Error(), d.Offset)
-	if d.Kind != nil {
-		s += fmt.Sprintf(" kind %v", d.Kind)
-	}
-	return s
-}
-
-func NewDecodeError(offset int64, err error, datas ...any) error {
-	ret := DecodeError{
-		Offset: offset,
-		Prev:   err,
-	}
-	for _, data := range datas {
-		switch data := data.(type) {
-		case Kind:
-			ret.Kind = &data
-		default:
-			panic(fmt.Sprintf("bad data: %T", data))
-		}
-	}
-	return ret
-}
+var DecodeError = fmt.Errorf("decode error")
 
 var (
 	StringTooLong   = fmt.Errorf("string too long")
