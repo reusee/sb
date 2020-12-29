@@ -15,6 +15,7 @@ import (
 type MarshalTestCase struct {
 	value    any
 	expected []Token
+	ctx      Ctx
 }
 
 type foo int
@@ -469,7 +470,7 @@ func TestMarshaler(t *testing.T) {
 	for i, c := range marshalTestCases {
 
 		// marshal
-		tokens, err := TokensFromStream(Marshal(c.value))
+		tokens, err := TokensFromStream(MarshalCtx(c.ctx, c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -491,7 +492,7 @@ func TestMarshaler(t *testing.T) {
 		// encode
 		buf := new(bytes.Buffer)
 		if err := Copy(
-			Marshal(c.value),
+			MarshalCtx(c.ctx, c.value),
 			Encode(buf),
 		); err != nil {
 			t.Fatal(err)
@@ -502,7 +503,7 @@ func TestMarshaler(t *testing.T) {
 		}
 
 		// compare
-		tokens, err = TokensFromStream(Marshal(c.value))
+		tokens, err = TokensFromStream(MarshalCtx(c.ctx, c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -510,7 +511,7 @@ func TestMarshaler(t *testing.T) {
 		if err := Copy(tokens.Iter(), Unmarshal(&obj)); err != nil {
 			t.Fatal(err)
 		}
-		if MustCompare(Marshal(obj), Marshal(c.value)) != 0 {
+		if MustCompare(MarshalCtx(c.ctx, obj), MarshalCtx(c.ctx, c.value)) != 0 {
 			t.Fatalf("not equal, got %#v, expected %#v", obj, c.value)
 		}
 

@@ -19,6 +19,11 @@ func Marshal(value any) *Proc {
 	return &marshaler
 }
 
+func MarshalCtx(ctx Ctx, value any) *Proc {
+	marshaler := MarshalValue(ctx, reflect.ValueOf(value), nil)
+	return &marshaler
+}
+
 func TapMarshal(ctx Ctx, value any, fn func(Ctx, reflect.Value)) *Proc {
 	marshal := func(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		fn(ctx, value)
