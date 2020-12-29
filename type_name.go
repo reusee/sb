@@ -1,6 +1,7 @@
 package sb
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 )
@@ -18,7 +19,11 @@ func TypeName(t reflect.Type) (name string) {
 
 	// pointer
 	if t.Kind() == reflect.Ptr {
-		return "*" + TypeName(t.Elem())
+		str := TypeName(t.Elem())
+		if str != "" {
+			return "*" + str
+		}
+		return ""
 	}
 
 	// defined types with package path
@@ -28,12 +33,14 @@ func TypeName(t reflect.Type) (name string) {
 		}
 	}
 
-	// fallback
-	return t.String()
+	return ""
 }
 
 func Register(t reflect.Type) {
 	name := TypeName(t)
+	if name == "" {
+		panic(fmt.Errorf("not defined type: %v", t))
+	}
 	registeredNameToType.LoadOrStore(name, t)
 	registeredTypeToName.LoadOrStore(t, name)
 }
