@@ -10,8 +10,6 @@ import (
 	"github.com/reusee/e4"
 )
 
-//TODO KindTypeName
-
 func Compare(stream1, stream2 Stream) (int, error) {
 	for {
 		t1, err := stream1.Next()
@@ -356,7 +354,7 @@ func CompareBytes(a, b []byte) (int, error) {
 				return 1, nil
 			}
 
-		case KindString, KindBytes:
+		case KindString, KindBytes, KindTypeName:
 			var l1 int
 			bs, err := readA(1)
 			if err != nil {

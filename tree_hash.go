@@ -8,8 +8,6 @@ import (
 	"math"
 )
 
-//TODO KindTypeName
-
 func (t *Tree) FillHash(
 	newState func() hash.Hash,
 ) (
@@ -173,6 +171,22 @@ func (t *Tree) FillHash(
 
 	case KindArray, KindObject, KindMap, KindTuple:
 		// write sub hashes
+		for _, sub := range t.Subs {
+			if err = sub.FillHash(newState); err != nil { // NOCOVER
+				return
+			}
+			if _, err = state.Write(sub.Hash); err != nil { // NOCOVER
+				return
+			}
+		}
+		t.Hash = state.Sum(nil)
+
+	case KindTypeName:
+		// type name
+		if _, err := io.WriteString(state, token.Value.(string)); err != nil { // NOCOVER
+			return err
+		}
+		// subs
 		for _, sub := range t.Subs {
 			if err = sub.FillHash(newState); err != nil { // NOCOVER
 				return

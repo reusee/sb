@@ -18,8 +18,6 @@ func Hash(
 	)
 }
 
-//TODO KindTypeName
-
 func HashFunc(
 	newState func() hash.Hash,
 	target *[]byte,
@@ -210,6 +208,33 @@ func HashFunc(
 				state,
 				fn,
 				func(token *Token) (Sink, error) {
+					sum := state.Sum(nil)
+					if target != nil {
+						*target = sum
+					}
+					if fn != nil {
+						if err := fn(sum, t); err != nil {
+							return nil, err
+						}
+					}
+					return cont.Sink(token)
+				},
+			), nil
+
+		case KindTypeName:
+			if _, err := io.WriteString(state, token.Value.(string)); err != nil { // NOCOVER
+				return nil, err
+			}
+			t := token
+			var subHash []byte
+			return HashFunc(
+				newState,
+				&subHash,
+				fn,
+				func(token *Token) (Sink, error) {
+					if _, err := state.Write(subHash); err != nil { // NOCOVER
+						return nil, err
+					}
 					sum := state.Sum(nil)
 					if target != nil {
 						*target = sum
