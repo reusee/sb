@@ -6,7 +6,7 @@ import (
 
 func TestTree(t *testing.T) {
 	for _, c := range marshalTestCases {
-		tokens, err := TokensFromStream(Marshal(c.value))
+		tokens, err := TokensFromStream(MarshalCtx(c.ctx, c.value))
 		if err != nil {
 			t.Fatal(err)
 		}

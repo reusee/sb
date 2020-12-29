@@ -1,8 +1,21 @@
 package sb
 
-import "reflect"
+import (
+	"reflect"
+	"sync"
+)
 
-func TypeName(t reflect.Type) string {
+var typeToName, nameToType sync.Map
+
+func TypeName(t reflect.Type) (name string) {
+	if v, ok := typeToName.Load(t); ok {
+		return v.(string)
+	}
+
+	defer func() {
+		typeToName.Store(t, name)
+		nameToType.Store(name, t)
+	}()
 
 	// pointer
 	if t.Kind() == reflect.Ptr {
@@ -18,4 +31,8 @@ func TypeName(t reflect.Type) string {
 
 	// fallback
 	return t.String()
+}
+
+func Register(t reflect.Type) {
+	TypeName(t)
 }

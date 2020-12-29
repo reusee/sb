@@ -463,6 +463,17 @@ var marshalTestCases = []MarshalTestCase{
 			{Kind: KindNaN},
 		},
 	},
+
+	42: {
+		value: testInt16(32),
+		expected: []Token{
+			{Kind: KindTypeName, Value: "github.com/reusee/sb.testInt16"},
+			{Kind: KindInt16, Value: int16(32)},
+		},
+		ctx: DefaultCtx.EmitTypeName(),
+	},
+
+	//
 }
 
 func TestMarshaler(t *testing.T) {
@@ -513,6 +524,18 @@ func TestMarshaler(t *testing.T) {
 		}
 		if MustCompare(MarshalCtx(c.ctx, obj), MarshalCtx(c.ctx, c.value)) != 0 {
 			t.Fatalf("not equal, got %#v, expected %#v", obj, c.value)
+		}
+
+		// CollectValueTokens
+		var valueTokens Tokens
+		if err := Copy(
+			tokens.Iter(),
+			CollectValueTokens(&valueTokens),
+		); err != nil {
+			t.Fatal(err)
+		}
+		if len(valueTokens) != len(tokens) {
+			t.Fatalf("%d: expected %d, got %d\n", i, len(tokens), len(valueTokens))
 		}
 
 	}
@@ -681,9 +704,9 @@ func TestValueMarshalFunc(t *testing.T) {
 		return MarshalValue(ctx, value, cont)
 	}
 	for _, c := range marshalTestCases {
-		proc := fn(Ctx{
-			Marshal: fn,
-		}, reflect.ValueOf(c.value), nil)
+		ctx := c.ctx
+		ctx.Marshal = fn
+		proc := fn(ctx, reflect.ValueOf(c.value), nil)
 		stream := &proc
 		if MustCompare(stream, Tokens(c.expected).Iter()) != 0 {
 			t.Fatal("not equal")

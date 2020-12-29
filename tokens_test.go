@@ -19,7 +19,7 @@ func TestTokens(t *testing.T) {
 	}()
 
 	for _, c := range marshalTestCases {
-		MustTokensFromStream(Marshal(c.value))
+		MustTokensFromStream(MarshalCtx(c.ctx, c.value))
 	}
 
 }

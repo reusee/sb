@@ -39,11 +39,12 @@ func _() {
 	_ = x[KindObject-190]
 	_ = x[KindMap-200]
 	_ = x[KindTuple-210]
+	_ = x[KindTypeName-230]
 	_ = x[KindRef-251]
 	_ = x[KindMax-255]
 }
 
-const _Kind_name = "KindInvalidKindMinKindArrayEndKindObjectEndKindMapEndKindTupleEndKindNilKindBoolKindStringEndKindStringKindStringBeginKindBytesEndKindBytesKindBytesBeginKindIntKindInt8KindInt16KindInt32KindInt64KindUintKindUint8KindUint16KindUint32KindUint64KindFloat32KindFloat64KindNaNKindArrayKindObjectKindMapKindTupleKindRefKindMax"
+const _Kind_name = "KindInvalidKindMinKindArrayEndKindObjectEndKindMapEndKindTupleEndKindNilKindBoolKindStringEndKindStringKindStringBeginKindBytesEndKindBytesKindBytesBeginKindIntKindInt8KindInt16KindInt32KindInt64KindUintKindUint8KindUint16KindUint32KindUint64KindFloat32KindFloat64KindNaNKindArrayKindObjectKindMapKindTupleKindTypeNameKindRefKindMax"
 
 var _Kind_map = map[Kind]string{
 	0:   _Kind_name[0:11],
@@ -77,8 +78,9 @@ var _Kind_map = map[Kind]string{
 	190: _Kind_name[280:290],
 	200: _Kind_name[290:297],
 	210: _Kind_name[297:306],
-	251: _Kind_name[306:313],
-	255: _Kind_name[313:320],
+	230: _Kind_name[306:318],
+	251: _Kind_name[318:325],
+	255: _Kind_name[325:332],
 }
 
 func (i Kind) String() string {

@@ -17,4 +17,5 @@ var (
 	as = errors.As
 
 	we = e4.DefaultWrap
+	ce = e4.Check
 )

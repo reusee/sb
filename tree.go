@@ -85,9 +85,18 @@ func TreeFromStream(
 			tap(node)
 		}
 		parent := stack[len(stack)-1]
+		if parent.Token != nil &&
+			parent.Kind == KindTypeName &&
+			len(parent.Subs) > 0 {
+			// filled type name node
+			stack = stack[:len(stack)-1]
+			parent = stack[len(stack)-1]
+		}
 		parent.Subs = append(parent.Subs, node)
 		switch token.Kind {
 		case KindArray, KindObject, KindMap, KindTuple:
+			stack = append(stack, node)
+		case KindTypeName:
 			stack = append(stack, node)
 		case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
 			if len(stack) == 1 {

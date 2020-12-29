@@ -8,6 +8,8 @@ import (
 	"math"
 )
 
+//TODO KindTypeName
+
 func (t *Tree) FillHash(
 	newState func() hash.Hash,
 ) (

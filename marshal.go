@@ -38,7 +38,8 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	if ctx.Marshal == nil {
 		ctx.Marshal = MarshalValue
 	}
-	return func() (*Token, Proc, error) {
+
+	marshal := func() (*Token, Proc, error) {
 
 		if value.IsValid() {
 
@@ -265,6 +266,17 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 
 		}
 	}
+
+	if ctx.WithTypeName && value.IsValid() && value.Type().Name() != "" {
+		return func() (*Token, Proc, error) {
+			return &Token{
+				Kind:  KindTypeName,
+				Value: TypeName(value.Type()),
+			}, marshal, nil
+		}
+	}
+
+	return marshal
 }
 
 var arrayEndToken = reflect.ValueOf(&Token{

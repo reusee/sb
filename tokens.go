@@ -38,8 +38,22 @@ func CollectTokens(tokens *Tokens) Sink {
 
 func CollectValueTokens(tokens *Tokens) Sink {
 	var sink Sink
-	var stack []Kind
+	type Frame struct {
+		Kind Kind
+		N    int
+	}
+	var stack []*Frame
 	sink = func(token *Token) (Sink, error) {
+		if len(stack) > 0 {
+			parent := stack[len(stack)-1]
+			if parent.Kind == KindTypeName && parent.N > 0 {
+				stack = stack[:len(stack)-1]
+				if len(stack) > 0 {
+					parent = stack[len(stack)-1]
+				}
+			}
+			parent.N++
+		}
 		if token == nil {
 			if len(stack) > 0 {
 				return nil, ExpectingValue
@@ -52,8 +66,8 @@ func CollectValueTokens(tokens *Tokens) Sink {
 			if len(stack) == 0 {
 				return nil, UnexpectedEndToken
 			}
-			if token.Kind != stack[len(stack)-1] {
-				return nil, kindToExpectingErr[stack[len(stack)-1]]
+			if token.Kind != stack[len(stack)-1].Kind {
+				return nil, kindToExpectingErr[stack[len(stack)-1].Kind]
 			}
 			stack = stack[:len(stack)-1]
 			if len(stack) == 0 {
@@ -61,16 +75,29 @@ func CollectValueTokens(tokens *Tokens) Sink {
 			}
 			return sink, nil
 		case KindArray:
-			stack = append(stack, KindArrayEnd)
+			stack = append(stack, &Frame{
+				Kind: KindArrayEnd,
+			})
 			return sink, nil
 		case KindObject:
-			stack = append(stack, KindObjectEnd)
+			stack = append(stack, &Frame{
+				Kind: KindObjectEnd,
+			})
 			return sink, nil
 		case KindMap:
-			stack = append(stack, KindMapEnd)
+			stack = append(stack, &Frame{
+				Kind: KindMapEnd,
+			})
 			return sink, nil
 		case KindTuple:
-			stack = append(stack, KindTupleEnd)
+			stack = append(stack, &Frame{
+				Kind: KindTupleEnd,
+			})
+			return sink, nil
+		case KindTypeName:
+			stack = append(stack, &Frame{
+				Kind: KindTypeName,
+			})
 			return sink, nil
 		}
 		if len(stack) > 0 {

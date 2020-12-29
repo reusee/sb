@@ -18,6 +18,8 @@ func Hash(
 	)
 }
 
+//TODO KindTypeName
+
 func HashFunc(
 	newState func() hash.Hash,
 	target *[]byte,

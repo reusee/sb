@@ -10,6 +10,8 @@ import (
 	"github.com/reusee/e4"
 )
 
+//TODO KindTypeName
+
 func Compare(stream1, stream2 Stream) (int, error) {
 	for {
 		t1, err := stream1.Next()

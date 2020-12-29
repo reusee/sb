@@ -471,6 +471,24 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 				cont,
 			)(token)
 
+		case KindTypeName:
+			if hasConcreteType {
+				return ctx.Unmarshal(ctx, target, cont), nil
+			}
+			t, ok := nameToType.Load(token.Value.(string))
+			if !ok {
+				return ctx.Unmarshal(ctx, target, cont), nil
+			}
+			v := reflect.New(t.(reflect.Type))
+			return ctx.Unmarshal(
+				ctx,
+				v,
+				func(token *Token) (Sink, error) {
+					target.Elem().Set(v)
+					return cont.Sink(token)
+				},
+			), nil
+
 		default:
 			return nil, we(UnmarshalError, WithPath(ctx), e4.With(BadTokenKind), e4.With(token.Kind))
 		}

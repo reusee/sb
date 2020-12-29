@@ -41,6 +41,8 @@ const (
 	KindMap    Kind = 200
 	KindTuple  Kind = 210
 
+	KindTypeName Kind = 230
+
 	KindRef Kind = 251
 
 	KindMax Kind = 0xFF
