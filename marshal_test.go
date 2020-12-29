@@ -45,46 +45,46 @@ type testString string
 
 var marshalTestCases = []MarshalTestCase{
 	0: {
-		int(42),
-		[]Token{
+		value: int(42),
+		expected: []Token{
 			{Kind: KindInt, Value: int(42)},
 		},
 	},
 
 	1: {
-		func() *int32 {
+		value: func() *int32 {
 			i := int32(42)
 			return &i
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindInt32, Value: int32(42)},
 		},
 	},
 
 	2: {
-		true,
-		[]Token{
+		value: true,
+		expected: []Token{
 			{Kind: KindBool, Value: true},
 		},
 	},
 
 	3: {
-		uint32(42),
-		[]Token{
+		value: uint32(42),
+		expected: []Token{
 			{Kind: KindUint32, Value: uint32(42)},
 		},
 	},
 
 	4: {
-		float32(42),
-		[]Token{
+		value: float32(42),
+		expected: []Token{
 			{Kind: KindFloat32, Value: float32(42)},
 		},
 	},
 
 	5: {
-		[]int{42, 4, 2},
-		[]Token{
+		value: []int{42, 4, 2},
+		expected: []Token{
 			{Kind: KindArray},
 			{Kind: KindInt, Value: int(42)},
 			{Kind: KindInt, Value: int(4)},
@@ -94,11 +94,11 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	6: {
-		[][]int{
+		value: [][]int{
 			{42, 4, 2},
 			{2, 4, 42},
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindArray},
 			{Kind: KindArray},
 			{Kind: KindInt, Value: int(42)},
@@ -115,14 +115,14 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	7: {
-		"foo",
-		[]Token{
+		value: "foo",
+		expected: []Token{
 			{Kind: KindString, Value: "foo"},
 		},
 	},
 
 	8: {
-		struct {
+		value: struct {
 			Foo int
 			Bar float32
 			Baz string
@@ -133,7 +133,7 @@ var marshalTestCases = []MarshalTestCase{
 			"42",
 			false,
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindObject},
 			{Kind: KindString, Value: "Foo"},
 			{Kind: KindInt, Value: int(42)},
@@ -148,7 +148,7 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	9: {
-		[]interface{}{
+		value: []interface{}{
 			func() **int {
 				i := 42
 				j := &i
@@ -159,7 +159,7 @@ var marshalTestCases = []MarshalTestCase{
 			}(),
 			(interface{})(nil),
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindArray},
 			{Kind: KindInt, Value: int(42)},
 			{Kind: KindNil},
@@ -169,56 +169,56 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	10: {
-		func() *int {
+		value: func() *int {
 			return nil
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindNil},
 		},
 	},
 
 	11: {
-		func() *bool {
+		value: func() *bool {
 			return nil
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindNil},
 		},
 	},
 
 	12: {
-		func() *uint8 {
+		value: func() *uint8 {
 			return nil
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindNil},
 		},
 	},
 
 	13: {
-		func() *float32 {
+		value: func() *float32 {
 			return nil
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindNil},
 		},
 	},
 
 	14: {
-		func() *[]int32 {
+		value: func() *[]int32 {
 			return nil
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindNil},
 		},
 	},
 
 	15: {
-		func() *[]int32 {
+		value: func() *[]int32 {
 			array := []int32{42}
 			return &array
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindArray},
 			{Kind: KindInt32, Value: int32(42)},
 			{Kind: KindArrayEnd},
@@ -226,19 +226,19 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	16: {
-		func() *string {
+		value: func() *string {
 			return nil
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindNil},
 		},
 	},
 
 	17: {
-		func() *struct{} {
+		value: func() *struct{} {
 			return nil
 		}(),
-		[]Token{
+		expected: []Token{
 			{Kind: KindNil},
 		},
 	},
@@ -246,25 +246,25 @@ var marshalTestCases = []MarshalTestCase{
 	18: func() MarshalTestCase {
 		str := strings.Repeat("foo", 1024)
 		return MarshalTestCase{
-			str,
-			[]Token{
+			value: str,
+			expected: []Token{
 				{Kind: KindString, Value: str},
 			},
 		}
 	}(),
 
 	19: {
-		foo(42),
-		[]Token{
+		value: foo(42),
+		expected: []Token{
 			{Kind: KindInt, Value: int(42)},
 		},
 	},
 
 	20: {
-		[]foo{
+		value: []foo{
 			42,
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindArray},
 			{Kind: KindInt, Value: int(42)},
 			{Kind: KindArrayEnd},
@@ -272,12 +272,12 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	21: {
-		struct {
+		value: struct {
 			Foo foo
 		}{
 			42,
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindObject},
 			{Kind: KindString, Value: "Foo"},
 			{Kind: KindInt, Value: int(42)},
@@ -286,14 +286,14 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	22: {
-		struct {
+		value: struct {
 			Foo []foo
 		}{
 			[]foo{
 				42,
 			},
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindObject},
 			{Kind: KindString, Value: "Foo"},
 			{Kind: KindArray},
@@ -304,18 +304,18 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	23: {
-		map[int]int{},
-		[]Token{
+		value: map[int]int{},
+		expected: []Token{
 			{Kind: KindMap},
 			{Kind: KindMapEnd},
 		},
 	},
 
 	24: {
-		map[int]int{
+		value: map[int]int{
 			1: 1,
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindMap},
 			{Kind: KindInt, Value: 1},
 			{Kind: KindInt, Value: 1},
@@ -324,11 +324,11 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	25: {
-		map[int]int{
+		value: map[int]int{
 			42: 42,
 			1:  1,
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindMap},
 			{Kind: KindInt, Value: 1},
 			{Kind: KindInt, Value: 1},
@@ -339,11 +339,11 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	26: {
-		map[any]any{
+		value: map[any]any{
 			42:    42,
 			"foo": "bar",
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindMap},
 			{Kind: KindString, Value: "foo"},
 			{Kind: KindString, Value: "bar"},
@@ -354,10 +354,10 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	27: {
-		func() (int, string) {
+		value: func() (int, string) {
 			return 42, "42"
 		},
-		[]Token{
+		expected: []Token{
 			{Kind: KindTuple},
 			{Kind: KindInt, Value: 42},
 			{Kind: KindString, Value: "42"},
@@ -366,99 +366,99 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	28: {
-		marshalStringAsInt("foo"),
-		[]Token{
+		value: marshalStringAsInt("foo"),
+		expected: []Token{
 			{Kind: KindInt, Value: int(3)},
 		},
 	},
 
 	29: {
-		testBool(true),
-		[]Token{
+		value: testBool(true),
+		expected: []Token{
 			{Kind: KindBool, Value: true},
 		},
 	},
 
 	30: {
-		testInt8(42),
-		[]Token{
+		value: testInt8(42),
+		expected: []Token{
 			{Kind: KindInt8, Value: int8(42)},
 		},
 	},
 
 	31: {
-		testInt16(42),
-		[]Token{
+		value: testInt16(42),
+		expected: []Token{
 			{Kind: KindInt16, Value: int16(42)},
 		},
 	},
 
 	32: {
-		testInt32(42),
-		[]Token{
+		value: testInt32(42),
+		expected: []Token{
 			{Kind: KindInt32, Value: int32(42)},
 		},
 	},
 
 	33: {
-		testInt64(42),
-		[]Token{
+		value: testInt64(42),
+		expected: []Token{
 			{Kind: KindInt64, Value: int64(42)},
 		},
 	},
 
 	34: {
-		testUint(42),
-		[]Token{
+		value: testUint(42),
+		expected: []Token{
 			{Kind: KindUint, Value: uint(42)},
 		},
 	},
 
 	35: {
-		testUint16(42),
-		[]Token{
+		value: testUint16(42),
+		expected: []Token{
 			{Kind: KindUint16, Value: uint16(42)},
 		},
 	},
 
 	36: {
-		testUint64(42),
-		[]Token{
+		value: testUint64(42),
+		expected: []Token{
 			{Kind: KindUint64, Value: uint64(42)},
 		},
 	},
 
 	37: {
-		testFloat32(42),
-		[]Token{
+		value: testFloat32(42),
+		expected: []Token{
 			{Kind: KindFloat32, Value: float32(42)},
 		},
 	},
 
 	38: {
-		testFloat64(42),
-		[]Token{
+		value: testFloat64(42),
+		expected: []Token{
 			{Kind: KindFloat64, Value: float64(42)},
 		},
 	},
 
 	39: {
-		testString("42"),
-		[]Token{
+		value: testString("42"),
+		expected: []Token{
 			{Kind: KindString, Value: "42"},
 		},
 	},
 
 	40: {
-		testFloat32(math.NaN()),
-		[]Token{
+		value: testFloat32(math.NaN()),
+		expected: []Token{
 			{Kind: KindNaN},
 		},
 	},
 
 	41: {
-		testFloat64(math.NaN()),
-		[]Token{
+		value: testFloat64(math.NaN()),
+		expected: []Token{
 			{Kind: KindNaN},
 		},
 	},
