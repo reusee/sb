@@ -473,21 +473,21 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 
 		case KindTypeName:
 			if hasConcreteType {
-				return ctx.Unmarshal(ctx, target, cont), nil
+				return notNull(ctx, ctx.Unmarshal(ctx, target, cont)), nil
 			}
 			t, ok := registeredNameToType.Load(token.Value.(string))
 			if !ok {
-				return ctx.Unmarshal(ctx, target, cont), nil
+				return notNull(ctx, ctx.Unmarshal(ctx, target, cont)), nil
 			}
 			v := reflect.New(t.(reflect.Type))
-			return ctx.Unmarshal(
+			return notNull(ctx, ctx.Unmarshal(
 				ctx,
 				v,
 				func(token *Token) (Sink, error) {
 					target.Elem().Set(v.Elem())
 					return cont.Sink(token)
 				},
-			), nil
+			)), nil
 
 		default:
 			return nil, we(UnmarshalError, WithPath(ctx), e4.With(BadTokenKind), e4.With(token.Kind))
@@ -496,6 +496,15 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		return cont, nil
 	}
 
+}
+
+func notNull(ctx Ctx, cont Sink) Sink {
+	return func(p *Token) (Sink, error) {
+		if p == nil {
+			return nil, we(UnmarshalError, WithPath(ctx), e4.With(ExpectingValue))
+		}
+		return cont(p)
+	}
 }
 
 func ExpectKind(ctx Ctx, kind Kind, cont Sink) Sink {
