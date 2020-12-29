@@ -22,7 +22,6 @@ type Ctx struct {
 	SkipEmptyStructFields       bool
 	DisallowUnknownStructFields bool
 	detectCycleEnabled          bool
-	WithTypeName                bool
 }
 
 type Path []any
@@ -67,10 +66,5 @@ func (c Ctx) Strict() Ctx {
 
 func (c Ctx) WithPath(path any) Ctx {
 	c.Path = append(c.Path, path)
-	return c
-}
-
-func (c Ctx) EmitTypeName() Ctx {
-	c.WithTypeName = true
 	return c
 }

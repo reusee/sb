@@ -1199,7 +1199,7 @@ func TestUnmarshalNewImpl(t *testing.T) {
 			t.Fatal(err)
 		}
 		if fn, ok := value.(func() (int, string, bool)); !ok {
-			t.Fatal()
+			t.Fatalf("got %T", value)
 		} else {
 			i, s, b := fn()
 			if i != 42 {
@@ -1807,6 +1807,22 @@ func TestUnmarshalByteArrayKeyMap(t *testing.T) {
 		t.Fatal()
 	}
 	if value != true {
+		t.Fatal()
+	}
+}
+
+func TestUnmarshalWithTypeName(t *testing.T) {
+	var v any
+	if err := Copy(
+		Marshal(definedInt(42)),
+		Unmarshal(&v),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if v != definedInt(42) {
+		t.Fatal()
+	}
+	if _, ok := v.(definedInt); !ok {
 		t.Fatal()
 	}
 }

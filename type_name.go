@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-var typeToName, nameToType sync.Map
+var typeToName, registeredNameToType, registeredTypeToName sync.Map
 
 func TypeName(t reflect.Type) (name string) {
 	if v, ok := typeToName.Load(t); ok {
@@ -14,7 +14,6 @@ func TypeName(t reflect.Type) (name string) {
 
 	defer func() {
 		typeToName.Store(t, name)
-		nameToType.Store(name, t)
 	}()
 
 	// pointer
@@ -34,5 +33,7 @@ func TypeName(t reflect.Type) (name string) {
 }
 
 func Register(t reflect.Type) {
-	TypeName(t)
+	name := TypeName(t)
+	registeredNameToType.LoadOrStore(name, t)
+	registeredTypeToName.LoadOrStore(t, name)
 }

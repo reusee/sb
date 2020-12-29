@@ -475,7 +475,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 			if hasConcreteType {
 				return ctx.Unmarshal(ctx, target, cont), nil
 			}
-			t, ok := nameToType.Load(token.Value.(string))
+			t, ok := registeredNameToType.Load(token.Value.(string))
 			if !ok {
 				return ctx.Unmarshal(ctx, target, cont), nil
 			}
@@ -484,7 +484,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 				ctx,
 				v,
 				func(token *Token) (Sink, error) {
-					target.Elem().Set(v)
+					target.Elem().Set(v.Elem())
 					return cont.Sink(token)
 				},
 			), nil

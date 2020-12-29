@@ -267,12 +267,14 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		}
 	}
 
-	if ctx.WithTypeName && value.IsValid() && value.Type().Name() != "" {
-		return func() (*Token, Proc, error) {
-			return &Token{
-				Kind:  KindTypeName,
-				Value: TypeName(value.Type()),
-			}, marshal, nil
+	if value.IsValid() {
+		if name, ok := registeredTypeToName.Load(value.Type()); ok {
+			return func() (*Token, Proc, error) {
+				return &Token{
+					Kind:  KindTypeName,
+					Value: name.(string),
+				}, marshal, nil
+			}
 		}
 	}
 

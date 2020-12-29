@@ -44,6 +44,12 @@ type testFloat64 float64
 
 type testString string
 
+type definedInt int
+
+func init() {
+	Register(reflect.TypeOf((*definedInt)(nil)).Elem())
+}
+
 var marshalTestCases = []MarshalTestCase{
 	0: {
 		value: int(42),
@@ -465,12 +471,11 @@ var marshalTestCases = []MarshalTestCase{
 	},
 
 	42: {
-		value: testInt16(32),
+		value: definedInt(32),
 		expected: []Token{
-			{Kind: KindTypeName, Value: "github.com/reusee/sb.testInt16"},
-			{Kind: KindInt16, Value: int16(32)},
+			{Kind: KindTypeName, Value: "github.com/reusee/sb.definedInt"},
+			{Kind: KindInt, Value: int(32)},
 		},
-		ctx: DefaultCtx.EmitTypeName(),
 	},
 
 	//
