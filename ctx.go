@@ -36,7 +36,7 @@ func (p Path) String() string {
 
 func WithPath(ctx Ctx) e4.WrapFunc {
 	return func(prev error) error {
-		return e4.Chain{
+		return e4.Error{
 			Err:  append(ctx.Path[:0:0], ctx.Path...),
 			Prev: prev,
 		}
