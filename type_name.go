@@ -30,6 +30,8 @@ func TypeName(t reflect.Type) (name string) {
 	if definedName := t.Name(); definedName != "" {
 		if pkgPath := t.PkgPath(); pkgPath != "" {
 			return pkgPath + "." + definedName
+		} else {
+			return definedName
 		}
 	}
 

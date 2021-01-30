@@ -16,4 +16,8 @@ func TestTypeName(t *testing.T) {
 	if name := TypeName(reflect.TypeOf((***S)(nil)).Elem()); name != "**github.com/reusee/sb.S" {
 		t.Fatalf("got %s", name)
 	}
+
+	if TypeName(reflect.TypeOf((*int)(nil)).Elem()) != "int" {
+		t.Fatal()
+	}
 }
