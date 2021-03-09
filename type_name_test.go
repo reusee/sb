@@ -21,3 +21,13 @@ func TestTypeName(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestAliasTypeName(t *testing.T) {
+	type Foo int
+	type Bar = Foo
+	nameFoo := TypeName(reflect.TypeOf((*Foo)(nil)).Elem())
+	nameBar := TypeName(reflect.TypeOf((*Bar)(nil)).Elem())
+	if nameFoo != nameBar {
+		t.Fatal()
+	}
+}
