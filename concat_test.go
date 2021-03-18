@@ -8,7 +8,7 @@ func TestConcat(t *testing.T) {
 	var a any
 	var b any
 	if err := Copy(
-		ConcatStream(
+		ConcatStreams(
 			Marshal(42),
 			Marshal(2),
 		),

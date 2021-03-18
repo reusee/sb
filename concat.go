@@ -28,7 +28,7 @@ func ConcatSinks(sinks ...Sink) Sink {
 	return sink
 }
 
-func ConcatStream(streams ...Stream) Stream {
+func ConcatStreams(streams ...Stream) Stream {
 	if len(streams) == 0 {
 		return nil
 	}
