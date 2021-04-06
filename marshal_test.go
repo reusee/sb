@@ -1138,3 +1138,16 @@ func TestMarshalPath(t *testing.T) {
 	}
 
 }
+
+func TestMarshalBadTuple(t *testing.T) {
+	err := Copy(
+		Marshal(func(int) {}),
+		Discard,
+	)
+	if !is(err, MarshalError) {
+		t.Fatal()
+	}
+	if !is(err, BadTupleType) {
+		t.Fatal()
+	}
+}

@@ -254,6 +254,14 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			return nil, MarshalMap(ctx, value, cont), nil
 
 		case reflect.Func:
+			if value.Type().NumIn() != 0 {
+				return nil, nil, we(
+					MarshalError,
+					WithPath(ctx),
+					e4.With(BadTupleType),
+					e4.WithInfo("bad tuple type: %v", value.Type()),
+				)
+			}
 			items := value.Call([]reflect.Value{})
 			return nil, MarshalTuple(
 				ctx,
