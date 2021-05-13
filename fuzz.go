@@ -293,6 +293,15 @@ func Fuzz(data []byte) int { // NOCOVER
 				return tokens.Iter()
 			},
 
+			// sink marshal
+			func(in Stream) Stream {
+				var tokens Tokens
+				if _, err := CollectTokens(&tokens).Marshal(in); err != nil {
+					panic(err)
+				}
+				return tokens.Iter()
+			},
+
 			// tuple
 			func(in Stream) Stream {
 				var v any

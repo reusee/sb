@@ -23,3 +23,21 @@ func (s Sink) Sink(token *Token) (Sink, error) {
 	}
 	return s(token)
 }
+
+func (s Sink) Marshal(o any) (Sink, error) {
+	proc := Marshal(o)
+	for {
+		token, err := proc.Next()
+		if err != nil {
+			return nil, err
+		}
+		if token == nil {
+			break
+		}
+		s, err = s.Sink(token)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return s, nil
+}

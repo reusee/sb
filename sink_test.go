@@ -18,3 +18,14 @@ func TestSinkAsUnmarshaler(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestSinkMarshal(t *testing.T) {
+	var tokens Tokens
+	sink := CollectTokens(&tokens)
+	if _, err := sink.Marshal(42); err != nil {
+		t.Fatal()
+	}
+	if len(tokens) != 1 {
+		t.Fatal()
+	}
+}
