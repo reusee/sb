@@ -1151,3 +1151,20 @@ func TestMarshalBadTuple(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestMarshalNilSBMarshaler(t *testing.T) {
+	var tokens Tokens
+	var p *Custom
+	if err := Copy(
+		Marshal(p),
+		CollectTokens(&tokens),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if len(tokens) != 1 {
+		t.Fatal()
+	}
+	if tokens[0].Kind != KindNil {
+		t.Fatal()
+	}
+}

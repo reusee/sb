@@ -96,6 +96,15 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 				return &Token{Kind: KindInt16, Value: v}, cont, nil
 
 			case SBMarshaler:
+				if value.Kind() == reflect.Ptr && value.IsNil() {
+					_, found := value.Type().Elem().MethodByName("SBMarshaler")
+					if !found {
+						// SBMarshaler is method defined on non-pointer type
+						// calling SBMarshaler will deref the nil pointer
+						// do not try to
+						return Nil, cont, nil
+					}
+				}
 				return nil, v.MarshalSB(ctx, cont), nil
 
 			case encoding.BinaryMarshaler:
