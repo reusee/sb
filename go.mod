@@ -3,7 +3,6 @@ module github.com/reusee/sb
 go 1.14
 
 require (
-	github.com/dvyukov/go-fuzz v0.0.0-20210602112143-b1f3d6f4ef4e // indirect
 	github.com/reusee/dscope v0.0.0-20210406042911-7228063ab887
 	github.com/reusee/e4 v0.0.0-20210520022331-c98605e7b411
 	github.com/reusee/e4qa v0.0.0-20210413061912-3faa8fbddd5d
