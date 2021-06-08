@@ -739,7 +739,9 @@ func unmarshalStruct(
 			ctx,
 			reflect.ValueOf(&name),
 			func(token *Token) (Sink, error) {
-				field, ok := valueType.FieldByName(name)
+				field, ok := valueType.FieldByNameFunc(func(str string) bool {
+					return str == name
+				})
 				if !ok {
 					if ctx.DisallowUnknownStructFields {
 						return nil, we(UnmarshalError, WithPath(ctx), e4.With(UnknownFieldName), e4.With(fmt.Errorf("field: %s", name)))

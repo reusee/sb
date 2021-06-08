@@ -1344,6 +1344,28 @@ func TestUnmarshalEmbedded(t *testing.T) {
 	}
 }
 
+func TestUnmarshalToEmbedded(t *testing.T) {
+	type Foo struct {
+		Bar int
+	}
+	var data struct {
+		Foo
+	}
+	if err := Copy(
+		Marshal(struct {
+			Bar int
+		}{
+			Bar: 42,
+		}),
+		Unmarshal(&data),
+	); err != nil {
+		t.Fatal()
+	}
+	if data.Bar != 42 {
+		t.Fatal()
+	}
+}
+
 func TestUnmarshalPath(t *testing.T) {
 
 	// slice
