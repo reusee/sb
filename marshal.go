@@ -268,7 +268,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 					MarshalError,
 					WithPath(ctx),
 					e4.With(BadTupleType),
-					e4.WithInfo("bad tuple type: %v", value.Type()),
+					e4.NewInfo("bad tuple type: %v", value.Type()),
 				)
 			}
 			items := value.Call([]reflect.Value{})
