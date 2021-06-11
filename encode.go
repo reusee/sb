@@ -7,8 +7,6 @@ import (
 	"math"
 )
 
-//TODO add io.Reader encoder
-
 func Encode(w io.Writer) Sink {
 	return EncodeBuffer(
 		w,
