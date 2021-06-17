@@ -1,17 +1,5 @@
-# sb
-Streaming data toolbox
+// +build ignore
 
-## Features
-
-* marshal and unmarshal
-* encode and decode
-* hash
-* compare 
-* stream and sink combinators
-
-## Demo
-
-```go
 package main
 
 import (
@@ -102,4 +90,3 @@ func must(b bool) {
 		os.Exit(-1)
 	}
 }
-```
