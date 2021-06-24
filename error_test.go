@@ -2,8 +2,6 @@ package sb
 
 import (
 	"testing"
-
-	"github.com/reusee/e4"
 )
 
 func TestError(t *testing.T) {
@@ -18,10 +16,6 @@ func TestError(t *testing.T) {
 		}),
 		Unmarshal(&v),
 	)
-	var stack *e4.Stacktrace
-	if !as(err, &stack) {
-		t.Fatal()
-	}
 	if !is(err, ExpectingInt) {
 		t.Fatal()
 	}
