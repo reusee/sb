@@ -34,6 +34,14 @@ func TapMarshal(ctx Ctx, value any, fn func(Ctx, reflect.Value)) *Proc {
 	return &proc
 }
 
+type UnmarshalFunc func(Ctx, Sink) Sink
+
+var _ SBUnmarshaler = UnmarshalFunc(nil)
+
+func (f UnmarshalFunc) UnmarshalSB(ctx Ctx, cont Sink) Sink {
+	return f(ctx, cont)
+}
+
 func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	if ctx.Marshal == nil {
 		ctx.Marshal = MarshalValue
