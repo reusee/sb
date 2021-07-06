@@ -39,6 +39,14 @@ func TapUnmarshal(ctx Ctx, target any, fn func(Ctx, Token, reflect.Value)) Sink 
 	return unmarshal(ctx, reflect.ValueOf(target), nil)
 }
 
+type UnmarshalFunc func(Ctx, Sink) Sink
+
+var _ SBUnmarshaler = UnmarshalFunc(nil)
+
+func (f UnmarshalFunc) UnmarshalSB(ctx Ctx, cont Sink) Sink {
+	return f(ctx, cont)
+}
+
 func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 	if ctx.Unmarshal == nil {
 		ctx.Unmarshal = UnmarshalValue
