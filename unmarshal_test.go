@@ -1848,3 +1848,27 @@ func TestUnmarshalWithTypeName(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestUnmarshalFunc(t *testing.T) {
+	var i int
+	target := struct {
+		Foo SBUnmarshaler
+	}{
+		Foo: UnmarshalFunc(func(ctx Ctx, cont Sink) Sink {
+			return ctx.Unmarshal(ctx, reflect.ValueOf(&i), cont)
+		}),
+	}
+	if err := Copy(
+		Marshal(struct {
+			Foo int
+		}{
+			Foo: 42,
+		}),
+		Unmarshal(&target),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if i != 42 {
+		t.Fatal()
+	}
+}

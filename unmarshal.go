@@ -141,6 +141,16 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 					return cont, nil
 				}
 
+			case *Sink:
+				if v != nil {
+					return v.Sink(token)
+				}
+
+			case *SBUnmarshaler:
+				if v != nil {
+					return (*v).UnmarshalSB(ctx, cont)(token)
+				}
+
 			case SBUnmarshaler:
 				return v.UnmarshalSB(ctx, cont)(token)
 
