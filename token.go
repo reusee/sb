@@ -5,33 +5,30 @@ type Token struct {
 	Kind  Kind
 }
 
-type min struct{}
+var _ SBMarshaler = Token{}
 
-var _ SBMarshaler = min{}
-
-func (_ min) MarshalSB(_ Ctx, cont Proc) Proc {
+func (t Token) MarshalSB(ctx Ctx, cont Proc) Proc {
 	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind: KindMin,
-		}, cont, nil
+		return &t, cont, nil
 	}
 }
 
-var Min = min{}
+var _ SBUnmarshaler = new(Token)
 
-type max struct{}
-
-var _ SBMarshaler = max{}
-
-func (_ max) MarshalSB(_ Ctx, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind: KindMax,
-		}, cont, nil
+func (t *Token) UnmarshalSB(ctx Ctx, cont Sink) Sink {
+	return func(token *Token) (Sink, error) {
+		*t = *token
+		return cont, nil
 	}
 }
 
-var Max = max{}
+var Min = &Token{
+	Kind: KindMin,
+}
+
+var Max = &Token{
+	Kind: KindMax,
+}
 
 var NaN = &Token{
 	Kind: KindNaN,

@@ -121,9 +121,6 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 				}
 				return nil, ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
 
-			case *Token:
-				return v, cont, nil
-
 			}
 		}
 
