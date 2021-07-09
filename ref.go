@@ -27,10 +27,14 @@ func deref(
 			return nil, cont, nil
 		}
 		if token.Kind == KindRef {
-			hash := token.Value.([]byte)
-			subStream, err := getStream(hash)
+			subStream, err := getStream(token.Value.([]byte))
 			if err != nil {
 				return nil, nil, err
+			}
+			if subStream == nil {
+				return nil, func() (*Token, Proc, error) {
+					return token, proc, nil
+				}, nil
 			}
 			return nil, IterStream(
 				subStream,
