@@ -29,11 +29,16 @@ func TestEncode(t *testing.T) {
 			t.Fatal(err)
 		}
 		buf := new(bytes.Buffer)
+		var l int
 		if err := Copy(
 			Marshal(v),
 			Encode(buf),
+			EncodedLen(&l, nil),
 		); err != nil {
 			t.Fatal(err)
+		}
+		if l != buf.Len() {
+			t.Fatal()
 		}
 	}
 }

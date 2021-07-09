@@ -36,10 +36,18 @@ func Fuzz(data []byte) int { // NOCOVER
 
 		// marshal and encode
 		buf := new(bytes.Buffer)
-		if err := Copy(Marshal(obj), Encode(buf)); err != nil { // NOCOVER
+		var l int
+		if err := Copy(
+			Marshal(obj),
+			Encode(buf),
+			EncodedLen(&l, nil),
+		); err != nil { // NOCOVER
 			panic(err)
 		}
 		bs := buf.Bytes()
+		if l != len(bs) {
+			panic("bad len")
+		}
 
 		// decode and unmarshal
 		var obj2 any
