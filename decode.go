@@ -280,7 +280,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			}
 			value = builder.String()
 
-		case KindBytes:
+		case KindBytes, KindRef:
 			var length uint64
 			var b byte
 			if byteReader != nil {
