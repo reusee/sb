@@ -21,6 +21,8 @@ func DecodeBufferForCompare(r io.Reader, byteReader io.ByteReader, buf []byte, c
 
 var initDecodeStep = 8
 
+var MaxDecodeStringLength uint64 = 4 * 1024 * 1024 * 1024
+
 func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare bool, cont Proc) Proc {
 	var proc Proc
 	var offset int64
@@ -221,7 +223,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 					return nil, nil, we(DecodeError, e4.With(Offset(offset)), e4.With(err))
 				}
 			}
-			if length > 128*1024*1024 {
+			if length > MaxDecodeStringLength {
 				return nil, nil, we(DecodeError, e4.With(Offset(offset)), e4.With(StringTooLong))
 			}
 
@@ -314,7 +316,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 					return nil, nil, we(DecodeError, e4.With(Offset(offset)), e4.With(err))
 				}
 			}
-			if length > 128*1024*1024 {
+			if length > MaxDecodeStringLength {
 				return nil, nil, we(DecodeError, e4.With(Offset(offset)), e4.With(BytesTooLong))
 			}
 
