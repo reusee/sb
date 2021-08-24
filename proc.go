@@ -2,7 +2,7 @@ package sb
 
 type Proc func() (*Token, Proc, error)
 
-var _ Stream = (*Proc)(nil)
+type Stream = *Proc
 
 func (p *Proc) Next() (ret *Token, err error) {
 	for ret == nil {
