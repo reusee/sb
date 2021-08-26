@@ -7,6 +7,7 @@ import (
 	"io"
 	"math"
 	"reflect"
+	"strconv"
 
 	"github.com/reusee/e4"
 )
@@ -53,6 +54,103 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 	}
 
 	return func(token *Token) (Sink, error) {
+
+		// convert literal token
+		if token != nil && token.Kind == KindLiteral {
+			copy := *token
+			token = &copy
+
+			if !target.IsValid() {
+				token.Kind = KindString
+
+			} else {
+				targetType := target.Type()
+				if targetType.Kind() != reflect.Ptr {
+					return nil, we(WithPath(ctx), e4.With(BadTargetType))(UnmarshalError)
+				}
+				valueKind := targetType.Elem().Kind()
+				switch valueKind {
+
+				case reflect.String:
+					token.Kind = KindString
+
+				case reflect.Bool:
+					token.Kind = KindBool
+					b, err := strconv.ParseBool(token.Value.(string))
+					if err != nil {
+						return nil, we(WithPath(ctx), e4.With(UnmarshalError))(err)
+					}
+					token.Value = b
+
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					i, err := strconv.ParseInt(token.Value.(string), 10, 64)
+					if err != nil {
+						return nil, we(WithPath(ctx), e4.With(UnmarshalError))(err)
+					}
+					switch valueKind {
+					case reflect.Int:
+						token.Kind = KindInt
+						token.Value = int(i)
+					case reflect.Int8:
+						token.Kind = KindInt8
+						token.Value = int8(i)
+					case reflect.Int16:
+						token.Kind = KindInt16
+						token.Value = int16(i)
+					case reflect.Int32:
+						token.Kind = KindInt32
+						token.Value = int32(i)
+					case reflect.Int64:
+						token.Kind = KindInt64
+						token.Value = int64(i)
+					}
+
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+					u, err := strconv.ParseUint(token.Value.(string), 10, 64)
+					if err != nil {
+						return nil, we(WithPath(ctx), e4.With(UnmarshalError))(err)
+					}
+					switch valueKind {
+					case reflect.Uint:
+						token.Kind = KindUint
+						token.Value = uint(u)
+					case reflect.Uint8:
+						token.Kind = KindUint8
+						token.Value = uint8(u)
+					case reflect.Uint16:
+						token.Kind = KindUint16
+						token.Value = uint16(u)
+					case reflect.Uint32:
+						token.Kind = KindUint32
+						token.Value = uint32(u)
+					case reflect.Uint64:
+						token.Kind = KindUint64
+						token.Value = uint64(u)
+					}
+
+				case reflect.Float32:
+					f, err := strconv.ParseFloat(token.Value.(string), 32)
+					if err != nil {
+						return nil, we(WithPath(ctx), e4.With(UnmarshalError))(err)
+					}
+					token.Kind = KindFloat32
+					token.Value = float32(f)
+
+				case reflect.Float64:
+					f, err := strconv.ParseFloat(token.Value.(string), 64)
+					if err != nil {
+						return nil, we(WithPath(ctx), e4.With(UnmarshalError))(err)
+					}
+					token.Kind = KindFloat64
+					token.Value = f
+
+				default:
+					return nil, we(WithPath(ctx), e4.With(BadTargetType))(UnmarshalError)
+
+				}
+			}
+
+		}
 
 		if target.IsValid() {
 			switch v := target.Interface().(type) {

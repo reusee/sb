@@ -43,6 +43,8 @@ const (
 
 	KindTypeName Kind = 230
 
+	KindLiteral Kind = 240
+
 	KindRef Kind = 251
 
 	KindMax Kind = 0xFF

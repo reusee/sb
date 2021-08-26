@@ -189,7 +189,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			}
 			value = math.Float64frombits(binary.LittleEndian.Uint64(buf[:8]))
 
-		case KindString, KindTypeName:
+		case KindString, KindTypeName, KindLiteral:
 			var length uint64
 			var b byte
 			if byteReader != nil {

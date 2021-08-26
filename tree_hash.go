@@ -43,6 +43,7 @@ func (t *Tree) FillHash(
 
 	case KindBool,
 		KindString,
+		KindLiteral,
 		KindBytes,
 		KindInt,
 		KindInt8,
@@ -68,7 +69,7 @@ func (t *Tree) FillHash(
 					return err
 				}
 			}
-		case KindString:
+		case KindString, KindLiteral:
 			if _, err := io.WriteString(state, token.Value.(string)); err != nil { // NOCOVER
 				return err
 			}

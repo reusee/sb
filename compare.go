@@ -354,7 +354,7 @@ func CompareBytes(a, b []byte) (int, error) {
 				return 1, nil
 			}
 
-		case KindString, KindBytes, KindTypeName:
+		case KindString, KindBytes, KindTypeName, KindLiteral:
 			var l1 int
 			bs, err := readA(1)
 			if err != nil {

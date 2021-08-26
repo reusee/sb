@@ -66,6 +66,7 @@ func HashFunc(
 
 		case KindBool,
 			KindString,
+			KindLiteral,
 			KindBytes,
 			KindInt,
 			KindInt8,
@@ -91,7 +92,7 @@ func HashFunc(
 						return nil, err
 					}
 				}
-			case KindString:
+			case KindString, KindLiteral:
 				if _, err := io.WriteString(state, token.Value.(string)); err != nil { // NOCOVER
 					return nil, err
 				}

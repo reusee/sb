@@ -38,6 +38,7 @@ var (
 
 	kindToExpectingErr = map[Kind]error{
 		KindString:    ExpectingString,
+		KindLiteral:   ExpectingString,
 		KindBytes:     ExpectingBytes,
 		KindBool:      ExpectingBool,
 		KindInt:       ExpectingInt,
