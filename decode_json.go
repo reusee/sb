@@ -8,6 +8,7 @@ import (
 
 func DecodeJson(r io.Reader, cont Proc) *Proc {
 	decoder := json.NewDecoder(r)
+	decoder.UseNumber()
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		token, err := decoder.Token()
