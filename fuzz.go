@@ -29,7 +29,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		teeBytes := tee.Bytes()
 
 		// validate tree
-		_, err := TreeFromStream(Decode(bytes.NewReader(teeBytes)))
+		_, err := TreeFromProc(Decode(bytes.NewReader(teeBytes)))
 		if err != nil { // NOCOVER
 			return 0
 		}
@@ -120,7 +120,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// tree
-		tree, err := TreeFromStream(Decode(bytes.NewReader(bs)))
+		tree, err := TreeFromProc(Decode(bytes.NewReader(bs)))
 		if err != nil { // NOCOVER
 			panic(err)
 		}
@@ -141,7 +141,7 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// tree with hash
-		treeWithHash, err := TreeFromStream(
+		treeWithHash, err := TreeFromProc(
 			Decode(bytes.NewReader(bs)),
 			WithHash{newMapHashState},
 		)
@@ -153,10 +153,10 @@ func Fuzz(data []byte) int { // NOCOVER
 		}
 
 		// random transform
-		transforms := []func(Stream) Stream{
+		transforms := []func(Proc) Proc{
 
 			// marshal and unmarshal
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				var v any
 				if err := Copy(
 					in,
@@ -168,7 +168,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// encode and decode
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				buf := new(bytes.Buffer)
 				if err := Copy(in, Encode(buf)); err != nil { // NOCOVER
 					panic(err)
@@ -177,30 +177,30 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// tokens
-			func(in Stream) Stream {
-				return MustTokensFromStream(in).Iter()
+			func(in Proc) Proc {
+				return MustTokensFromProc(in).Iter()
 			},
 
 			// tree iter
-			func(in Stream) Stream {
-				return MustTreeFromStream(in).Iter()
+			func(in Proc) Proc {
+				return MustTreeFromProc(in).Iter()
 			},
 
 			// tree func iter
-			func(in Stream) Stream {
-				return MustTreeFromStream(in).IterFunc(func(*Tree) (*Token, error) {
+			func(in Proc) Proc {
+				return MustTreeFromProc(in).IterFunc(func(*Tree) (*Token, error) {
 					return nil, nil
 				})
 			},
 
 			// ref and deref
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				type ref struct {
 					Tree *Tree
 					Hash []byte
 				}
 				var refs []ref
-				tree := MustTreeFromStream(in)
+				tree := MustTreeFromProc(in)
 				if err := tree.FillHash(newMapHashState); err != nil { // NOCOVER
 					panic(err)
 				}
@@ -217,7 +217,7 @@ func Fuzz(data []byte) int { // NOCOVER
 						Value: tree.Hash,
 					}, nil
 				})
-				return Deref(refed, func(hash []byte) (Stream, error) {
+				return Deref(refed, func(hash []byte) (Proc, error) {
 					for _, ref := range refs {
 						if bytes.Equal(ref.Hash, hash) {
 							return ref.Tree.Iter(), nil
@@ -228,20 +228,19 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// stream iter
-			func(in Stream) Stream {
-				proc := IterStream(in, nil)
-				return &proc
+			func(in Proc) Proc {
+				return Iter(in, nil)
 			},
 
 			// marshal stream iter
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				return Marshal(
-					IterStream(in, nil),
+					Iter(in, nil),
 				)
 			},
 
 			// find
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				sub, err := FindByHash(in, mapHashSum, newMapHashState)
 				if err != nil { // NOCOVER
 					panic(err)
@@ -250,7 +249,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// unmarshal to multiple
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				var ts [3]any
 				if err := Copy(
 					Tee(
@@ -267,12 +266,12 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// tee
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				return Tee(in)
 			},
 
 			// tee 2
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				buf := new(bytes.Buffer)
 				if err := Copy(
 					Tee(in, Encode(buf)),
@@ -284,7 +283,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// collect tokens
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				var tokens Tokens
 				if err := Copy(in, CollectTokens(&tokens)); err != nil { // NOCOVER
 					panic(err)
@@ -293,7 +292,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// collect value tokens
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				var tokens Tokens
 				if err := Copy(in, CollectValueTokens(&tokens)); err != nil { // NOCOVER
 					panic(err)
@@ -302,7 +301,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// sink marshal
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				var tokens Tokens
 				if _, err := CollectTokens(&tokens).Marshal(in); err != nil {
 					panic(err)
@@ -311,7 +310,7 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 
 			// tuple
-			func(in Stream) Stream {
+			func(in Proc) Proc {
 				var v any
 				if err := Copy(in, Unmarshal(&v)); err != nil { // NOCOVER
 					panic(err)
@@ -327,13 +326,13 @@ func Fuzz(data []byte) int { // NOCOVER
 			},
 		}
 
-		fn := func(in Stream) Stream {
+		fn := func(in Proc) Proc {
 			return in
 		}
 		for _, i := range rand.Perm(len(transforms) * 8) {
 			i := i % len(transforms)
 			f := fn
-			fn = func(in Stream) Stream {
+			fn = func(in Proc) Proc {
 				return f(transforms[i](in))
 			}
 		}

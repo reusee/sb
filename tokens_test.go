@@ -13,13 +13,13 @@ func TestTokens(t *testing.T) {
 				t.Fatal()
 			}
 		}()
-		MustTokensFromStream(Decode(bytes.NewReader([]byte{
+		MustTokensFromProc(Decode(bytes.NewReader([]byte{
 			byte(KindString), // incomplete
 		})))
 	}()
 
 	for _, c := range marshalTestCases {
-		MustTokensFromStream(MarshalCtx(c.ctx, c.value))
+		MustTokensFromProc(MarshalCtx(c.ctx, c.value))
 	}
 
 }

@@ -28,7 +28,7 @@ func TestCopyNoExtraNext(t *testing.T) {
 	}
 	var i int
 	if err := Copy(
-		&provide,
+		provide,
 		Unmarshal(&i),
 	); err != nil {
 		t.Fatal(err)
@@ -50,7 +50,7 @@ func TestCopySingleShotSink(t *testing.T) {
 		}, ones, nil
 	}
 	if err := Copy(
-		&ones,
+		ones,
 		nil,
 	); err != nil {
 		t.Fatal()

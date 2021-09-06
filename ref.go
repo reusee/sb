@@ -1,25 +1,24 @@
 package sb
 
 func Deref(
-	stream Stream,
-	getStream func([]byte) (Stream, error),
-) *Proc {
-	proc := deref(
-		stream,
-		getStream,
+	proc Proc,
+	get func([]byte) (Proc, error),
+) Proc {
+	return deref(
+		proc,
+		get,
 		nil,
 	)
-	return &proc
 }
 
 func deref(
-	stream Stream,
-	getStream func([]byte) (Stream, error),
+	src Proc,
+	get func([]byte) (Proc, error),
 	cont Proc,
 ) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
-		token, err := stream.Next()
+		token, err := src.Next()
 		if err != nil { // NOCOVER
 			return nil, nil, err
 		}
@@ -27,7 +26,7 @@ func deref(
 			return nil, cont, nil
 		}
 		if token.Kind == KindRef {
-			subStream, err := getStream(token.Value.([]byte))
+			subStream, err := get(token.Value.([]byte))
 			if err != nil {
 				return nil, nil, err
 			}
@@ -36,7 +35,7 @@ func deref(
 					return token, proc, nil
 				}, nil
 			}
-			return nil, IterStream(
+			return nil, Iter(
 				subStream,
 				proc,
 			), nil

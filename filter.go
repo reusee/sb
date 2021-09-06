@@ -1,21 +1,20 @@
 package sb
 
 func FilterProc(
-	stream Stream,
+	proc Proc,
 	predict func(*Token) bool,
-) *Proc {
-	proc := filterProc(stream, predict, nil)
-	return &proc
+) Proc {
+	return filterProc(proc, predict, nil)
 }
 
 func filterProc(
-	stream Stream,
+	src Proc,
 	predict func(*Token) bool,
 	cont Proc,
 ) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
-		token, err := stream.Next()
+		token, err := src.Next()
 		if err != nil { // NOCOVER
 			return nil, nil, err
 		}

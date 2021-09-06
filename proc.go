@@ -2,8 +2,6 @@ package sb
 
 type Proc func() (*Token, Proc, error)
 
-type Stream = *Proc
-
 func (p *Proc) Next() (ret *Token, err error) {
 	for ret == nil {
 		if p != nil && *p != nil {

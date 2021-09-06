@@ -486,7 +486,7 @@ func TestMarshaler(t *testing.T) {
 	for i, c := range marshalTestCases {
 
 		// marshal
-		tokens, err := TokensFromStream(MarshalCtx(c.ctx, c.value))
+		tokens, err := TokensFromProc(MarshalCtx(c.ctx, c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -519,7 +519,7 @@ func TestMarshaler(t *testing.T) {
 		}
 
 		// compare
-		tokens, err = TokensFromStream(MarshalCtx(c.ctx, c.value))
+		tokens, err = TokensFromProc(MarshalCtx(c.ctx, c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -601,7 +601,7 @@ func (_ badBinaryMarshaler) MarshalBinary() ([]byte, error) {
 func TestBadBinaryMarshaler(t *testing.T) {
 	v := new(badBinaryMarshaler)
 	m := Marshal(v)
-	_, err := TokensFromStream(m)
+	_, err := TokensFromProc(m)
 	if err == nil {
 		t.Fatal()
 	}
@@ -618,7 +618,7 @@ func (_ badTextMarshaler) MarshalText() ([]byte, error) {
 func TestBadTextMarshaler(t *testing.T) {
 	v := new(badTextMarshaler)
 	m := Marshal(v)
-	_, err := TokensFromStream(m)
+	_, err := TokensFromProc(m)
 	if err == nil {
 		t.Fatal()
 	}
@@ -643,7 +643,7 @@ func (t *timeTextMarshaler) UnmarshalText(data []byte) error {
 func TestTimeMarshalText(t *testing.T) {
 	now := timeTextMarshaler{time.Now()}
 	m := Marshal(now)
-	tokens, err := TokensFromStream(m)
+	tokens, err := TokensFromProc(m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -657,7 +657,7 @@ func TestTimeMarshalText(t *testing.T) {
 }
 
 func TestMarshalIgnoreUnsupportedType(t *testing.T) {
-	tokens, err := TokensFromStream(
+	tokens, err := TokensFromProc(
 		Marshal(
 			make(chan int),
 		),
@@ -671,7 +671,7 @@ func TestMarshalIgnoreUnsupportedType(t *testing.T) {
 }
 
 func TestBadMapKey(t *testing.T) {
-	_, err := TokensFromStream(
+	_, err := TokensFromProc(
 		Marshal(
 			map[any]any{
 				badBinaryMarshaler{}: true,
@@ -682,7 +682,7 @@ func TestBadMapKey(t *testing.T) {
 		t.Fatal()
 	}
 
-	_, err = TokensFromStream(
+	_, err = TokensFromProc(
 		Marshal(
 			map[any]any{
 				unsafe.Pointer(nil): true,
@@ -712,8 +712,7 @@ func TestValueMarshalFunc(t *testing.T) {
 		ctx := c.ctx
 		ctx.Marshal = fn
 		proc := fn(ctx, reflect.ValueOf(c.value), nil)
-		stream := &proc
-		if MustCompare(stream, Tokens(c.expected).Iter()) != 0 {
+		if MustCompare(proc, Tokens(c.expected).Iter()) != 0 {
 			t.Fatal("not equal")
 		}
 	}
@@ -735,8 +734,7 @@ func TestValueMarshalFunc2(t *testing.T) {
 			}
 		}{},
 	), nil)
-	stream := &proc
-	_, err := TokensFromStream(stream)
+	_, err := TokensFromProc(proc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -765,7 +763,7 @@ func TestMarshalStructFieldOrder(t *testing.T) {
 		I: 42,
 	}), nil)
 	if err := Copy(
-		&proc,
+		proc,
 		Discard,
 	); err != nil {
 		t.Fatal(err)
@@ -791,7 +789,7 @@ func TestMarshalMapOrder(t *testing.T) {
 		5: 6,
 	}), nil)
 	if err := Copy(
-		&proc,
+		proc,
 		Discard,
 	); err != nil {
 		t.Fatal(err)
@@ -830,8 +828,8 @@ func TestMarshalNonEmpty(t *testing.T) {
 		Foo: 42,
 	}), nil)
 	if MustCompare(
-		&proc1,
-		&proc2,
+		proc1,
+		proc2,
 	) != 0 {
 		t.Fatal()
 	}

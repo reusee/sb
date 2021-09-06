@@ -1,8 +1,7 @@
 package sb
 
-func (t Tokens) Iter() *Proc {
-	proc := IterTokens(t, 0, nil)
-	return &proc
+func (t Tokens) Iter() Proc {
+	return IterTokens(t, 0, nil)
 }
 
 func IterTokens(

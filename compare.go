@@ -10,13 +10,13 @@ import (
 	"github.com/reusee/e4"
 )
 
-func Compare(stream1, stream2 Stream) (int, error) {
+func Compare(p1, p2 Proc) (int, error) {
 	for {
-		t1, err := stream1.Next()
+		t1, err := p1.Next()
 		if err != nil {
 			return 0, err
 		}
-		t2, err := stream2.Next()
+		t2, err := p2.Next()
 		if err != nil {
 			return 0, err
 		}
@@ -173,8 +173,8 @@ func Compare(stream1, stream2 Stream) (int, error) {
 	return 0, nil
 }
 
-func MustCompare(stream1, stream2 Stream) int {
-	res, err := Compare(stream1, stream2)
+func MustCompare(p1, p2 Proc) int {
+	res, err := Compare(p1, p2)
 	if err != nil { // NOCOVER
 		panic(err)
 	}

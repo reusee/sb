@@ -12,26 +12,23 @@ type SBMarshaler interface {
 	MarshalSB(ctx Ctx, cont Proc) Proc
 }
 
-func Marshal(value any) *Proc {
-	marshaler := MarshalValue(Ctx{
+func Marshal(value any) Proc {
+	return MarshalValue(Ctx{
 		Marshal: MarshalValue,
 	}, reflect.ValueOf(value), nil)
-	return &marshaler
 }
 
-func MarshalCtx(ctx Ctx, value any) *Proc {
-	marshaler := MarshalValue(ctx, reflect.ValueOf(value), nil)
-	return &marshaler
+func MarshalCtx(ctx Ctx, value any) Proc {
+	return MarshalValue(ctx, reflect.ValueOf(value), nil)
 }
 
-func TapMarshal(ctx Ctx, value any, fn func(Ctx, reflect.Value)) *Proc {
+func TapMarshal(ctx Ctx, value any, fn func(Ctx, reflect.Value)) Proc {
 	marshal := func(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		fn(ctx, value)
 		return MarshalValue(ctx, value, cont)
 	}
 	ctx.Marshal = marshal
-	proc := marshal(ctx, reflect.ValueOf(value), nil)
-	return &proc
+	return marshal(ctx, reflect.ValueOf(value), nil)
 }
 
 func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
@@ -427,10 +424,9 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 			return nil, MarshalMapTuples(ctx, tuples, cont), nil
 		}
 		var tokens Tokens
-		keyMarshalProc := MarshalValue(Ctx{}, iter.Key(), nil)
 		if err := Copy(
 			// tokens are for sorting only, so do not call ctx.Marshal
-			&keyMarshalProc,
+			MarshalValue(Ctx{}, iter.Key(), nil),
 			CollectTokens(&tokens),
 		); err != nil {
 			return nil, nil, we(e4.With(MarshalError), WithPath(ctx))(err)

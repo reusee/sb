@@ -6,11 +6,11 @@ import (
 
 func TestTree(t *testing.T) {
 	for _, c := range marshalTestCases {
-		tokens, err := TokensFromStream(MarshalCtx(c.ctx, c.value))
+		tokens, err := TokensFromProc(MarshalCtx(c.ctx, c.value))
 		if err != nil {
 			t.Fatal(err)
 		}
-		tree, err := TreeFromStream(tokens.Iter())
+		tree, err := TreeFromProc(tokens.Iter())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -29,14 +29,14 @@ func TestMoreThanOneValue(t *testing.T) {
 		{Kind: KindInt, Value: 42},
 		{Kind: KindInt, Value: 42},
 	}.Iter()
-	_, err := TreeFromStream(str)
+	_, err := TreeFromProc(str)
 	if !is(err, MoreThanOneValue) {
 		t.Fatal()
 	}
 }
 
 func TestBadTreeFromStream(t *testing.T) {
-	_, err := TreeFromStream(Tokens{
+	_, err := TreeFromProc(Tokens{
 		{
 			Kind: KindArrayEnd,
 		},

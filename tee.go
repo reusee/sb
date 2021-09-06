@@ -1,17 +1,16 @@
 package sb
 
-func Tee(stream Stream, sinks ...Sink) *Proc {
-	proc := TeeProc(stream, sinks, nil)
-	return &proc
+func Tee(proc Proc, sinks ...Sink) Proc {
+	return TeeProc(proc, sinks, nil)
 }
 
-func TeeProc(stream Stream, sinks []Sink, cont Proc) Proc {
+func TeeProc(src Proc, sinks []Sink, cont Proc) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
 		var token *Token
 		var err error
-		if stream != nil {
-			token, err = stream.Next()
+		if src != nil {
+			token, err = src.Next()
 			if err != nil { // NOCOVER
 				return nil, nil, err
 			}

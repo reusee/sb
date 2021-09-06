@@ -11,18 +11,18 @@ var (
 )
 
 func FindByHash(
-	stream Stream,
+	proc Proc,
 	hash []byte,
 	newState func() hash.Hash,
 ) (
-	subStream Stream,
+	sub Proc,
 	err error,
 ) {
 
 	var result *Tree
 
-	_, err = TreeFromStream(
-		stream,
+	_, err = TreeFromProc(
+		proc,
 		WithHash{newState},
 		TapTree{
 			func(tree *Tree) {

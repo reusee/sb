@@ -32,8 +32,8 @@ type TapTree struct {
 
 func (_ TapTree) IsTreeOption() {}
 
-func TreeFromStream(
-	stream Stream,
+func TreeFromProc(
+	src Proc,
 	options ...TreeOption,
 ) (*Tree, error) {
 
@@ -48,8 +48,8 @@ func TreeFromStream(
 		switch option := option.(type) {
 
 		case WithHash:
-			s := stream
-			stream = Tee(s, HashFunc(
+			s := src
+			src = Tee(s, HashFunc(
 				option.NewHashState,
 				nil,
 				func(h []byte, _ *Token) error {
@@ -70,7 +70,7 @@ func TreeFromStream(
 	}
 
 	for {
-		token, err := stream.Next()
+		token, err := src.Next()
 		if err != nil { // NOCOVER
 			return nil, err
 		}
@@ -122,8 +122,8 @@ func TreeFromStream(
 	return root, nil
 }
 
-func MustTreeFromStream(stream Stream, options ...TreeOption) *Tree {
-	t, err := TreeFromStream(stream, options...)
+func MustTreeFromProc(proc Proc, options ...TreeOption) *Tree {
+	t, err := TreeFromProc(proc, options...)
 	if err != nil { // NOCOVER
 		panic(err)
 	}

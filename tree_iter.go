@@ -1,8 +1,7 @@
 package sb
 
-func (t *Tree) Iter() *Proc {
-	proc := IterTree(t, nil)
-	return &proc
+func (t *Tree) Iter() Proc {
+	return IterTree(t, nil)
 }
 
 func IterTree(
@@ -44,9 +43,8 @@ func IterSubTrees(
 
 func (t *Tree) IterFunc(
 	fn func(*Tree) (*Token, error),
-) *Proc {
-	proc := IterTreeFunc(t, fn, nil)
-	return &proc
+) Proc {
+	return IterTreeFunc(t, fn, nil)
 }
 
 func IterTreeFunc(

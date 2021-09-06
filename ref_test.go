@@ -11,7 +11,7 @@ func TestRef(t *testing.T) {
 		I int
 		S string
 	}
-	tree := MustTreeFromStream(
+	tree := MustTreeFromProc(
 		Marshal(foo{
 			I: 42,
 			S: "42",
@@ -42,7 +42,7 @@ func TestRef(t *testing.T) {
 	})
 
 	n := 0
-	deref := Deref(refTree, func(hash []byte) (Stream, error) {
+	deref := Deref(refTree, func(hash []byte) (Proc, error) {
 		for _, ref := range refs {
 			if bytes.Equal(ref.Hash, hash) {
 				n++
@@ -66,10 +66,10 @@ func TestBadDeref(t *testing.T) {
 			Value: []byte{},
 		},
 	}
-	s := Deref(tokens.Iter(), func(hash []byte) (Stream, error) {
+	s := Deref(tokens.Iter(), func(hash []byte) (Proc, error) {
 		return nil, fmt.Errorf("foo")
 	})
-	_, err := TokensFromStream(s)
+	_, err := TokensFromProc(s)
 	if err.Error() != "foo" {
 		t.Fatal()
 	}

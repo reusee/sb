@@ -9,7 +9,7 @@ import (
 )
 
 func TestTreeFillHash(t *testing.T) {
-	tree := MustTreeFromStream(Marshal(42))
+	tree := MustTreeFromProc(Marshal(42))
 	if err := tree.FillHash(sha256.New); err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +24,7 @@ func TestTreeFillHash(t *testing.T) {
 	}
 
 	for _, c := range marshalTestCases {
-		tree := MustTreeFromStream(MarshalCtx(c.ctx, c.value))
+		tree := MustTreeFromProc(MarshalCtx(c.ctx, c.value))
 		if err := tree.FillHash(sha256.New); err != nil {
 			t.Fatal(err)
 		}

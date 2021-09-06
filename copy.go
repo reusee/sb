@@ -1,6 +1,6 @@
 package sb
 
-func Copy(stream Stream, sinks ...Sink) error {
+func Copy(proc Proc, sinks ...Sink) error {
 	var err error
 	for {
 
@@ -10,13 +10,13 @@ func Copy(stream Stream, sinks ...Sink) error {
 
 		var token *Token
 		for token == nil {
-			if stream != nil {
-				token, err = stream.Next()
+			if proc != nil {
+				token, err = proc.Next()
 				if err != nil {
 					return err
 				}
 				if token == nil {
-					stream = nil
+					proc = nil
 				}
 			} else {
 				break
@@ -45,7 +45,7 @@ func Copy(stream Stream, sinks ...Sink) error {
 			}
 		}
 
-		if len(sinks) == 0 && stream == nil {
+		if len(sinks) == 0 && proc == nil {
 			break
 		}
 	}

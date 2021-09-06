@@ -388,19 +388,18 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 	return proc
 }
 
-func decode(r io.Reader, forCompare bool) *Proc {
+func decode(r io.Reader, forCompare bool) Proc {
 	var byteReader io.ByteReader
 	if rd, ok := r.(io.ByteReader); ok {
 		byteReader = rd
 	}
-	proc := decodeBuffer(r, byteReader, make([]byte, 8), forCompare, nil)
-	return &proc
+	return decodeBuffer(r, byteReader, make([]byte, 8), forCompare, nil)
 }
 
-func Decode(r io.Reader) *Proc {
+func Decode(r io.Reader) Proc {
 	return decode(r, false)
 }
 
-func DecodeForCompare(r io.Reader) *Proc {
+func DecodeForCompare(r io.Reader) Proc {
 	return decode(r, true)
 }

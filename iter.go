@@ -1,12 +1,12 @@
 package sb
 
-func IterStream(
-	stream Stream,
+func Iter(
+	src Proc,
 	cont Proc,
 ) Proc {
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
-		token, err := stream.Next()
+		token, err := src.Next()
 		if err != nil { // NOCOVER
 			return nil, nil, err
 		}

@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-func DecodeJson(r io.Reader, cont Proc) *Proc {
+func DecodeJson(r io.Reader, cont Proc) Proc {
 	decoder := json.NewDecoder(r)
 	decoder.UseNumber()
 	var proc Proc
@@ -76,5 +76,5 @@ func DecodeJson(r io.Reader, cont Proc) *Proc {
 
 		return nil, nil, fmt.Errorf("bad token type: %T", token)
 	}
-	return &proc
+	return proc
 }

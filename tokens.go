@@ -2,9 +2,9 @@ package sb
 
 type Tokens []Token
 
-func TokensFromStream(stream Stream) (tokens Tokens, err error) {
+func TokensFromProc(proc Proc) (tokens Tokens, err error) {
 	for {
-		p, err := stream.Next()
+		p, err := proc.Next()
 		if err != nil {
 			return nil, err
 		}
@@ -16,8 +16,8 @@ func TokensFromStream(stream Stream) (tokens Tokens, err error) {
 	return
 }
 
-func MustTokensFromStream(stream Stream) Tokens {
-	tokens, err := TokensFromStream(stream)
+func MustTokensFromProc(proc Proc) Tokens {
+	tokens, err := TokensFromProc(proc)
 	if err != nil {
 		panic(err)
 	}

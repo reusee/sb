@@ -28,30 +28,30 @@ func ConcatSinks(sinks ...Sink) Sink {
 	return sink
 }
 
-func ConcatStreams(streams ...Stream) Stream {
-	if len(streams) == 0 {
+func ConcatProcs(procs ...Proc) Proc {
+	if len(procs) == 0 {
 		return nil
 	}
-	for streams[0] == nil {
-		streams = streams[1:]
-		if len(streams) == 0 {
+	for procs[0] == nil {
+		procs = procs[1:]
+		if len(procs) == 0 {
 			return nil
 		}
 	}
 	var proc Proc
 	proc = func() (*Token, Proc, error) {
-		token, err := streams[0].Next()
+		token, err := procs[0].Next()
 		if err != nil {
 			return nil, nil, err
 		}
 		if token == nil {
-			streams = streams[1:]
-			if len(streams) == 0 {
+			procs = procs[1:]
+			if len(procs) == 0 {
 				return nil, nil, nil
 			}
 			return nil, proc, nil
 		}
 		return token, proc, nil
 	}
-	return &proc
+	return proc
 }
