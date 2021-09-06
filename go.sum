@@ -19,6 +19,8 @@ github.com/reusee/pa v0.0.0-20210520023210-223bb0bf8859/go.mod h1:C9gqQgJDI71DlK
 github.com/reusee/pr v0.0.0-20210102140014-3c32e4f45182/go.mod h1:yDr3ReZyWYFsHDC9Gxj8Udlcd1Fxm0N+QGMWkI5G5xE=
 github.com/reusee/pr v0.0.0-20210726063359-3496350be6e4 h1:eEOyIRvBNPe5uupvQLTt+17KdLS7l+H48YYimxTUb/o=
 github.com/reusee/pr v0.0.0-20210726063359-3496350be6e4/go.mod h1:THQFbB5S6WvoMCzivvvW7nUgkVPJKAuAU5FUM+ebG30=
+github.com/reusee/pr v0.0.0-20210904092623-e7365bc760c8 h1:qmBo3lCPOKn1tD+U5v5Hyx/A+zA1nMegJI2akgXVvp0=
+github.com/reusee/pr v0.0.0-20210904092623-e7365bc760c8/go.mod h1:lkziaMyVWREVGES2pz3bBJydullEF52RP/di84Id7vE=
 github.com/reusee/qa v0.0.0-20210413061229-6eb118a0fb4c/go.mod h1:RRjfEHpKIOYzWQzu6vYrCfREp/jFJV/uKUSCzSxSA/Q=
 github.com/reusee/qa v0.0.0-20210413131534-5cab38434e4a h1:IOyuRFrJXvfCoicz853kgaXF70+r1xknNyMPUUOzfoM=
 github.com/reusee/qa v0.0.0-20210413131534-5cab38434e4a/go.mod h1:RRjfEHpKIOYzWQzu6vYrCfREp/jFJV/uKUSCzSxSA/Q=
