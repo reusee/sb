@@ -43,7 +43,7 @@ func TestEncode(t *testing.T) {
 	}
 }
 
-func TestEncodeBadStream(t *testing.T) {
+func TestEncodeBadProc(t *testing.T) {
 	if err := Copy(
 		Decode(
 			bytes.NewReader([]byte{

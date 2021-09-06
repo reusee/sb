@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	MoreThanOneValue = fmt.Errorf("more than one value in stream")
+	MoreThanOneValue = fmt.Errorf("more than one value in proc")
 )
 
 type Tree struct {

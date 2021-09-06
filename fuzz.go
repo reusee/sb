@@ -227,12 +227,12 @@ func Fuzz(data []byte) int { // NOCOVER
 				})
 			},
 
-			// stream iter
+			// iter
 			func(in Proc) Proc {
 				return Iter(in, nil)
 			},
 
-			// marshal stream iter
+			// marshal iter
 			func(in Proc) Proc {
 				return Marshal(
 					Iter(in, nil),

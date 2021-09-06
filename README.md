@@ -7,7 +7,7 @@ Streaming data toolbox
 * encode and decode
 * hash
 * compare 
-* stream and sink combinators
+* proc and sink combinators
 
 ## Demo
 
@@ -25,14 +25,14 @@ import (
 
 func main() {
 
-	// marshal stream
+	// marshal proc
 	marshaler := sb.Marshal(42)
 
 	// unmarshal sink
 	var num int
 	unmarshaler := sb.Unmarshal(&num)
 
-	// copy stream to sink
+	// copy proc to sink
 	check(sb.Copy(
 		marshaler,
 		unmarshaler,
@@ -67,7 +67,7 @@ func main() {
 
 	var tokens sb.Tokens
 	check(sb.Copy(
-		// stream combinator
+		// proc combinator
 		sb.Tee(
 			sb.Marshal(42),
 			sb.Encode(buf),
@@ -81,7 +81,7 @@ func main() {
 	must(fmt.Sprintf("%x", sum) ==
 		"151a3a0b4c88483512fc484d0badfedf80013ebb18df498bbee89ac5b69d7222")
 
-	// stream comparison
+	// proc comparison
 	res, err := sb.Compare(
 		sb.Marshal(42),
 		sb.Marshal(map[int]int{42: 42}),

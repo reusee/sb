@@ -171,7 +171,7 @@ func TestCompare(t *testing.T) {
 
 }
 
-func TestCompareBadStream(t *testing.T) {
+func TestCompareBadProc(t *testing.T) {
 	s1 := Marshal(new(badTextMarshaler))
 	s2 := Marshal(42)
 	_, err := Compare(s1, s2)

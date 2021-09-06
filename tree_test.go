@@ -35,7 +35,7 @@ func TestMoreThanOneValue(t *testing.T) {
 	}
 }
 
-func TestBadTreeFromStream(t *testing.T) {
+func TestBadTreeFromProc(t *testing.T) {
 	_, err := TreeFromProc(Tokens{
 		{
 			Kind: KindArrayEnd,

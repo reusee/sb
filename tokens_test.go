@@ -6,7 +6,7 @@ import (
 )
 
 func TestTokens(t *testing.T) {
-	// bad stream
+	// bad proc
 	func() {
 		defer func() {
 			if p := recover(); p == nil {

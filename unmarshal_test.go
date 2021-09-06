@@ -89,9 +89,9 @@ var unmarshalTestCases = []UnmarshalTestCase{
 
 func TestUnmarshal(t *testing.T) {
 	for i, c := range unmarshalTestCases {
-		stream := Marshal(c.value)
+		proc := Marshal(c.value)
 		ptr := reflect.New(reflect.TypeOf(c.target))
-		err := Copy(stream, Unmarshal(ptr.Interface()))
+		err := Copy(proc, Unmarshal(ptr.Interface()))
 		if !errors.Is(err, c.err) {
 			t.Fatalf("case %d, expecting %v, got %v", i, c.err, err)
 		}
@@ -118,9 +118,9 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestUnmarshalNaN(t *testing.T) {
-	stream := Marshal(math.NaN())
+	proc := Marshal(math.NaN())
 	var f float64
-	if err := Copy(stream, Unmarshal(&f)); err != nil {
+	if err := Copy(proc, Unmarshal(&f)); err != nil {
 		t.Fatal(err)
 	}
 	if f == f {
@@ -188,7 +188,7 @@ func TestUnmarshalStructWithPrivateField(t *testing.T) {
 	}
 }
 
-func TestUnmarshalIncompleteStream(t *testing.T) {
+func TestUnmarshalIncompleteProc(t *testing.T) {
 	cases := []Tokens{
 		{
 			{Kind: KindObject},
