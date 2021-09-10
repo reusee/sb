@@ -20,5 +20,7 @@ var (
 	we = e4.Wrap
 	ce = e4.Check
 
-	Copy = pp.Copy[Token, Proc, Sink]
+	Copy        = pp.Copy[Token, Proc, Sink]
+	ConcatSinks = pp.CatSink[Token, Sink]
+	ConcatProcs = pp.CatSrc[Token, Proc]
 )
