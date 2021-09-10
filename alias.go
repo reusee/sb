@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/reusee/e4"
-	"github.com/reusee/pp"
 )
 
 type (
@@ -19,6 +18,4 @@ var (
 
 	we = e4.Wrap
 	ce = e4.Check
-
-	Copy = pp.Copy[Token, Proc, Sink]
 )

@@ -7,7 +7,6 @@ require (
 	github.com/reusee/e4 v0.0.0-20210823030452-7b426bb6f109
 	github.com/reusee/e4qa v0.0.0-20210413061912-3faa8fbddd5d
 	github.com/reusee/pa v0.0.0-20210520023210-223bb0bf8859
-	github.com/reusee/pp v0.0.0-20210905021229-a91aeecebf75
 	github.com/reusee/pr v0.0.0-20210904092623-e7365bc760c8
 	github.com/reusee/qa v0.0.0-20210413131534-5cab38434e4a
 )
