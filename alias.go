@@ -23,4 +23,8 @@ var (
 	Copy        = pp.Copy[Token, Proc, Sink]
 	ConcatSinks = pp.CatSink[Token, Sink]
 	ConcatProcs = pp.CatSrc[Token, Proc]
+	Discard     = pp.Discard[Token, Sink]
+	Iter        = pp.CatSrc[Token, Proc]
+	Tee         = pp.Tee[Token, Proc, Sink]
+	TeeProc     = pp.TeeSrc[Token, Proc, Sink]
 )
