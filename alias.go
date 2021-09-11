@@ -27,4 +27,6 @@ var (
 	Iter        = pp.CatSrc[Token, Proc]
 	Tee         = pp.Tee[Token, Proc, Sink]
 	TeeProc     = pp.TeeSrc[Token, Proc, Sink]
+	FilterProc  = pp.FilterSrc[Token, Proc]
+	FilterSink  = pp.FilterSink[Token, Sink]
 )
