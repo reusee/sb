@@ -1,21 +1,21 @@
 module github.com/reusee/sb
 
-go 1.18
+go 1.17
 
 require (
-	github.com/reusee/dscope v0.0.0-20210823015038-ed7d07fe4753
-	github.com/reusee/e4 v0.0.0-20210823030452-7b426bb6f109
-	github.com/reusee/e4qa v0.0.0-20210413061912-3faa8fbddd5d
-	github.com/reusee/pa v0.0.0-20210520023210-223bb0bf8859
-	github.com/reusee/pr v0.0.0-20210726063359-3496350be6e4
-	github.com/reusee/qa v0.0.0-20210413131534-5cab38434e4a
+	github.com/reusee/dscope v0.0.0-20210916152502-e01d06ad0551
+	github.com/reusee/e4 v0.0.0-20210916142410-92e608583aff
+	github.com/reusee/e4qa v0.0.0-20210606065910-e8c76b457e8f
+	github.com/reusee/pa v0.0.0-20210823051533-1e0a2cb8525a
+	github.com/reusee/pr v0.0.0-20210823030742-75cd7b7f4fe6
+	github.com/reusee/qa v0.0.0-20210823051446-00b3931b9a3c
 )
 
 require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
-	golang.org/x/tools v0.1.1 // indirect
+	golang.org/x/mod v0.5.0 // indirect
+	golang.org/x/sys v0.0.0-20210820121016-41cdb8703e55 // indirect
+	golang.org/x/tools v0.1.5 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	honnef.co/go/tools v0.1.4 // indirect
+	honnef.co/go/tools v0.2.1 // indirect
 )

@@ -43,10 +43,10 @@ var _ SBUnmarshaler = new(Tuple)
 func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, we(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
 		}
 		if token.Kind != KindTuple {
-			return nil, we(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
 		}
 		return t.unmarshal(0, ctx, cont), nil
 	}
@@ -55,7 +55,7 @@ func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 func (t *Tuple) unmarshal(i int, ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, we(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
 		}
 		if token.Kind == KindTupleEnd {
 			return cont, nil
@@ -113,10 +113,10 @@ func TupleTypes(typeSpec any) []reflect.Type {
 func UnmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, we(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
 		}
 		if token.Kind != KindTuple {
-			return nil, we(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
 		}
 		return unmarshalTupleTyped(ctx, types, target, cont), nil
 	}
@@ -138,18 +138,18 @@ func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink
 	i := 0
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, we(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
 		}
 
 		if token.Kind == KindTupleEnd {
 			if i != len(types) {
-				return nil, we(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
+				return nil, we.With(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
 			}
 			return cont, nil
 		}
 
 		if i == len(types) {
-			return nil, we(WithPath(ctx), e4.With(TooManyElement))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(TooManyElement))(UnmarshalError)
 		}
 
 		if i < len(*target) {
