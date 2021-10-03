@@ -1,5 +1,5 @@
 # sb
-Streaming data toolbox
+Data streaming toolbox
 
 ## Features
 
