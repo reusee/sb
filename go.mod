@@ -3,11 +3,11 @@ module github.com/reusee/sb
 go 1.18
 
 require (
-	github.com/reusee/dscope v0.0.0-20210823015038-ed7d07fe4753
-	github.com/reusee/e4 v0.0.0-20210823030452-7b426bb6f109
+	github.com/reusee/dscope v0.0.0-20210927163816-996990a3ac8a
+	github.com/reusee/e4 v0.0.0-20210929160631-f5ffcca999a5
 	github.com/reusee/e4qa v0.0.0-20210413061912-3faa8fbddd5d
 	github.com/reusee/pa v0.0.0-20210520023210-223bb0bf8859
-	github.com/reusee/pr v0.0.0-20210726063359-3496350be6e4
+	github.com/reusee/pr v0.0.0-20211003125556-3e6e9c7537ae
 	github.com/reusee/qa v0.0.0-20210413131534-5cab38434e4a
 )
 

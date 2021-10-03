@@ -110,14 +110,14 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			case encoding.BinaryMarshaler:
 				bs, err := v.MarshalBinary()
 				if err != nil {
-					return nil, nil, we(e4.With(MarshalError), WithPath(ctx))(err)
+					return nil, nil, we.With(e4.With(MarshalError), WithPath(ctx))(err)
 				}
 				return nil, ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
 
 			case encoding.TextMarshaler:
 				bs, err := v.MarshalText()
 				if err != nil {
-					return nil, nil, we(e4.With(MarshalError), WithPath(ctx))(err)
+					return nil, nil, we.With(e4.With(MarshalError), WithPath(ctx))(err)
 				}
 				return nil, ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
 
@@ -141,7 +141,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 					ptr := value.Pointer()
 					for _, p := range ctx.visitedPointers {
 						if p == ptr {
-							return nil, nil, we(WithPath(ctx), e4.With(CyclicPointer))(MarshalError)
+							return nil, nil, we.With(WithPath(ctx), e4.With(CyclicPointer))(MarshalError)
 						}
 					}
 					ctx.visitedPointers = append(ctx.visitedPointers, ptr)
@@ -261,7 +261,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 
 		case reflect.Func:
 			if value.Type().NumIn() != 0 {
-				return nil, nil, we(
+				return nil, nil, we.With(
 					WithPath(ctx),
 					e4.With(BadTupleType),
 					e4.NewInfo("bad tuple type: %v", value.Type()),
@@ -433,11 +433,11 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 			&keyMarshalProc,
 			CollectTokens(&tokens),
 		); err != nil {
-			return nil, nil, we(e4.With(MarshalError), WithPath(ctx))(err)
+			return nil, nil, we.With(e4.With(MarshalError), WithPath(ctx))(err)
 		}
 		if len(tokens) == 0 ||
 			(len(tokens) == 1 && tokens[0].Kind == KindNaN) {
-			return nil, nil, we(WithPath(ctx), e4.With(BadMapKey))(MarshalError)
+			return nil, nil, we.With(WithPath(ctx), e4.With(BadMapKey))(MarshalError)
 		}
 		tuples = append(tuples, &MapTuple{
 			KeyTokens: tokens,
