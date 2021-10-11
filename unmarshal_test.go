@@ -1872,3 +1872,49 @@ func TestUnmarshalFunc(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+type testFieldDeprecation1 struct {
+}
+
+var _ HasDeprecatedFields = testFieldDeprecation1{}
+
+func (t testFieldDeprecation1) SBDeprecatedFields() []string {
+	return []string{"Foo"}
+}
+
+func TestFieldDeprecation(t *testing.T) {
+	var v testFieldDeprecation1
+
+	err := Copy(
+		Marshal(struct {
+			Foo string
+		}{
+			Foo: "foo",
+		}),
+		UnmarshalValue(
+			DefaultCtx.Strict(),
+			reflect.ValueOf(&v),
+			nil,
+		),
+	)
+	if err != nil {
+		t.Fatal()
+	}
+
+	err = Copy(
+		Marshal(struct {
+			Bar string
+		}{
+			Bar: "bar",
+		}),
+		UnmarshalValue(
+			DefaultCtx.Strict(),
+			reflect.ValueOf(&v),
+			nil,
+		),
+	)
+	if !is(err, UnmarshalError) {
+		t.Fatal()
+	}
+
+}

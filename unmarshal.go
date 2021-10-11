@@ -861,6 +861,16 @@ func unmarshalStruct(
 				})
 				if !ok {
 					if ctx.DisallowUnknownStructFields {
+						// check field deprecation
+						if fieldIsDeprecated(valueType, name) {
+							// skip next value
+							var value any
+							return ctx.Unmarshal(
+								ctx.WithPath(name),
+								reflect.ValueOf(&value),
+								sink,
+							)(token)
+						}
 						return nil, we.With(
 							WithPath(ctx),
 							e4.With(UnknownFieldName),
