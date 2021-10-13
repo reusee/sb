@@ -103,3 +103,8 @@ func must(b bool) {
 	}
 }
 ```
+
+## More examples
+
+* [Lua stack decoding source](https://github.com/reusee/lgo/blob/master/decode.go)
+* [Lua stack pushing sink](https://github.com/reusee/lgo/blob/master/push.go)
