@@ -42,8 +42,8 @@ const (
 	KindTuple  Kind = 210
 
 	KindTypeName Kind = 230
-
-	KindLiteral Kind = 240
+	KindLiteral  Kind = 240
+	KindPointer  Kind = 245
 
 	KindRef Kind = 251
 

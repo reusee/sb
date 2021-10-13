@@ -55,6 +55,7 @@ func (t *Tree) FillHash(
 		KindUint16,
 		KindUint32,
 		KindUint64,
+		KindPointer,
 		KindFloat32,
 		KindFloat64:
 
@@ -146,6 +147,14 @@ func (t *Tree) FillHash(
 			defer put()
 			buf := *v.(*[]byte)
 			binary.LittleEndian.PutUint64(buf, token.Value.(uint64))
+			if _, err := state.Write((buf)); err != nil {
+				return err
+			}
+		case KindPointer:
+			v, put := bytesPool8.Get()
+			defer put()
+			buf := *v.(*[]byte)
+			binary.LittleEndian.PutUint64(buf, uint64(token.Value.(uintptr)))
 			if _, err := state.Write((buf)); err != nil {
 				return err
 			}

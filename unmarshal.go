@@ -105,7 +105,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 						token.Value = int64(i)
 					}
 
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 					u, err := strconv.ParseUint(token.Value.(string), 10, 64)
 					if err != nil {
 						return nil, we.With(WithPath(ctx), e4.With(UnmarshalError))(err)
@@ -126,6 +126,9 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 					case reflect.Uint64:
 						token.Kind = KindUint64
 						token.Value = uint64(u)
+					case reflect.Uintptr:
+						token.Kind = KindPointer
+						token.Value = uintptr(u)
 					}
 
 				case reflect.Float32:
@@ -451,6 +454,16 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 				target.Elem().SetUint(token.Value.(uint64))
 			} else {
 				target.Elem().Set(reflect.ValueOf(token.Value.(uint64)))
+			}
+
+		case KindPointer:
+			if hasConcreteType {
+				if valueKind != reflect.Uintptr {
+					return nil, we.With(WithPath(ctx), e4.With(ExpectingUintptr))(UnmarshalError)
+				}
+				target.Elem().SetUint(uint64(token.Value.(uintptr)))
+			} else {
+				target.Elem().Set(reflect.ValueOf(token.Value.(uintptr)))
 			}
 
 		case KindFloat32:

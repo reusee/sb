@@ -33,6 +33,7 @@ var (
 	ExpectingUint16    = fmt.Errorf("expecting uint16")
 	ExpectingUint32    = fmt.Errorf("expecting uint32")
 	ExpectingUint64    = fmt.Errorf("expecting uint64")
+	ExpectingUintptr   = fmt.Errorf("expecting uintptr")
 	ExpectingUint8     = fmt.Errorf("expecting uint8")
 	ExpectingValue     = fmt.Errorf("expecting value")
 
@@ -51,6 +52,7 @@ var (
 		KindUint16:    ExpectingUint16,
 		KindUint32:    ExpectingUint32,
 		KindUint64:    ExpectingUint64,
+		KindPointer:   ExpectingUintptr,
 		KindFloat32:   ExpectingFloat32,
 		KindFloat64:   ExpectingFloat64,
 		KindArray:     ExpectingSequence,

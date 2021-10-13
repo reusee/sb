@@ -173,6 +173,14 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			}
 			value = binary.LittleEndian.Uint64(buf[:8])
 
+		case KindPointer:
+			if _, err := io.ReadFull(r, buf[:8]); err != nil {
+				return nil, nil, we.With(e4.With(DecodeError), e4.With(Offset(offset)))(err)
+			} else {
+				offset += 8
+			}
+			value = uintptr(binary.LittleEndian.Uint64(buf[:8]))
+
 		case KindFloat32:
 			if _, err := io.ReadFull(r, buf[:4]); err != nil {
 				return nil, nil, we.With(e4.With(DecodeError), e4.With(Offset(offset)))(err)

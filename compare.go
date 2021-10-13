@@ -136,6 +136,14 @@ func Compare(stream1, stream2 Stream) (int, error) {
 						return 1, nil
 					}
 
+				case uintptr:
+					v2 := t2.Value.(uintptr)
+					if v1 < v2 {
+						return -1, nil
+					} else {
+						return 1, nil
+					}
+
 				case float32:
 					v2 := t2.Value.(float32)
 					if v1 < v2 {
@@ -252,7 +260,7 @@ func CompareBytes(a, b []byte) (int, error) {
 				return 1, nil
 			}
 
-		case KindInt, KindInt64, KindUint, KindUint64:
+		case KindInt, KindInt64, KindUint, KindUint64, KindPointer:
 			bs, err = readA(8)
 			if err != nil {
 				return 0, err

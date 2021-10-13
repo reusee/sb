@@ -63,6 +63,9 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			case uint64:
 				return &Token{Kind: KindUint64, Value: v}, cont, nil
 
+			case uintptr:
+				return &Token{Kind: KindPointer, Value: v}, cont, nil
+
 			case uint16:
 				return &Token{Kind: KindUint16, Value: v}, cont, nil
 
@@ -213,6 +216,12 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			return &Token{
 				Kind:  KindUint64,
 				Value: uint64(value.Uint()),
+			}, cont, nil
+
+		case reflect.Uintptr:
+			return &Token{
+				Kind:  KindPointer,
+				Value: uintptr(value.Uint()),
 			}, cont, nil
 
 		case reflect.Float32:
