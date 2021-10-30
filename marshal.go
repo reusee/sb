@@ -278,7 +278,10 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 					MarshalError,
 				)
 			}
-			items := value.Call([]reflect.Value{})
+			var items []reflect.Value
+			if !value.IsNil() {
+				items = value.Call([]reflect.Value{})
+			}
 			return nil, MarshalTuple(
 				ctx,
 				items,

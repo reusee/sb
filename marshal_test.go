@@ -1168,3 +1168,14 @@ func TestMarshalNilSBMarshaler(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestNilTupleFunc(t *testing.T) {
+	var f func() (int, string)
+	err := Copy(
+		Marshal(f),
+		Discard,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
