@@ -96,6 +96,12 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 					return nil, err
 				}
 
+			case uintptr:
+				binary.LittleEndian.PutUint64(buf, uint64(value))
+				if _, err := w.Write(buf); err != nil {
+					return nil, err
+				}
+
 			case uint8:
 				if _, err := w.Write([]byte{value}); err != nil {
 					return nil, err

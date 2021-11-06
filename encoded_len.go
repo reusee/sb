@@ -3,6 +3,7 @@ package sb
 import (
 	"encoding/binary"
 	"fmt"
+	"unsafe"
 )
 
 func EncodedLen(ret *int, cont Sink) Sink {
@@ -27,6 +28,9 @@ func EncodedLen(ret *int, cont Sink) Sink {
 
 			case int, uint, int64, uint64, float64:
 				*ret += 8
+
+			case uintptr:
+				*ret += int(unsafe.Sizeof(value))
 
 			case string:
 				l := uint64(len(value))
