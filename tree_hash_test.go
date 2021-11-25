@@ -53,7 +53,9 @@ func TestBadTreeFillHash(t *testing.T) {
 				t.Fatal("not match")
 			}
 		}()
-		new(Tree).FillHash(newMapHashState)
+		if err := new(Tree).FillHash(newMapHashState); err != nil {
+			t.Fatal(err)
+		}
 	}()
 
 	func() {
@@ -66,11 +68,13 @@ func TestBadTreeFillHash(t *testing.T) {
 				t.Fatal("not match")
 			}
 		}()
-		(&Tree{
+		if err := (&Tree{
 			Token: &Token{
 				Kind: 2,
 			},
-		}).FillHash(newMapHashState)
+		}).FillHash(newMapHashState); err != nil {
+			t.Fatal(err)
+		}
 	}()
 
 }

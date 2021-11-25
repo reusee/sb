@@ -6,12 +6,6 @@ import (
 	"hash"
 	"hash/maphash"
 	"math/rand"
-	"reflect"
-)
-
-var (
-	anyType   = reflect.TypeOf((*any)(nil)).Elem()
-	errorType = reflect.TypeOf((*error)(nil)).Elem()
 )
 
 func init() {
