@@ -44,29 +44,29 @@ var unmarshalTestCases = []UnmarshalTestCase{
 		(func() (int, string))(nil),
 		nil,
 	},
-	18: {true, int(0), ExpectingBool},
-	19: {42, true, ExpectingInt},
-	20: {int8(42), true, ExpectingInt8},
-	21: {int16(42), true, ExpectingInt16},
-	22: {int32(42), true, ExpectingInt32},
-	23: {int64(42), true, ExpectingInt64},
-	24: {uint(42), true, ExpectingUint},
-	25: {uint8(42), true, ExpectingUint8},
-	26: {uint16(42), true, ExpectingUint16},
-	27: {uint32(42), true, ExpectingUint32},
-	28: {uint64(42), true, ExpectingUint64},
-	29: {float32(42), true, ExpectingFloat32},
-	30: {float64(42), true, ExpectingFloat64},
-	31: {math.NaN(), true, ExpectingFloat},
-	32: {"42", true, ExpectingString},
-	33: {[]int{42}, true, ExpectingSequence},
-	34: {map[int]int{}, true, ExpectingMap},
-	35: {42, (****string)(nil), ExpectingInt},
-	36: {[]byte("foo"), true, ExpectingBytes},
+	18: {true, int(0), TypeMismatch(KindBool, reflect.Int)},
+	19: {42, true, TypeMismatch(KindInt, reflect.Bool)},
+	20: {int8(42), true, TypeMismatch(KindInt8, reflect.Bool)},
+	21: {int16(42), true, TypeMismatch(KindInt16, reflect.Bool)},
+	22: {int32(42), true, TypeMismatch(KindInt32, reflect.Bool)},
+	23: {int64(42), true, TypeMismatch(KindInt64, reflect.Bool)},
+	24: {uint(42), true, TypeMismatch(KindUint, reflect.Bool)},
+	25: {uint8(42), true, TypeMismatch(KindUint8, reflect.Bool)},
+	26: {uint16(42), true, TypeMismatch(KindUint16, reflect.Bool)},
+	27: {uint32(42), true, TypeMismatch(KindUint32, reflect.Bool)},
+	28: {uint64(42), true, TypeMismatch(KindUint64, reflect.Bool)},
+	29: {float32(42), true, TypeMismatch(KindFloat32, reflect.Bool)},
+	30: {float64(42), true, TypeMismatch(KindFloat64, reflect.Bool)},
+	31: {math.NaN(), true, TypeMismatch(KindNaN, reflect.Bool)},
+	32: {"42", true, TypeMismatch(KindString, reflect.Bool)},
+	33: {[]int{42}, true, TypeMismatch(KindArray, reflect.Bool)},
+	34: {map[int]int{}, true, TypeMismatch(KindMap, reflect.Bool)},
+	35: {42, (****string)(nil), TypeMismatch(KindInt, reflect.String)},
+	36: {[]byte("foo"), true, TypeMismatch(KindBytes, reflect.Bool)},
 	37: {
 		func() int { return 42 },
 		true,
-		ExpectingTuple,
+		TypeMismatch(KindTuple, reflect.Bool),
 	},
 	38: {
 		func() int { return 42 },
@@ -798,8 +798,8 @@ func TestBadTuple(t *testing.T) {
 
 	// too few items
 	err = Copy(Marshal(func() {}), Unmarshal(&tuple))
-	if !errors.Is(err, ExpectingValue) {
-		t.Fatal()
+	if !errors.Is(err, TooFewElement) {
+		t.Fatalf("got %#v", err)
 	}
 
 	// type not match
@@ -815,11 +815,10 @@ func TestBadTuple(t *testing.T) {
 	err = Copy(
 		Marshal(func() string {
 			return "42"
-		}), Unmarshal(
-
-			&tuple))
-
-	if !errors.Is(err, ExpectingString) {
+		}),
+		Unmarshal(&tuple),
+	)
+	if !errors.Is(err, TypeMismatch(KindString, reflect.Int)) {
 		t.Fatal()
 	}
 
@@ -869,11 +868,10 @@ func TestBadTupleCall(t *testing.T) {
 
 	// too few items
 	err = Copy(
-		Marshal(func() {}), Unmarshal(
-
-			tuple))
-
-	if !errors.Is(err, ExpectingValue) {
+		Marshal(func() {}),
+		Unmarshal(tuple),
+	)
+	if !errors.Is(err, TooFewElement) {
 		t.Fatal()
 	}
 
@@ -901,11 +899,10 @@ func TestBadTupleCall(t *testing.T) {
 	err = Copy(
 		Marshal(func() string {
 			return "42"
-		}), Unmarshal(
-
-			tuple))
-
-	if !errors.Is(err, ExpectingString) {
+		}),
+		Unmarshal(tuple),
+	)
+	if !errors.Is(err, TypeMismatch(KindString, reflect.Int)) {
 		t.Fatal()
 	}
 
@@ -957,12 +954,11 @@ func TestBadTupleCallVariadic(t *testing.T) {
 	err = Copy(
 		Marshal(func() string {
 			return "42"
-		}), Unmarshal(
-
-			tuple))
-
-	if !errors.Is(err, ExpectingString) {
-		t.Fatal()
+		}),
+		Unmarshal(tuple),
+	)
+	if !errors.Is(err, TypeMismatch(KindString, reflect.Slice)) {
+		t.Fatalf("got %+v", err)
 	}
 
 	// bad end

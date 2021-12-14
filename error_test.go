@@ -1,6 +1,7 @@
 package sb
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -16,7 +17,7 @@ func TestError(t *testing.T) {
 		}),
 		Unmarshal(&v),
 	)
-	if !is(err, ExpectingInt) {
+	if !is(err, TypeMismatch(KindInt, reflect.String)) {
 		t.Fatal()
 	}
 	var path Path

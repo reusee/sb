@@ -2,6 +2,7 @@ package sb
 
 import (
 	"bytes"
+	"io"
 	"testing"
 )
 
@@ -72,7 +73,7 @@ func TestCollectValueTokens(t *testing.T) {
 			CollectValueTokens(&tokens),
 		),
 	)
-	if !is(err, ExpectingValue) {
+	if !is(err, io.ErrUnexpectedEOF) {
 		t.Fatal()
 	}
 
@@ -97,7 +98,7 @@ func TestCollectValueTokens(t *testing.T) {
 			CollectValueTokens(&tokens),
 		),
 	)
-	if !is(err, ExpectingArrayEnd) {
+	if !is(err, UnexpectedEndToken) {
 		t.Fatal()
 	}
 

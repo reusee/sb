@@ -8,6 +8,8 @@ import (
 	"math"
 	"reflect"
 	"strconv"
+
+	"github.com/reusee/e4"
 )
 
 type SBUnmarshaler interface {
@@ -254,14 +256,14 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 			case encoding.BinaryUnmarshaler:
 				if token == nil {
 					return nil, we.With(
-						ExpectingString,
+						TypeMismatch(KindInvalid, reflect.String),
 						io.ErrUnexpectedEOF,
 					)(
 						UnmarshalError,
 					)
 				}
 				if token.Kind != KindString {
-					return nil, we.With(ExpectingString)(UnmarshalError)
+					return nil, we.With(TypeMismatch(token.Kind, reflect.String))(UnmarshalError)
 				}
 				if err := v.UnmarshalBinary(
 					[]byte(token.Value.(string)),
@@ -273,14 +275,14 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 			case encoding.TextUnmarshaler:
 				if token == nil {
 					return nil, we.With(
-						ExpectingString,
+						TypeMismatch(KindInvalid, reflect.String),
 						io.ErrUnexpectedEOF,
 					)(
 						UnmarshalError,
 					)
 				}
 				if token.Kind != KindString {
-					return nil, we.With(ExpectingString)(UnmarshalError)
+					return nil, we.With(TypeMismatch(token.Kind, reflect.String))(UnmarshalError)
 				}
 				if err := v.UnmarshalText(
 					[]byte(token.Value.(string)),
@@ -294,7 +296,6 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 
 		if token == nil {
 			return nil, we.With(
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(
 				UnmarshalError,
@@ -305,7 +306,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindNil:
 			return cont, nil
 		case KindArrayEnd, KindObjectEnd, KindMapEnd, KindTupleEnd:
-			return nil, we.With(ExpectingValue)(UnmarshalError)
+			return nil, we.With(UnexpectedEndToken)(UnmarshalError)
 		}
 
 		targetType := target.Type()
@@ -347,7 +348,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindBool:
 			if hasConcreteType {
 				if valueKind != reflect.Bool {
-					return nil, we.With(ExpectingBool)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindBool, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetBool(token.Value.(bool))
 			} else {
@@ -357,7 +358,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindInt:
 			if hasConcreteType {
 				if valueKind != reflect.Int {
-					return nil, we.With(ExpectingInt)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindInt, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetInt(int64(token.Value.(int)))
 			} else {
@@ -367,7 +368,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindInt8:
 			if hasConcreteType {
 				if valueKind != reflect.Int8 {
-					return nil, we.With(ExpectingInt8)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindInt8, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetInt(int64(token.Value.(int8)))
 			} else {
@@ -377,7 +378,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindInt16:
 			if hasConcreteType {
 				if valueKind != reflect.Int16 {
-					return nil, we.With(ExpectingInt16)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindInt16, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetInt(int64(token.Value.(int16)))
 			} else {
@@ -387,7 +388,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindInt32:
 			if hasConcreteType {
 				if valueKind != reflect.Int32 {
-					return nil, we.With(ExpectingInt32)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindInt32, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetInt(int64(token.Value.(int32)))
 			} else {
@@ -397,7 +398,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindInt64:
 			if hasConcreteType {
 				if valueKind != reflect.Int64 {
-					return nil, we.With(ExpectingInt64)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindInt64, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetInt(token.Value.(int64))
 			} else {
@@ -407,7 +408,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindUint:
 			if hasConcreteType {
 				if valueKind != reflect.Uint {
-					return nil, we.With(ExpectingUint)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindUint, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetUint(uint64(token.Value.(uint)))
 			} else {
@@ -417,7 +418,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindUint8:
 			if hasConcreteType {
 				if valueKind != reflect.Uint8 {
-					return nil, we.With(ExpectingUint8)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindUint8, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetUint(uint64(token.Value.(uint8)))
 			} else {
@@ -427,7 +428,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindUint16:
 			if hasConcreteType {
 				if valueKind != reflect.Uint16 {
-					return nil, we.With(ExpectingUint16)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindUint16, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetUint(uint64(token.Value.(uint16)))
 			} else {
@@ -437,7 +438,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindUint32:
 			if hasConcreteType {
 				if valueKind != reflect.Uint32 {
-					return nil, we.With(ExpectingUint32)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindUint32, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetUint(uint64(token.Value.(uint32)))
 			} else {
@@ -447,7 +448,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindUint64:
 			if hasConcreteType {
 				if valueKind != reflect.Uint64 {
-					return nil, we.With(ExpectingUint64)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindUint64, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetUint(token.Value.(uint64))
 			} else {
@@ -457,7 +458,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindPointer:
 			if hasConcreteType {
 				if valueKind != reflect.Uintptr {
-					return nil, we.With(ExpectingUintptr)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindPointer, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetUint(uint64(token.Value.(uintptr)))
 			} else {
@@ -467,7 +468,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindFloat32:
 			if hasConcreteType {
 				if valueKind != reflect.Float32 {
-					return nil, we.With(ExpectingFloat32)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindFloat32, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetFloat(float64(token.Value.(float32)))
 			} else {
@@ -477,7 +478,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindFloat64:
 			if hasConcreteType {
 				if valueKind != reflect.Float64 {
-					return nil, we.With(ExpectingFloat64)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindFloat64, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetFloat(token.Value.(float64))
 			} else {
@@ -487,7 +488,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindNaN:
 			if hasConcreteType {
 				if valueKind != reflect.Float32 && valueKind != reflect.Float64 {
-					return nil, we.With(ExpectingFloat)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindNaN, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetFloat(math.NaN())
 			} else {
@@ -497,7 +498,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindString:
 			if hasConcreteType {
 				if valueKind != reflect.String {
-					return nil, we.With(ExpectingString)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindString, valueKind))(UnmarshalError)
 				}
 				target.Elem().SetString(token.Value.(string))
 			} else {
@@ -507,7 +508,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindBytes:
 			if hasConcreteType {
 				if !isBytes(valueType) {
-					return nil, we.With(ExpectingBytes)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindBytes, valueKind))(UnmarshalError)
 				}
 				if valueKind == reflect.Slice {
 					// slice
@@ -544,7 +545,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 					)(token)
 
 				} else {
-					return nil, we.With(ExpectingSequence)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindArray, valueKind))(UnmarshalError)
 				}
 
 			} else {
@@ -559,7 +560,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindObject:
 			if hasConcreteType {
 				if valueKind != reflect.Struct {
-					return nil, we.With(ExpectingStruct)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindObject, valueKind))(UnmarshalError)
 				}
 				return UnmarshalStruct(
 					ctx,
@@ -580,7 +581,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindMap:
 			if hasConcreteType {
 				if valueKind != reflect.Map {
-					return nil, we.With(ExpectingMap)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindMap, valueKind))(UnmarshalError)
 				}
 				return UnmarshalMap(
 					ctx,
@@ -602,7 +603,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindTuple:
 			if hasConcreteType {
 				if valueKind != reflect.Func {
-					return nil, we.With(ExpectingTuple)(UnmarshalError)
+					return nil, we.With(TypeMismatch(KindTuple, valueKind))(UnmarshalError)
 				}
 			}
 			return UnmarshalTuple(
@@ -644,7 +645,6 @@ func notNull(ctx Ctx, cont Sink) Sink {
 		if p == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -658,23 +658,13 @@ func ExpectKind(ctx Ctx, kind Kind, cont Sink) Sink {
 			err = we.With(WithPath(ctx))(err)
 		}()
 		if token == nil {
-			if err, ok := kindToExpectingErr[kind]; ok {
-				return nil, we.With(
-					err,
-					io.ErrUnexpectedEOF,
-				)(UnmarshalError)
-			} else {
-				return nil, we.With(
-					ExpectingValue,
-					io.ErrUnexpectedEOF,
-				)(UnmarshalError)
-			}
+			return nil, we.With(
+				io.ErrUnexpectedEOF,
+			)(UnmarshalError)
 		} else if token.Kind != kind {
-			if err, ok := kindToExpectingErr[kind]; ok {
-				return nil, we.With(UnmarshalError)(err)
-			} else {
-				return nil, we.With(ExpectingValue)(UnmarshalError)
-			}
+			return nil, we.With(
+				e4.Info("expecting %s, got %s", kind, token.Kind),
+			)(UnmarshalError)
 		}
 		return cont, nil
 	}
@@ -704,7 +694,6 @@ func unmarshalArray(
 		if p == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -757,7 +746,6 @@ func unmarshalSlice(
 		if p == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -805,7 +793,6 @@ func unmarshalGenericSlice(
 		if p == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -855,7 +842,6 @@ func unmarshalStruct(
 		if p == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -944,7 +930,6 @@ func unmarshalNewStruct(
 		if p == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -979,7 +964,6 @@ func unmarshalNewStruct(
 						if value == nil {
 							return nil, we.With(
 								WithPath(ctx),
-								ExpectingValue,
 								io.ErrUnexpectedEOF,
 							)(UnmarshalError)
 						}
@@ -1032,7 +1016,6 @@ func unmarshalMap(
 		if p == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -1095,7 +1078,6 @@ func unmarshalGenericMap(
 		if p == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -1111,7 +1093,7 @@ func unmarshalGenericMap(
 			func(token *Token) (Sink, error) {
 				key = toComparable(key)
 				if key == nil {
-					return nil, we.With(WithPath(ctx), ExpectingValue)(UnmarshalError)
+					return nil, we.With(WithPath(ctx), BadMapKey)(UnmarshalError)
 				} else if !reflect.TypeOf(key).Comparable() {
 					return nil, we.With(WithPath(ctx), BadMapKey)(UnmarshalError)
 				} else if f, ok := key.(float64); ok && f != f {
@@ -1209,7 +1191,6 @@ func unmarshalTuple(
 		if token == nil {
 			return nil, we.With(
 				WithPath(ctx),
-				ExpectingValue,
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
 		}
@@ -1218,7 +1199,7 @@ func unmarshalTuple(
 
 			// too few values
 			if len(concreteTypes) > 0 {
-				return nil, we.With(WithPath(ctx), ExpectingValue)(UnmarshalError)
+				return nil, we.With(WithPath(ctx), TooFewElement)(UnmarshalError)
 			}
 
 			targetType := target.Type()

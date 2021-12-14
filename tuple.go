@@ -2,6 +2,7 @@ package sb
 
 import (
 	"fmt"
+	"io"
 	"reflect"
 
 	"github.com/reusee/e4"
@@ -43,10 +44,10 @@ var _ SBUnmarshaler = new(Tuple)
 func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, we.With(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
 		if token.Kind != KindTuple {
-			return nil, we.With(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(TypeMismatch(token.Kind, reflect.Func)))(UnmarshalError)
 		}
 		return t.unmarshal(0, ctx, cont), nil
 	}
@@ -55,7 +56,7 @@ func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 func (t *Tuple) unmarshal(i int, ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, we.With(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
 		if token.Kind == KindTupleEnd {
 			return cont, nil
@@ -113,10 +114,10 @@ func TupleTypes(typeSpec any) []reflect.Type {
 func UnmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, we.With(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
 		if token.Kind != KindTuple {
-			return nil, we.With(WithPath(ctx), e4.With(ExpectingTuple))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(TypeMismatch(token.Kind, reflect.Func)))(UnmarshalError)
 		}
 		return unmarshalTupleTyped(ctx, types, target, cont), nil
 	}
@@ -138,12 +139,12 @@ func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink
 	i := 0
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, we.With(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
+			return nil, we.With(WithPath(ctx), e4.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
 
 		if token.Kind == KindTupleEnd {
 			if i != len(types) {
-				return nil, we.With(WithPath(ctx), e4.With(ExpectingValue))(UnmarshalError)
+				return nil, we.With(WithPath(ctx), e4.With(TooFewElement))(UnmarshalError)
 			}
 			return cont, nil
 		}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
+	"io"
 	"testing"
 )
 
@@ -172,7 +173,7 @@ func TestBadHash(t *testing.T) {
 	if err := Copy(
 		Tokens{}.Iter(),
 		Hash(fnv.New128, nil, nil),
-	); !is(err, ExpectingValue) {
+	); !is(err, io.ErrUnexpectedEOF) {
 		t.Fatal()
 	}
 
@@ -183,7 +184,7 @@ func TestBadHash(t *testing.T) {
 			},
 		}.Iter(),
 		Hash(fnv.New128, nil, nil),
-	); !is(err, ExpectingValue) {
+	); !is(err, io.ErrUnexpectedEOF) {
 		t.Fatal()
 	}
 

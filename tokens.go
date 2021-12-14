@@ -1,5 +1,7 @@
 package sb
 
+import "io"
+
 type Tokens []Token
 
 func TokensFromStream(stream Stream) (tokens Tokens, err error) {
@@ -56,7 +58,7 @@ func CollectValueTokens(tokens *Tokens) Sink {
 		}
 		if token == nil {
 			if len(stack) > 0 {
-				return nil, ExpectingValue
+				return nil, io.ErrUnexpectedEOF
 			}
 			return nil, nil // NOCOVER
 		}
@@ -67,7 +69,7 @@ func CollectValueTokens(tokens *Tokens) Sink {
 				return nil, UnexpectedEndToken
 			}
 			if token.Kind != stack[len(stack)-1].Kind {
-				return nil, kindToExpectingErr[stack[len(stack)-1].Kind]
+				return nil, UnexpectedEndToken
 			}
 			stack = stack[:len(stack)-1]
 			if len(stack) == 0 {

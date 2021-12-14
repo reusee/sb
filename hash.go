@@ -26,7 +26,7 @@ func HashFunc(
 ) Sink {
 	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, ExpectingValue
+			return nil, io.ErrUnexpectedEOF
 		}
 
 		state := newState()
@@ -275,7 +275,7 @@ func HashCompound(
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, ExpectingValue
+			return nil, io.ErrUnexpectedEOF
 		}
 
 		var subHash []byte

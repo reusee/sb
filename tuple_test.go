@@ -1,6 +1,10 @@
 package sb
 
-import "testing"
+import (
+	"io"
+	"reflect"
+	"testing"
+)
 
 func TestTuple(t *testing.T) {
 	s := Marshal(Tuple{
@@ -67,7 +71,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 	if err := Copy(
 		Tokens{}.Iter(),
 		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
-	); !is(err, ExpectingTuple) {
+	); !is(err, io.ErrUnexpectedEOF) {
 		t.Fatal(err)
 	}
 
@@ -78,7 +82,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 			},
 		}.Iter(),
 		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
-	); !is(err, ExpectingTuple) {
+	); !is(err, TypeMismatch(KindString, reflect.Func)) {
 		t.Fatal(err)
 	}
 
@@ -89,7 +93,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 			},
 		}.Iter(),
 		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
-	); !is(err, ExpectingValue) {
+	); !is(err, io.ErrUnexpectedEOF) {
 		t.Fatal(err)
 	}
 
@@ -107,7 +111,7 @@ func TestTupleUnmarshalTyped(t *testing.T) {
 			42, true,
 		}),
 		UnmarshalTupleTyped(DefaultCtx, TupleTypes(func(int, bool, string) {}), &tuple, nil),
-	); !is(err, ExpectingValue) {
+	); !is(err, TooFewElement) {
 		t.Fatal(err)
 	}
 
@@ -143,7 +147,7 @@ func TestUnmarshalTupleBad(t *testing.T) {
 		Tokens{}.Iter(),
 		Unmarshal(&tuple),
 	)
-	if !is(err, ExpectingTuple) {
+	if !is(err, io.ErrUnexpectedEOF) {
 		t.Fatal()
 	}
 
@@ -155,7 +159,7 @@ func TestUnmarshalTupleBad(t *testing.T) {
 		}.Iter(),
 		Unmarshal(&tuple),
 	)
-	if !is(err, ExpectingTuple) {
+	if !is(err, TypeMismatch(KindInt, reflect.Func)) {
 		t.Fatal()
 	}
 
@@ -171,7 +175,7 @@ func TestUnmarshalTupleBad(t *testing.T) {
 		}.Iter(),
 		Unmarshal(&tuple),
 	)
-	if !is(err, ExpectingValue) {
+	if !is(err, io.ErrUnexpectedEOF) {
 		t.Fatal()
 	}
 }
