@@ -269,6 +269,9 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			return nil, MarshalMap(ctx, value, cont), nil
 
 		case reflect.Func:
+			if ctx.IgnoreFuncs {
+				return Nil, cont, nil
+			}
 			if value.Type().NumIn() != 0 {
 				return nil, nil, we.With(
 					WithPath(ctx),

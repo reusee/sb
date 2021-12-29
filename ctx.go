@@ -22,6 +22,8 @@ type Ctx struct {
 	SkipEmptyStructFields       bool
 	DisallowUnknownStructFields bool
 	detectCycleEnabled          bool
+
+	IgnoreFuncs bool
 }
 
 type Path []any

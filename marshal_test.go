@@ -1179,3 +1179,27 @@ func TestNilTupleFunc(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestIgnoreFuncs(t *testing.T) {
+	proc := MarshalValue(Ctx{
+		IgnoreFuncs: true,
+	}, reflect.ValueOf(struct {
+		F func(int)
+		I int
+	}{
+		F: func(int) {},
+		I: 42,
+	}), nil)
+	var data struct {
+		I int
+	}
+	if err := Copy(
+		&proc,
+		Unmarshal(&data),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if data.I != 42 {
+		t.Fatal()
+	}
+}
