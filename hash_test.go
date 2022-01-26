@@ -2,6 +2,7 @@ package sb
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"hash/fnv"
@@ -247,4 +248,40 @@ func TestBadHash(t *testing.T) {
 		t.Fatal()
 	}
 
+}
+
+func TestRefHash(t *testing.T) {
+	a := []any{
+		1, 2, 3,
+	}
+	var hash []byte
+	if err := Copy(
+		Marshal(2),
+		Hash(sha256.New, &hash, nil),
+	); err != nil {
+		t.Fatal(err)
+	}
+	b := []any{
+		1, Ref(hash), 3,
+	}
+
+	var hashA []byte
+	if err := Copy(
+		Marshal(a),
+		Hash(sha256.New, &hashA, nil),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	var hashB []byte
+	if err := Copy(
+		Marshal(b),
+		Hash(sha256.New, &hashB, nil),
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(hashA, hashB) {
+		t.Fatal()
+	}
 }

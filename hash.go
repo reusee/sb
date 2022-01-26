@@ -18,8 +18,6 @@ func Hash(
 	)
 }
 
-//TODO handle KindRef, use value as hash
-
 func HashFunc(
 	newState func() hash.Hash,
 	target *[]byte,
@@ -29,6 +27,19 @@ func HashFunc(
 	return func(token *Token) (Sink, error) {
 		if token == nil {
 			return nil, io.ErrUnexpectedEOF
+		}
+
+		if token.Kind == KindRef {
+			sum := token.Value.([]byte)
+			if fn != nil {
+				if err := fn(sum, token); err != nil {
+					return nil, err
+				}
+			}
+			if target != nil {
+				*target = sum
+			}
+			return cont, nil
 		}
 
 		state := newState()
