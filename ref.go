@@ -1,47 +1,36 @@
 package sb
 
-func Deref(
-	stream Stream,
-	getStream func([]byte) (Stream, error),
-) *Proc {
-	proc := deref(
-		stream,
-		getStream,
-		nil,
-	)
-	return &proc
+import (
+	"io"
+	"reflect"
+
+	"github.com/reusee/e4"
+)
+
+type Ref []byte
+
+var _ SBMarshaler = Ref{}
+
+func (r Ref) MarshalSB(ctx Ctx, cont Proc) Proc {
+	return func() (*Token, Proc, error) {
+		return &Token{
+			Kind:  KindRef,
+			Value: []byte(r),
+		}, cont, nil
+	}
 }
 
-func deref(
-	stream Stream,
-	getStream func([]byte) (Stream, error),
-	cont Proc,
-) Proc {
-	var proc Proc
-	proc = func() (*Token, Proc, error) {
-		token, err := stream.Next()
-		if err != nil { // NOCOVER
-			return nil, nil, err
-		}
+var _ SBUnmarshaler = new(Ref)
+
+func (r *Ref) UnmarshalSB(ctx Ctx, cont Sink) Sink {
+	return func(token *Token) (Sink, error) {
 		if token == nil {
-			return nil, cont, nil
+			return nil, we.With(WithPath(ctx), e4.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
-		if token.Kind == KindRef {
-			subStream, err := getStream(token.Value.([]byte))
-			if err != nil {
-				return nil, nil, err
-			}
-			if subStream == nil {
-				return nil, func() (*Token, Proc, error) {
-					return token, proc, nil
-				}, nil
-			}
-			return nil, IterStream(
-				subStream,
-				proc,
-			), nil
+		if token.Kind != KindRef {
+			return nil, we.With(WithPath(ctx), e4.With(TypeMismatch(token.Kind, reflect.Slice)))(UnmarshalError)
 		}
-		return token, proc, nil
+		*r = Ref(token.Value.([]byte))
+		return cont, nil
 	}
-	return proc
 }

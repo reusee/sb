@@ -18,6 +18,8 @@ func Hash(
 	)
 }
 
+//TODO handle KindRef, use value as hash
+
 func HashFunc(
 	newState func() hash.Hash,
 	target *[]byte,
