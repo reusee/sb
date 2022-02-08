@@ -115,9 +115,9 @@ func HashFunc(
 					return nil, err
 				}
 			case KindInt:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint64(buf, uint64(token.Value.(int)))
 				if _, err := state.Write(buf); err != nil {
 					return nil, err
@@ -127,33 +127,33 @@ func HashFunc(
 					return nil, err
 				}
 			case KindInt16:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint16(buf, uint16(token.Value.(int16)))
 				if _, err := state.Write((buf)[:2]); err != nil {
 					return nil, err
 				}
 			case KindInt32:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint32(buf, uint32(token.Value.(int32)))
 				if _, err := state.Write((buf)[:4]); err != nil {
 					return nil, err
 				}
 			case KindInt64:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint64(buf, uint64(token.Value.(int64)))
 				if _, err := state.Write((buf)); err != nil {
 					return nil, err
 				}
 			case KindUint:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint64(buf, uint64(token.Value.(uint)))
 				if _, err := state.Write(buf); err != nil {
 					return nil, err
@@ -163,49 +163,49 @@ func HashFunc(
 					return nil, err
 				}
 			case KindUint16:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint16(buf, token.Value.(uint16))
 				if _, err := state.Write((buf)[:2]); err != nil {
 					return nil, err
 				}
 			case KindUint32:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint32(buf, token.Value.(uint32))
 				if _, err := state.Write((buf)[:4]); err != nil {
 					return nil, err
 				}
 			case KindUint64:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint64(buf, token.Value.(uint64))
 				if _, err := state.Write((buf)); err != nil {
 					return nil, err
 				}
 			case KindPointer:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint64(buf, uint64(token.Value.(uintptr)))
 				if _, err := state.Write((buf)); err != nil {
 					return nil, err
 				}
 			case KindFloat32:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint32(buf, math.Float32bits(token.Value.(float32)))
 				if _, err := state.Write((buf)[:4]); err != nil {
 					return nil, err
 				}
 			case KindFloat64:
-				v, put := bytesPool8.Get()
+				ptr, put := bytesPool8.Get()
 				defer put()
-				buf := *v.(*[]byte)
+				buf := *ptr
 				binary.LittleEndian.PutUint64(buf, math.Float64bits(token.Value.(float64)))
 				if _, err := state.Write((buf)); err != nil {
 					return nil, err
