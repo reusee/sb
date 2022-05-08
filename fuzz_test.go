@@ -38,7 +38,7 @@ func TestFuzzCorpus(t *testing.T) {
 	}
 }
 
-func FuzzAll(f *testing.F) {
+func FuzzAllCorpus(f *testing.F) {
 
 	files, err := filepath.Glob("corpus/*")
 	if err != nil {

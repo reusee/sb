@@ -137,8 +137,8 @@ func TestUnmarshalArray(t *testing.T) {
 	if err := Copy(
 		Marshal(S{
 			Foos: []foo{
-				foo{1},
-				foo{2},
+				{1},
+				{2},
 			},
 		}),
 		Encode(buf),

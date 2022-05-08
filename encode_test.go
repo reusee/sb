@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 )
@@ -24,7 +23,7 @@ func TestEncode(t *testing.T) {
 	} {
 		if err := Copy(
 			Marshal(v),
-			Encode(ioutil.Discard),
+			Encode(io.Discard),
 		); err != nil {
 			t.Fatal(err)
 		}
@@ -50,7 +49,7 @@ func TestEncodeBadStream(t *testing.T) {
 				byte(KindString), // incomplete
 			}),
 		),
-		Encode(ioutil.Discard),
+		Encode(io.Discard),
 	); err == nil {
 		t.Fatal()
 	}
@@ -77,7 +76,7 @@ func BenchmarkEncodeInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		if err := Copy(
 			Marshal(42),
-			Encode(ioutil.Discard),
+			Encode(io.Discard),
 		); err != nil {
 			b.Fatal(err)
 		}
