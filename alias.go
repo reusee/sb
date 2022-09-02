@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 )
 
 type (
@@ -16,5 +16,5 @@ var (
 	is = errors.Is
 	as = errors.As
 
-	we = e4.Wrap
+	we = e5.Wrap
 )

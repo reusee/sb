@@ -7,7 +7,7 @@ import (
 	"io"
 	"math"
 
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 )
 
 func Compare(stream1, stream2 Stream) (int, error) {
@@ -195,7 +195,7 @@ func CompareBytes(a, b []byte) (int, error) {
 	var offsetB int64
 	readA := func(l int) (ret []byte, err error) {
 		if len(a) < l {
-			return nil, we.With(e4.With(Offset(offsetA)), e4.With(io.ErrUnexpectedEOF))(DecodeError)
+			return nil, we.With(e5.With(Offset(offsetA)), e5.With(io.ErrUnexpectedEOF))(DecodeError)
 		}
 		ret = a[:l]
 		a = a[l:]
@@ -204,7 +204,7 @@ func CompareBytes(a, b []byte) (int, error) {
 	}
 	readB := func(l int) (ret []byte, err error) {
 		if len(b) < l {
-			return nil, we.With(e4.With(Offset(offsetB)), e4.With(io.ErrUnexpectedEOF))(DecodeError)
+			return nil, we.With(e5.With(Offset(offsetB)), e5.With(io.ErrUnexpectedEOF))(DecodeError)
 		}
 		ret = b[:l]
 		b = b[l:]
@@ -374,7 +374,7 @@ func CompareBytes(a, b []byte) (int, error) {
 			} else {
 				l := ^x
 				if l > 8 {
-					return 0, we.With(e4.With(Offset(offsetA)), e4.With(StringTooLong))(DecodeError)
+					return 0, we.With(e5.With(Offset(offsetA)), e5.With(StringTooLong))(DecodeError)
 				}
 				bs, err = readA(int(l))
 				if err != nil {
@@ -382,7 +382,7 @@ func CompareBytes(a, b []byte) (int, error) {
 				}
 				n, _ := binary.Uvarint(bs)
 				if n == 0 {
-					return 0, we.With(e4.With(Offset(offsetA)), e4.With(BadStringLength))(DecodeError)
+					return 0, we.With(e5.With(Offset(offsetA)), e5.With(BadStringLength))(DecodeError)
 				}
 				l1 = int(n)
 			}
@@ -401,7 +401,7 @@ func CompareBytes(a, b []byte) (int, error) {
 			} else {
 				l := ^x
 				if l > 8 {
-					return 0, we.With(e4.With(Offset(offsetB)), e4.With(StringTooLong))(DecodeError)
+					return 0, we.With(e5.With(Offset(offsetB)), e5.With(StringTooLong))(DecodeError)
 				}
 				bs, err = readB(int(l))
 				if err != nil {
@@ -409,7 +409,7 @@ func CompareBytes(a, b []byte) (int, error) {
 				}
 				n, _ := binary.Uvarint(bs)
 				if n == 0 {
-					return 0, we.With(e4.With(Offset(offsetB)), e4.With(BadStringLength))(DecodeError)
+					return 0, we.With(e5.With(Offset(offsetB)), e5.With(BadStringLength))(DecodeError)
 				}
 				l2 = int(n)
 			}
@@ -428,7 +428,7 @@ func CompareBytes(a, b []byte) (int, error) {
 			KindMax:
 
 		default:
-			return 0, we.With(e4.With(Offset(offsetA)), e4.With(BadTokenKind), e4.With(kindA))(DecodeError)
+			return 0, we.With(e5.With(Offset(offsetA)), e5.With(BadTokenKind), e5.With(kindA))(DecodeError)
 
 		}
 

@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 	"github.com/reusee/sb"
 	"os"
 )
@@ -81,13 +81,13 @@ func main() {
 }
 
 var (
-	check = e4.Check
+	check = e5.Check
 	pt    = fmt.Printf
 )
 
 func must(b bool) {
 	if !b {
-		pt(e4.NewStacktrace()(fmt.Errorf("should be true")).Error())
+		pt(e5.NewStacktrace()(fmt.Errorf("should be true")).Error())
 		os.Exit(-1)
 	}
 }

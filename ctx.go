@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 )
 
 type Ctx struct {
@@ -36,12 +36,12 @@ func (p Path) String() string {
 	return b.String()
 }
 
-func WithPath(ctx Ctx) e4.WrapFunc {
+func WithPath(ctx Ctx) e5.WrapFunc {
 	return func(prev error) error {
-		return e4.Error{
-			Err:  append(ctx.Path[:0:0], ctx.Path...),
-			Prev: prev,
-		}
+		return e5.Chain(
+			append(ctx.Path[:0:0], ctx.Path...),
+			prev,
+		)
 	}
 }
 

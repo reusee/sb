@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 )
 
 type SBUnmarshaler interface {
@@ -663,7 +663,7 @@ func ExpectKind(ctx Ctx, kind Kind, cont Sink) Sink {
 			)(UnmarshalError)
 		} else if token.Kind != kind {
 			return nil, we.With(
-				e4.Info("expecting %s, got %s", kind, token.Kind),
+				e5.Info("expecting %s, got %s", kind, token.Kind),
 			)(UnmarshalError)
 		}
 		return cont, nil
