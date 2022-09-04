@@ -276,7 +276,7 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 				return nil, nil, we.With(
 					WithPath(ctx),
 					e5.With(BadTupleType),
-					e5.NewInfo("bad tuple type: %v", value.Type()),
+					e5.Info("bad tuple type: %v", value.Type()),
 				)(
 					MarshalError,
 				)
