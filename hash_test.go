@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"hash"
 	"hash/fnv"
 	"io"
 	"testing"
@@ -283,5 +284,31 @@ func TestRefHash(t *testing.T) {
 
 	if !bytes.Equal(hashA, hashB) {
 		t.Fatal()
+	}
+}
+
+func newSHA256() hash.Hash {
+	return sha256.New()
+}
+
+func benchmarkHashSHA256(b *testing.B, size int) {
+	data := bytes.Repeat([]byte("a"), size)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b.SetBytes(int64(size))
+		if err := Copy(
+			Marshal(data),
+			Hash(newSHA256, nil, nil),
+		); err != nil {
+			b.Fatal()
+		}
+	}
+}
+
+func BenchmarkHashSHA256(b *testing.B) {
+	for i := 8; i < 8*1024*1024; i *= 4 {
+		b.Run(fmt.Sprintf("%d", i), func(b *testing.B) {
+			benchmarkHashSHA256(b, i)
+		})
 	}
 }
