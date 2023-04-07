@@ -3,9 +3,9 @@ package sb
 import (
 	"encoding"
 	"reflect"
-	"sort"
 
 	"github.com/reusee/e5"
+	"golang.org/x/exp/slices"
 )
 
 type SBMarshaler interface {
@@ -433,10 +433,10 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 	proc = func() (*Token, Proc, error) {
 		if !iter.Next() {
 			// done
-			sort.Slice(tuples, func(i, j int) bool {
+			slices.SortFunc(tuples, func(a, b *MapTuple) bool {
 				return MustCompare(
-					tuples[i].KeyTokens.Iter(),
-					tuples[j].KeyTokens.Iter(),
+					a.KeyTokens.Iter(),
+					b.KeyTokens.Iter(),
 				) < 0
 			})
 			return nil, MarshalMapTuples(ctx, tuples, cont), nil
