@@ -8,6 +8,9 @@ func (p *Proc) Next() (ret *Token, err error) {
 	for ret == nil {
 		if p != nil && *p != nil {
 			ret, *p, err = (*p)()
+			if err != nil {
+				return
+			}
 		} else {
 			break
 		}
