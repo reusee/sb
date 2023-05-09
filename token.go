@@ -5,6 +5,10 @@ type Token struct {
 	Kind  Kind
 }
 
+func (t *Token) Valid() bool {
+	return t.Kind != KindInvalid
+}
+
 var _ SBMarshaler = Token{}
 
 func (t Token) MarshalSB(ctx Ctx, cont Proc) Proc {
