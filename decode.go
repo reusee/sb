@@ -253,7 +253,8 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 					length -= l
 					builder := new(strings.Builder)
 					builder.Grow(l)
-					ptr, put := bytesPool32K.Get()
+					var ptr *[]byte
+					put := bytesPool32K.Get(&ptr)
 					defer put()
 					if n, err := io.CopyBuffer(
 						builder,
@@ -277,7 +278,8 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 			builder := new(strings.Builder)
 			builder.Grow(int(length))
-			ptr, put := bytesPool32K.Get()
+			var ptr *[]byte
+			put := bytesPool32K.Get(&ptr)
 			defer put()
 			if n, err := io.CopyBuffer(
 				builder,
@@ -346,7 +348,8 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 					length -= l
 					builder := new(bytes.Buffer)
 					builder.Grow(l)
-					ptr, put := bytesPool32K.Get()
+					var ptr *[]byte
+					put := bytesPool32K.Get(&ptr)
 					defer put()
 					if n, err := io.CopyBuffer(
 						builder,

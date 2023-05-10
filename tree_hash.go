@@ -79,7 +79,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindInt:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint64(buf, uint64(token.Value.(int)))
@@ -91,7 +92,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindInt16:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint16(buf, uint16(token.Value.(int16)))
@@ -99,7 +101,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindInt32:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint32(buf, uint32(token.Value.(int32)))
@@ -107,7 +110,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindInt64:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint64(buf, uint64(token.Value.(int64)))
@@ -115,7 +119,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindUint:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint64(buf, uint64(token.Value.(uint)))
@@ -127,7 +132,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindUint16:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint16(buf, token.Value.(uint16))
@@ -135,7 +141,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindUint32:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint32(buf, token.Value.(uint32))
@@ -143,7 +150,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindUint64:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint64(buf, token.Value.(uint64))
@@ -151,7 +159,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindPointer:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint64(buf, uint64(token.Value.(uintptr)))
@@ -159,7 +168,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindFloat32:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint32(buf, math.Float32bits(token.Value.(float32)))
@@ -167,7 +177,8 @@ func (t *Tree) FillHash(
 				return err
 			}
 		case KindFloat64:
-			ptr, put := bytesPool8.Get()
+			var ptr *[]byte
+			put := bytesPool8.Get(&ptr)
 			defer put()
 			buf := *ptr
 			binary.LittleEndian.PutUint64(buf, math.Float64bits(token.Value.(float64)))
