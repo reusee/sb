@@ -342,7 +342,7 @@ var arrayToken = Token{
 
 func MarshalArray(ctx Ctx, value reflect.Value, index int, cont Proc) Proc {
 	var proc Proc
-	proc = func(token *Token) (Proc, error) {
+	proc = func(_ *Token) (Proc, error) {
 		if index >= value.Len() {
 			return ctx.Marshal(
 				ctx,
@@ -384,7 +384,7 @@ func MarshalStructFields(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	numField := valueType.NumField()
 	fieldIdx := 0
 	var proc Proc
-	proc = func(token *Token) (Proc, error) {
+	proc = func(_ *Token) (Proc, error) {
 		if fieldIdx == numField {
 			return ctx.Marshal(
 				ctx,
@@ -436,7 +436,6 @@ type MapTuple struct {
 func MarshalMap(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	return MarshalMapIter(
 		ctx,
-		value,
 		value.MapRange(),
 		make([]*MapTuple, 0, value.Len()),
 		cont,
@@ -451,9 +450,9 @@ var mapToken = Token{
 	Kind: KindMap,
 }
 
-func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples []*MapTuple, cont Proc) Proc {
+func MarshalMapIter(ctx Ctx, iter *reflect.MapIter, tuples []*MapTuple, cont Proc) Proc {
 	var proc Proc
-	proc = func(token *Token) (Proc, error) {
+	proc = func(_ *Token) (Proc, error) {
 		if !iter.Next() {
 			// done
 			slices.SortFunc(tuples, func(a, b *MapTuple) bool {
@@ -492,7 +491,7 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 
 func MarshalMapTuples(ctx Ctx, tuples []*MapTuple, cont Proc) Proc {
 	var proc Proc
-	proc = func(token *Token) (Proc, error) {
+	proc = func(_ *Token) (Proc, error) {
 		if len(tuples) == 0 {
 			return ctx.Marshal(
 				ctx,
@@ -530,7 +529,7 @@ var tupleToken = Token{
 func MarshalTuple(ctx Ctx, items []reflect.Value, cont Proc) Proc {
 	var proc Proc
 	var n int
-	proc = func(token *Token) (Proc, error) {
+	proc = func(_ *Token) (Proc, error) {
 		if len(items) == 0 {
 			return ctx.Marshal(
 				ctx,

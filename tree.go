@@ -24,13 +24,13 @@ type WithHash struct {
 	NewHashState func() hash.Hash
 }
 
-func (_ WithHash) IsTreeOption() {}
+func (WithHash) IsTreeOption() {}
 
 type TapTree struct {
 	Func func(*Tree)
 }
 
-func (_ TapTree) IsTreeOption() {}
+func (TapTree) IsTreeOption() {}
 
 func TreeFromStream(
 	stream Stream,

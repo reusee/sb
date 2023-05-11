@@ -193,7 +193,7 @@ func TestFilterProc(t *testing.T) {
 		FilterProc(
 			Marshal([]int{1, 2, 3}),
 			func(token *Token) bool {
-				return !(token.Kind == KindInt && token.Value.(int) == 2)
+				return token.Kind != KindInt || token.Value.(int) != 2
 			},
 		),
 		Unmarshal(&ints),
@@ -217,7 +217,7 @@ func TestFilterProc2(t *testing.T) {
 		FilterProc(
 			Marshal([]int{1, 2, 3}),
 			func(token *Token) bool {
-				return !(token.Kind == KindInt && token.Value.(int) == 2)
+				return token.Kind != KindInt || token.Value.(int) != 2
 			},
 		),
 		CollectTokens(&tokens),

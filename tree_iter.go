@@ -26,7 +26,7 @@ func IterSubTrees(
 	cont Proc,
 ) Proc {
 	var proc Proc
-	proc = func(token *Token) (Proc, error) {
+	proc = func(_ *Token) (Proc, error) {
 		if len(subs) == 0 {
 			return cont, nil
 		}
@@ -81,7 +81,7 @@ func IterSubTreesFunc(
 	cont Proc,
 ) Proc {
 	var proc Proc
-	proc = func(token *Token) (Proc, error) {
+	proc = func(_ *Token) (Proc, error) {
 		if len(subs) == 0 {
 			return cont, nil
 		}

@@ -594,7 +594,7 @@ type badBinaryMarshaler struct{}
 
 var _ encoding.BinaryMarshaler = badBinaryMarshaler{}
 
-func (_ badBinaryMarshaler) MarshalBinary() ([]byte, error) {
+func (badBinaryMarshaler) MarshalBinary() ([]byte, error) {
 	return nil, fmt.Errorf("bad")
 }
 
@@ -611,7 +611,7 @@ type badTextMarshaler struct{}
 
 var _ encoding.TextMarshaler = badTextMarshaler{}
 
-func (_ badTextMarshaler) MarshalText() ([]byte, error) {
+func (badTextMarshaler) MarshalText() ([]byte, error) {
 	return nil, fmt.Errorf("bad")
 }
 

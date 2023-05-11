@@ -1335,7 +1335,7 @@ func TestUnmarshalEmbedded(t *testing.T) {
 	); err != nil {
 		t.Fatal()
 	}
-	if !f.Time.Equal(now) {
+	if !f.Equal(now) {
 		t.Fatalf("got %v, expected %v", f.Time, now)
 	}
 }
@@ -1368,28 +1368,29 @@ func TestUnmarshalPath(t *testing.T) {
 	var ints []int
 	if err := Copy(
 		Marshal([]int{1, 2, 3}),
-		TapUnmarshal(DefaultCtx, &ints, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &ints, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindArray {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
 			if token.Kind == KindInt {
-				if token.Value == 1 {
+				switch token.Value {
+				case 1:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
 					if ctx.Path[0] != 0 {
 						t.Fatal()
 					}
-				} else if token.Value == 2 {
+				case 2:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
 					if ctx.Path[0] != 1 {
 						t.Fatal()
 					}
-				} else if token.Value == 3 {
+				case 3:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
@@ -1407,28 +1408,29 @@ func TestUnmarshalPath(t *testing.T) {
 	var value any
 	if err := Copy(
 		Marshal([]int{1, 2, 3}),
-		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindArray {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
 			if token.Kind == KindInt {
-				if token.Value == 1 {
+				switch token.Value {
+				case 1:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
 					if ctx.Path[0] != 0 {
 						t.Fatal()
 					}
-				} else if token.Value == 2 {
+				case 2:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
 					if ctx.Path[0] != 1 {
 						t.Fatal()
 					}
-				} else if token.Value == 3 {
+				case 3:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
@@ -1446,28 +1448,29 @@ func TestUnmarshalPath(t *testing.T) {
 	var array []int
 	if err := Copy(
 		Marshal([]int{1, 2, 3}),
-		TapUnmarshal(DefaultCtx, &array, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &array, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindArray {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
 			if token.Kind == KindInt {
-				if token.Value == 1 {
+				switch token.Value {
+				case 1:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
 					if ctx.Path[0] != 0 {
 						t.Fatal()
 					}
-				} else if token.Value == 2 {
+				case 2:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
 					if ctx.Path[0] != 1 {
 						t.Fatal()
 					}
-				} else if token.Value == 3 {
+				case 3:
 					if len(ctx.Path) != 1 {
 						t.Fatal()
 					}
@@ -1492,20 +1495,21 @@ func TestUnmarshalPath(t *testing.T) {
 			Foo: 42,
 			Bar: "bar",
 		}),
-		TapUnmarshal(DefaultCtx, &f, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &f, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindObject {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != "Foo" {
 					t.Fatal()
 				}
-			} else if token.Value == "bar" {
+			case "bar":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1529,27 +1533,28 @@ func TestUnmarshalPath(t *testing.T) {
 			Bar: "bar",
 			Baz: 1,
 		}),
-		TapUnmarshal(DefaultCtx, &f, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &f, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindObject {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != "Foo" {
 					t.Fatal()
 				}
-			} else if token.Value == "bar" {
+			case "bar":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != "Bar" {
 					t.Fatal()
 				}
-			} else if token.Value == 1 {
+			case 1:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1568,20 +1573,21 @@ func TestUnmarshalPath(t *testing.T) {
 			Foo: 42,
 			Bar: "bar",
 		}),
-		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindObject {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != "Foo" {
 					t.Fatal()
 				}
-			} else if token.Value == "bar" {
+			case "bar":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1601,20 +1607,21 @@ func TestUnmarshalPath(t *testing.T) {
 			"Foo": 42,
 			"Bar": "bar",
 		}),
-		TapUnmarshal(DefaultCtx, &m, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &m, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindMap {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != "Foo" {
 					t.Fatal()
 				}
-			} else if token.Value == "bar" {
+			case "bar":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1633,20 +1640,21 @@ func TestUnmarshalPath(t *testing.T) {
 			"Foo": 42,
 			"Bar": "bar",
 		}),
-		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindMap {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != "Foo" {
 					t.Fatal()
 				}
-			} else if token.Value == "bar" {
+			case "bar":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1665,20 +1673,21 @@ func TestUnmarshalPath(t *testing.T) {
 		Marshal(func() (int, string) {
 			return 42, "foo"
 		}),
-		TapUnmarshal(DefaultCtx, &tuple, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &tuple, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindTuple {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != 0 {
 					t.Fatal()
 				}
-			} else if token.Value == "foo" {
+			case "foo":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1696,20 +1705,21 @@ func TestUnmarshalPath(t *testing.T) {
 		Marshal(func() (int, string) {
 			return 42, "foo"
 		}),
-		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &value, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindTuple {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != 0 {
 					t.Fatal()
 				}
-			} else if token.Value == "foo" {
+			case "foo":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1728,20 +1738,21 @@ func TestUnmarshalPath(t *testing.T) {
 		Marshal(func() (int, string) {
 			return 42, "foo"
 		}),
-		TapUnmarshal(DefaultCtx, &tuple2, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &tuple2, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindTuple {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != 0 {
 					t.Fatal()
 				}
-			} else if token.Value == "foo" {
+			case "foo":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1762,20 +1773,21 @@ func TestUnmarshalPath(t *testing.T) {
 		Marshal(func() (int, string) {
 			return 42, "foo"
 		}),
-		TapUnmarshal(DefaultCtx, &tuple3, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, &tuple3, func(ctx Ctx, token Token, _ reflect.Value) {
 			if token.Kind == KindTuple {
 				if len(ctx.Path) != 0 {
 					t.Fatal()
 				}
 			}
-			if token.Value == 42 {
+			switch token.Value {
+			case 42:
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
 				if ctx.Path[0] != 0 {
 					t.Fatal()
 				}
-			} else if token.Value == "foo" {
+			case "foo":
 				if len(ctx.Path) != 1 {
 					t.Fatal()
 				}
@@ -1794,7 +1806,7 @@ func TestTapUnmarshal(t *testing.T) {
 	ok := false
 	err := Copy(
 		Tokens{}.Iter(),
-		TapUnmarshal(DefaultCtx, nil, func(ctx Ctx, token Token, target reflect.Value) {
+		TapUnmarshal(DefaultCtx, nil, func(_ Ctx, _ Token, _ reflect.Value) {
 			ok = true
 		}),
 	)

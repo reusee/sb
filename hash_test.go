@@ -203,7 +203,7 @@ func TestBadHash(t *testing.T) {
 
 	if err := Copy(
 		Marshal(42),
-		HashFunc(fnv.New128, &sum, func(hash []byte, token *Token) error {
+		HashFunc(fnv.New128, &sum, func(hash []byte, _ *Token) error {
 			if len(hash) > 0 {
 				return Foo
 			}

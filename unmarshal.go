@@ -313,13 +313,14 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		targetKind := targetType.Kind()
 		var valueType reflect.Type
 		var valueKind reflect.Kind
-		if targetKind == reflect.Func {
+		switch targetKind {
+		case reflect.Func:
 			valueType = targetType
 			valueKind = targetKind
-		} else if targetKind == reflect.Ptr {
+		case reflect.Ptr:
 			valueType = targetType.Elem()
 			valueKind = valueType.Kind()
-		} else {
+		default:
 			return nil, we.With(BadTargetType)(UnmarshalError)
 		}
 
@@ -527,7 +528,8 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		case KindArray:
 			if hasConcreteType {
 
-				if valueKind == reflect.Array {
+				switch valueKind {
+				case reflect.Array:
 					// array
 					return UnmarshalArray(
 						ctx,
@@ -535,7 +537,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 						cont,
 					)(token)
 
-				} else if valueKind == reflect.Slice {
+				case reflect.Slice:
 					// slice
 					return UnmarshalSlice(
 						ctx,
@@ -544,7 +546,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 						cont,
 					)(token)
 
-				} else {
+				default:
 					return nil, we.With(TypeMismatch(KindArray, valueKind))(UnmarshalError)
 				}
 
