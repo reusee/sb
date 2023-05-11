@@ -2,11 +2,7 @@ package sb
 
 func Copy(stream Stream, sinks ...Sink) error {
 	var err error
-	for {
-
-		if len(sinks) == 0 {
-			break
-		}
+	for len(sinks) > 0 {
 
 		var token Token
 		for !token.Valid() {
