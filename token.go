@@ -9,11 +9,20 @@ func (t *Token) Valid() bool {
 	return t.Kind != KindInvalid
 }
 
+func (t *Token) Invalid() bool {
+	return t.Kind == KindInvalid
+}
+
+func (t *Token) Reset() {
+	*t = Token{}
+}
+
 var _ SBMarshaler = Token{}
 
 func (t Token) MarshalSB(ctx Ctx, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
-		return &t, cont, nil
+	return func(token *Token) (Proc, error) {
+		*token = t
+		return cont, nil
 	}
 }
 
@@ -26,18 +35,18 @@ func (t *Token) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 	}
 }
 
-var Min = &Token{
+var Min = Token{
 	Kind: KindMin,
 }
 
-var Max = &Token{
+var Max = Token{
 	Kind: KindMax,
 }
 
-var NaN = &Token{
+var NaN = Token{
 	Kind: KindNaN,
 }
 
-var Nil = &Token{
+var Nil = Token{
 	Kind: KindNil,
 }

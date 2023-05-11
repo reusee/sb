@@ -10,7 +10,7 @@ func EncodedLen(ret *int, cont Sink) Sink {
 	buf := make([]byte, 8)
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return cont, nil
 		}
 		*ret++

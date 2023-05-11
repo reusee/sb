@@ -33,7 +33,8 @@ func (r badByteReader) ReadByte() (byte, error) {
 
 func TestDecodeBadReader(t *testing.T) {
 	d := Decode(badReader{})
-	_, err := d.Next()
+	var token Token
+	err := d.Next(&token)
 	if err == nil {
 		t.Fatal()
 	}
@@ -41,7 +42,8 @@ func TestDecodeBadReader(t *testing.T) {
 
 func TestDecodeBadByteReader(t *testing.T) {
 	d := Decode(badByteReader{})
-	_, err := d.Next()
+	var token Token
+	err := d.Next(&token)
 	if err == nil {
 		t.Fatal()
 	}

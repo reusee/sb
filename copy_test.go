@@ -18,13 +18,14 @@ func TestCopyNoExtraNext(t *testing.T) {
 			Value: 3,
 		},
 	}
-	provide = func() (*Token, Proc, error) {
+	provide = func(token *Token) (Proc, error) {
 		if len(tokens) == 0 {
-			return nil, nil, nil
+			return nil, nil
 		}
 		t := tokens[0]
 		tokens = tokens[1:]
-		return &t, provide, nil
+		*token = t
+		return provide, nil
 	}
 	var i int
 	if err := Copy(
@@ -43,11 +44,10 @@ func TestCopyNoExtraNext(t *testing.T) {
 
 func TestCopySingleShotSink(t *testing.T) {
 	var ones Proc
-	ones = func() (*Token, Proc, error) {
-		return &Token{
-			Kind:  KindInt,
-			Value: 1,
-		}, ones, nil
+	ones = func(token *Token) (Proc, error) {
+		token.Kind = KindInt
+		token.Value = 1
+		return ones, nil
 	}
 	if err := Copy(
 		&ones,

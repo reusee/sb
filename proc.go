@@ -1,13 +1,13 @@
 package sb
 
-type Proc func() (*Token, Proc, error)
+type Proc func(token *Token) (Proc, error)
 
 type Stream = *Proc
 
-func (p *Proc) Next() (ret *Token, err error) {
-	for ret == nil {
+func (p *Proc) Next(token *Token) (err error) {
+	for !token.Valid() {
 		if p != nil && *p != nil {
-			ret, *p, err = (*p)()
+			*p, err = (*p)(token)
 			if err != nil {
 				return
 			}
@@ -21,14 +21,14 @@ func (p *Proc) Next() (ret *Token, err error) {
 var _ SBMarshaler = Proc(nil)
 
 func (p Proc) MarshalSB(ctx Ctx, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
+	return func(token *Token) (Proc, error) {
 		if p == nil {
-			return nil, cont, nil
+			return cont, nil
 		}
-		token, next, err := p()
+		next, err := p(token)
 		if err != nil { // NOCOVER
-			return nil, nil, err
+			return nil, err
 		}
-		return token, next.MarshalSB(ctx, cont), nil
+		return next.MarshalSB(ctx, cont), nil
 	}
 }

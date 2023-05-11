@@ -11,21 +11,24 @@ import (
 )
 
 func Compare(stream1, stream2 Stream) (int, error) {
+	var t1, t2 Token
 	for {
-		t1, err := stream1.Next()
+		t1.Reset()
+		t2.Reset()
+		err := stream1.Next(&t1)
 		if err != nil {
 			return 0, err
 		}
-		t2, err := stream2.Next()
+		err = stream2.Next(&t2)
 		if err != nil {
 			return 0, err
 		}
 
-		if t1 == nil && t2 == nil {
+		if t1.Invalid() && t2.Invalid() {
 			break
-		} else if t1 == nil && t2 != nil {
+		} else if t1.Invalid() && t2.Valid() {
 			return -1, nil
-		} else if t1 != nil && t2 == nil {
+		} else if t1.Valid() && t2.Invalid() {
 			return 1, nil
 		}
 

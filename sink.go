@@ -27,14 +27,15 @@ func (s Sink) Sink(token *Token) (Sink, error) {
 func (s Sink) Marshal(o any) (Sink, error) {
 	proc := Marshal(o)
 	for {
-		token, err := proc.Next()
+		var token Token
+		err := proc.Next(&token)
 		if err != nil {
 			return nil, err
 		}
-		if token == nil {
+		if token.Invalid() {
 			break
 		}
-		s, err = s.Sink(token)
+		s, err = s.Sink(&token)
 		if err != nil {
 			return nil, err
 		}

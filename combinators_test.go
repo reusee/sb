@@ -201,7 +201,7 @@ func TestFilterProc(t *testing.T) {
 		t.Fatal()
 	}
 	if len(ints) != 2 {
-		t.Fatal()
+		t.Fatalf("got %d", ints)
 	}
 	if ints[0] != 1 {
 		t.Fatal()

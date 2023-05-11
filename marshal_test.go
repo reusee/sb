@@ -699,8 +699,8 @@ type marshalStringAsInt string
 var _ SBMarshaler = marshalStringAsInt("")
 
 func (m marshalStringAsInt) MarshalSB(ctx Ctx, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
-		return nil, MarshalValue(ctx, reflect.ValueOf(len(m)), cont), nil
+	return func(token *Token) (Proc, error) {
+		return MarshalValue(ctx, reflect.ValueOf(len(m)), cont), nil
 	}
 }
 

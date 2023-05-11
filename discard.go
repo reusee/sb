@@ -1,7 +1,7 @@
 package sb
 
 func Discard(token *Token) (Sink, error) {
-	if token == nil {
+	if token.Invalid() {
 		return nil, nil
 	}
 	return Discard, nil

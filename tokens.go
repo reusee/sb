@@ -6,14 +6,15 @@ type Tokens []Token
 
 func TokensFromStream(stream Stream) (tokens Tokens, err error) {
 	for {
-		p, err := stream.Next()
+		var token Token
+		err := stream.Next(&token)
 		if err != nil {
 			return nil, err
 		}
-		if p == nil {
+		if token.Invalid() {
 			break
 		}
-		tokens = append(tokens, *p)
+		tokens = append(tokens, token)
 	}
 	return
 }
@@ -29,7 +30,7 @@ func MustTokensFromStream(stream Stream) Tokens {
 func CollectTokens(tokens *Tokens) Sink {
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return nil, nil
 		}
 		*tokens = append(*tokens, *token)
@@ -56,7 +57,7 @@ func CollectValueTokens(tokens *Tokens) Sink {
 			}
 			parent.N++
 		}
-		if token == nil {
+		if token.Invalid() {
 			if len(stack) > 0 {
 				return nil, io.ErrUnexpectedEOF
 			}

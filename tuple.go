@@ -18,24 +18,22 @@ func (t Tuple) MarshalSB(ctx Ctx, cont Proc) Proc {
 
 func MarshalAsTuple(ctx Ctx, tuple []any, cont Proc) Proc {
 	var marshal Proc
-	marshal = func() (*Token, Proc, error) {
+	marshal = func(token *Token) (Proc, error) {
 		if len(tuple) == 0 {
-			return &Token{
-				Kind: KindTupleEnd,
-			}, cont, nil
+			token.Kind = KindTupleEnd
+			return cont, nil
 		}
 		value := tuple[0]
 		tuple = tuple[1:]
-		return nil, ctx.Marshal(
+		return ctx.Marshal(
 			ctx,
 			reflect.ValueOf(value),
 			marshal,
 		), nil
 	}
-	return func() (*Token, Proc, error) {
-		return &Token{
-			Kind: KindTuple,
-		}, marshal, nil
+	return func(token *Token) (Proc, error) {
+		token.Kind = KindTuple
+		return marshal, nil
 	}
 }
 
@@ -43,7 +41,7 @@ var _ SBUnmarshaler = new(Tuple)
 
 func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return nil, we.With(WithPath(ctx), e5.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
 		if token.Kind != KindTuple {
@@ -55,7 +53,7 @@ func (t *Tuple) UnmarshalSB(ctx Ctx, cont Sink) Sink {
 
 func (t *Tuple) unmarshal(i int, ctx Ctx, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return nil, we.With(WithPath(ctx), e5.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
 		if token.Kind == KindTupleEnd {
@@ -113,7 +111,7 @@ func TupleTypes(typeSpec any) []reflect.Type {
 
 func UnmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink) Sink {
 	return func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return nil, we.With(WithPath(ctx), e5.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
 		if token.Kind != KindTuple {
@@ -138,7 +136,7 @@ func unmarshalTupleTyped(ctx Ctx, types []reflect.Type, target *Tuple, cont Sink
 	var sink Sink
 	i := 0
 	sink = func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return nil, we.With(WithPath(ctx), e5.With(io.ErrUnexpectedEOF))(UnmarshalError)
 		}
 

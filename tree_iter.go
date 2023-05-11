@@ -9,11 +9,12 @@ func IterTree(
 	tree *Tree,
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
-		return tree.Token, IterSubTrees(
+	return func(token *Token) (Proc, error) {
+		*token = *tree.Token
+		return IterSubTrees(
 			tree.Subs, 0,
-			func() (*Token, Proc, error) {
-				return nil, cont, nil
+			func(token *Token) (Proc, error) {
+				return cont, nil
 			},
 		), nil
 	}
@@ -25,16 +26,16 @@ func IterSubTrees(
 	cont Proc,
 ) Proc {
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
+	proc = func(token *Token) (Proc, error) {
 		if len(subs) == 0 {
-			return nil, cont, nil
+			return cont, nil
 		}
 		if index >= len(subs) {
-			return nil, cont, nil
+			return cont, nil
 		}
 		sub := subs[index]
 		index++
-		return nil, IterTree(
+		return IterTree(
 			sub,
 			proc,
 		), nil
@@ -54,18 +55,20 @@ func IterTreeFunc(
 	fn func(*Tree) (*Token, error),
 	cont Proc,
 ) Proc {
-	return func() (*Token, Proc, error) {
-		token, err := fn(tree)
+	return func(token *Token) (Proc, error) {
+		t, err := fn(tree)
 		if err != nil { // NOCOVER
-			return nil, nil, err
+			return nil, err
 		}
-		if token != nil {
-			return token, cont, nil
+		if t != nil {
+			*token = *t
+			return cont, nil
 		}
-		return tree.Token, IterSubTreesFunc(
+		*token = *tree.Token
+		return IterSubTreesFunc(
 			tree.Subs, 0, fn,
-			func() (*Token, Proc, error) {
-				return nil, cont, nil
+			func(token *Token) (Proc, error) {
+				return cont, nil
 			},
 		), nil
 	}
@@ -78,16 +81,16 @@ func IterSubTreesFunc(
 	cont Proc,
 ) Proc {
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
+	proc = func(token *Token) (Proc, error) {
 		if len(subs) == 0 {
-			return nil, cont, nil
+			return cont, nil
 		}
 		if index >= len(subs) {
-			return nil, cont, nil
+			return cont, nil
 		}
 		sub := subs[index]
 		index++
-		return nil, IterTreeFunc(
+		return IterTreeFunc(
 			sub,
 			fn,
 			proc,

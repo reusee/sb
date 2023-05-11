@@ -8,14 +8,14 @@ func Copy(stream Stream, sinks ...Sink) error {
 			break
 		}
 
-		var token *Token
-		for token == nil {
+		var token Token
+		for !token.Valid() {
 			if stream != nil {
-				token, err = stream.Next()
+				err = stream.Next(&token)
 				if err != nil {
 					return err
 				}
-				if token == nil {
+				if !token.Valid() {
 					stream = nil
 				}
 			} else {
@@ -31,7 +31,7 @@ func Copy(stream Stream, sinks ...Sink) error {
 					sinks = sinks[:len(sinks)-1]
 					continue
 				}
-				sink, err = sink(token)
+				sink, err = sink(&token)
 				if err != nil {
 					return err
 				}

@@ -7,19 +7,18 @@ func Tee(stream Stream, sinks ...Sink) *Proc {
 
 func TeeProc(stream Stream, sinks []Sink, cont Proc) Proc {
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
-		var token *Token
+	proc = func(token *Token) (Proc, error) {
 		var err error
 		if stream != nil {
-			token, err = stream.Next()
+			err = stream.Next(token)
 			if err != nil { // NOCOVER
-				return nil, nil, err
+				return nil, err
 			}
 		}
 		for i := 0; i < len(sinks); {
 			sink, err := sinks[i](token)
 			if err != nil { // NOCOVER
-				return nil, nil, err
+				return nil, err
 			}
 			if sink == nil {
 				sinks[i] = sinks[len(sinks)-1]
@@ -29,10 +28,10 @@ func TeeProc(stream Stream, sinks []Sink, cont Proc) Proc {
 				i++
 			}
 		}
-		if token == nil && len(sinks) == 0 {
-			return nil, cont, nil
+		if token.Invalid() && len(sinks) == 0 {
+			return cont, nil
 		}
-		return token, proc, nil
+		return proc, nil
 	}
 	return proc
 }

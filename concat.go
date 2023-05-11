@@ -39,19 +39,19 @@ func ConcatStreams(streams ...Stream) Stream {
 		}
 	}
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
-		token, err := streams[0].Next()
+	proc = func(token *Token) (Proc, error) {
+		err := streams[0].Next(token)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		if token == nil {
+		if token.Invalid() {
 			streams = streams[1:]
 			if len(streams) == 0 {
-				return nil, nil, nil
+				return nil, nil
 			}
-			return nil, proc, nil
+			return proc, nil
 		}
-		return token, proc, nil
+		return proc, nil
 	}
 	return &proc
 }

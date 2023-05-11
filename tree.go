@@ -70,15 +70,16 @@ func TreeFromStream(
 	}
 
 	for {
-		token, err := stream.Next()
+		var token Token
+		err := stream.Next(&token)
 		if err != nil { // NOCOVER
 			return nil, err
 		}
-		if token == nil {
+		if !token.Valid() {
 			break
 		}
 		node := &Tree{
-			Token: token,
+			Token: &token,
 			Hash:  hash,
 		}
 		if tap != nil {

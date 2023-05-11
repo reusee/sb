@@ -29,7 +29,7 @@ func Unmarshal(target any) Sink {
 func TapUnmarshal(ctx Ctx, target any, fn func(Ctx, Token, reflect.Value)) Sink {
 	unmarshal := func(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		return func(token *Token) (Sink, error) {
-			if token == nil {
+			if token.Invalid() {
 				return cont, nil
 			}
 			fn(ctx, *token, target)
@@ -59,7 +59,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 		}()
 
 		// convert literal token
-		if token != nil && token.Kind == KindLiteral {
+		if token.Valid() && token.Kind == KindLiteral {
 			copy := *token
 			token = &copy
 
@@ -254,7 +254,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 				return v.UnmarshalSB(ctx, cont)(token)
 
 			case encoding.BinaryUnmarshaler:
-				if token == nil {
+				if token.Invalid() {
 					return nil, we.With(
 						TypeMismatch(KindInvalid, reflect.String),
 						io.ErrUnexpectedEOF,
@@ -273,7 +273,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 				return cont, nil
 
 			case encoding.TextUnmarshaler:
-				if token == nil {
+				if token.Invalid() {
 					return nil, we.With(
 						TypeMismatch(KindInvalid, reflect.String),
 						io.ErrUnexpectedEOF,
@@ -294,7 +294,7 @@ func UnmarshalValue(ctx Ctx, target reflect.Value, cont Sink) Sink {
 			}
 		}
 
-		if token == nil {
+		if token.Invalid() {
 			return nil, we.With(
 				io.ErrUnexpectedEOF,
 			)(
@@ -657,7 +657,7 @@ func ExpectKind(ctx Ctx, kind Kind, cont Sink) Sink {
 		defer func() {
 			err = we.With(WithPath(ctx))(err)
 		}()
-		if token == nil {
+		if token.Invalid() {
 			return nil, we.With(
 				io.ErrUnexpectedEOF,
 			)(UnmarshalError)
@@ -1188,7 +1188,7 @@ func unmarshalTuple(
 	var valueTypes []reflect.Type
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return nil, we.With(
 				WithPath(ctx),
 				io.ErrUnexpectedEOF,

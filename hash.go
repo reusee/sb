@@ -25,7 +25,7 @@ func HashFunc(
 	cont Sink,
 ) Sink {
 	return func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return nil, io.ErrUnexpectedEOF
 		}
 
@@ -298,7 +298,7 @@ func HashCompound(
 ) Sink {
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return nil, io.ErrUnexpectedEOF
 		}
 

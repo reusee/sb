@@ -11,13 +11,13 @@ func IterTokens(
 	cont Proc,
 ) Proc {
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
+	proc = func(token *Token) (Proc, error) {
 		if index >= len(tokens) {
-			return nil, cont, nil
+			return cont, nil
 		}
-		token := tokens[index]
+		*token = tokens[index]
 		index++
-		return &token, proc, nil
+		return proc, nil
 	}
 	return proc
 }

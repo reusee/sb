@@ -26,22 +26,22 @@ var MaxDecodeStringLength uint64 = 4 * 1024 * 1024 * 1024
 func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare bool, cont Proc) Proc {
 	var proc Proc
 	var offset int64
-	proc = Proc(func() (token *Token, next Proc, err error) {
+	proc = Proc(func(token *Token) (next Proc, err error) {
 		var kind Kind
 		if byteReader != nil {
 			if b, err := byteReader.ReadByte(); errors.Is(err, io.EOF) {
-				return nil, cont, nil
+				return cont, nil
 			} else if err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset++
 				kind = Kind(b)
 			}
 		} else {
 			if _, err := io.ReadFull(r, buf[:1]); errors.Is(err, io.EOF) {
-				return nil, cont, nil
+				return cont, nil
 			} else if err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			}
 			offset += 1
 			kind = Kind(buf[0])
@@ -54,7 +54,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			if byteReader != nil {
 				b, err := byteReader.ReadByte()
 				if err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				}
 				offset++
 				if b > 0 {
@@ -64,7 +64,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 				}
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset += 1
 				}
@@ -77,7 +77,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindInt:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 8
 			}
@@ -86,14 +86,14 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 		case KindInt8:
 			if byteReader != nil {
 				if b, err := byteReader.ReadByte(); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset++
 					value = int8(b)
 				}
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset += 1
 				}
@@ -102,7 +102,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindInt16:
 			if _, err := io.ReadFull(r, buf[:2]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 2
 			}
@@ -110,7 +110,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindInt32:
 			if _, err := io.ReadFull(r, buf[:4]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 4
 			}
@@ -118,7 +118,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindInt64:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 8
 			}
@@ -126,7 +126,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindUint:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 8
 			}
@@ -135,14 +135,14 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 		case KindUint8:
 			if byteReader != nil {
 				if b, err := byteReader.ReadByte(); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset++
 					value = uint8(b)
 				}
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset += 1
 				}
@@ -151,7 +151,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindUint16:
 			if _, err := io.ReadFull(r, buf[:2]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 2
 			}
@@ -159,7 +159,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindUint32:
 			if _, err := io.ReadFull(r, buf[:4]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 4
 			}
@@ -167,7 +167,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindUint64:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 8
 			}
@@ -175,7 +175,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindPointer:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 8
 			}
@@ -183,7 +183,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindFloat32:
 			if _, err := io.ReadFull(r, buf[:4]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 4
 			}
@@ -191,7 +191,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 
 		case KindFloat64:
 			if _, err := io.ReadFull(r, buf[:8]); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += 8
 			}
@@ -202,12 +202,12 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			var b byte
 			if byteReader != nil {
 				if b, err = byteReader.ReadByte(); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				}
 				offset++
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset += 1
 				}
@@ -218,32 +218,31 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			} else {
 				l := ^b
 				if l > 8 {
-					return nil, nil, we.With(e5.With(Offset(offset)), e5.With(StringTooLong))(DecodeError)
+					return nil, we.With(e5.With(Offset(offset)), e5.With(StringTooLong))(DecodeError)
 				}
 				if _, err := io.ReadFull(r, buf[:l]); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset += int64(l)
 				}
 				var err error
 				length, err = binary.ReadUvarint(bytes.NewReader(buf[:l]))
 				if err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				}
 			}
 			if length > MaxDecodeStringLength {
-				return nil, nil, we.With(e5.With(Offset(offset)), e5.With(StringTooLong))(DecodeError)
+				return nil, we.With(e5.With(Offset(offset)), e5.With(StringTooLong))(DecodeError)
 			}
 
 			if forCompare {
 				length := int(length)
 				step := initDecodeStep
-				var segments func() (*Token, Proc, error)
-				segments = func() (*Token, Proc, error) {
+				var segments func(token *Token) (Proc, error)
+				segments = func(token *Token) (Proc, error) {
 					if length == 0 {
-						return &Token{
-							Kind: KindStringEnd,
-						}, proc, nil
+						token.Kind = KindStringEnd
+						return proc, nil
 					}
 					l := step
 					step *= 2
@@ -261,19 +260,16 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 						io.LimitReader(r, int64(l)),
 						*ptr,
 					); err != nil || n != int64(l) {
-						return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+						return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 					} else {
 						offset += int64(length)
 					}
-					token := &Token{
-						Kind:  kind,
-						Value: builder.String(),
-					}
-					return token, segments, nil
+					token.Kind = kind
+					token.Value = builder.String()
+					return segments, nil
 				}
-				return &Token{
-					Kind: KindStringBegin,
-				}, segments, nil
+				token.Kind = KindStringBegin
+				return segments, nil
 			}
 
 			builder := new(strings.Builder)
@@ -286,7 +282,7 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 				io.LimitReader(r, int64(length)),
 				*ptr,
 			); err != nil || n != int64(length) {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += int64(length)
 			}
@@ -297,12 +293,12 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			var b byte
 			if byteReader != nil {
 				if b, err = byteReader.ReadByte(); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				}
 				offset++
 			} else {
 				if _, err := io.ReadFull(r, buf[:1]); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset += 1
 				}
@@ -313,32 +309,31 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			} else {
 				l := ^b
 				if l > 8 {
-					return nil, nil, we.With(e5.With(Offset(offset)), e5.With(BytesTooLong))(DecodeError)
+					return nil, we.With(e5.With(Offset(offset)), e5.With(BytesTooLong))(DecodeError)
 				}
 				if _, err := io.ReadFull(r, buf[:l]); err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				} else {
 					offset += int64(l)
 				}
 				var err error
 				length, err = binary.ReadUvarint(bytes.NewReader(buf[:l]))
 				if err != nil {
-					return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+					return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 				}
 			}
 			if length > MaxDecodeStringLength {
-				return nil, nil, we.With(e5.With(Offset(offset)), e5.With(BytesTooLong))(DecodeError)
+				return nil, we.With(e5.With(Offset(offset)), e5.With(BytesTooLong))(DecodeError)
 			}
 
 			if forCompare {
 				length := int(length)
 				step := initDecodeStep
-				var segments func() (*Token, Proc, error)
-				segments = func() (*Token, Proc, error) {
+				var segments func(token *Token) (Proc, error)
+				segments = func(token *Token) (Proc, error) {
 					if length == 0 {
-						return &Token{
-							Kind: KindBytesEnd,
-						}, proc, nil
+						token.Kind = KindBytesEnd
+						return proc, nil
 					}
 					l := step
 					step *= 2
@@ -356,24 +351,21 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 						io.LimitReader(r, int64(l)),
 						*ptr,
 					); err != nil || n != int64(l) {
-						return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+						return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 					} else {
 						offset += int64(length)
 					}
-					token := &Token{
-						Kind:  kind,
-						Value: builder.Bytes(),
-					}
-					return token, segments, nil
+					token.Kind = kind
+					token.Value = builder.Bytes()
+					return segments, nil
 				}
-				return &Token{
-					Kind: KindBytesBegin,
-				}, segments, nil
+				token.Kind = KindBytesBegin
+				return segments, nil
 			}
 
 			bs := make([]byte, length)
 			if _, err := io.ReadFull(r, bs); err != nil {
-				return nil, nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
+				return nil, we.With(e5.With(DecodeError), e5.With(Offset(offset)))(err)
 			} else {
 				offset += int64(length)
 			}
@@ -386,14 +378,13 @@ func decodeBuffer(r io.Reader, byteReader io.ByteReader, buf []byte, forCompare 
 			KindMax:
 
 		default:
-			return nil, nil, we.With(e5.With(Offset(offset)), e5.With(BadTokenKind), e5.With(kind))(DecodeError)
+			return nil, we.With(e5.With(Offset(offset)), e5.With(BadTokenKind), e5.With(kind))(DecodeError)
 
 		}
 
-		return &Token{
-			Kind:  kind,
-			Value: value,
-		}, proc, nil
+		token.Kind = kind
+		token.Value = value
+		return proc, nil
 	})
 
 	return proc

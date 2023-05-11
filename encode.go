@@ -23,7 +23,7 @@ func EncodeBuffer(w io.Writer, buf []byte, cont Sink) Sink {
 
 	var sink Sink
 	sink = func(token *Token) (Sink, error) {
-		if token == nil {
+		if token.Invalid() {
 			return cont, nil
 		}
 		if byteWriter != nil {

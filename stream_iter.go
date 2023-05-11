@@ -5,15 +5,15 @@ func IterStream(
 	cont Proc,
 ) Proc {
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
-		token, err := stream.Next()
+	proc = func(token *Token) (Proc, error) {
+		err := stream.Next(token)
 		if err != nil { // NOCOVER
-			return nil, nil, err
+			return nil, err
 		}
-		if token == nil {
-			return nil, cont, nil
+		if token.Invalid() {
+			return cont, nil
 		}
-		return token, proc, nil
+		return proc, nil
 	}
 	return proc
 }

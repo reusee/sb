@@ -10,71 +10,63 @@ func DecodeJson(r io.Reader, cont Proc) *Proc {
 	decoder := json.NewDecoder(r)
 	decoder.UseNumber()
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
-		token, err := decoder.Token()
+	proc = func(token *Token) (Proc, error) {
+		jsonToken, err := decoder.Token()
 		if err == io.EOF {
-			return nil, cont, nil
+			return cont, nil
 		}
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		switch token := token.(type) {
+		switch jsonToken := jsonToken.(type) {
 
 		case json.Delim:
-			switch token {
+			switch jsonToken {
 			case '[':
-				return &Token{
-					Kind: KindArray,
-				}, proc, nil
+				token.Kind = KindArray
+				return proc, nil
 			case ']':
-				return &Token{
-					Kind: KindArrayEnd,
-				}, proc, nil
+				token.Kind = KindArrayEnd
+				return proc, nil
 			case '{':
-				return &Token{
-					Kind: KindObject,
-				}, proc, nil
+				token.Kind = KindObject
+				return proc, nil
 			case '}':
-				return &Token{
-					Kind: KindObjectEnd,
-				}, proc, nil
+				token.Kind = KindObjectEnd
+				return proc, nil
 			default:
-				return nil, nil, fmt.Errorf("bad delimiter rune: %v", token)
+				return nil, fmt.Errorf("bad delimiter rune: %v", token)
 			}
 
 		case bool:
-			return &Token{
-				Kind:  KindBool,
-				Value: token,
-			}, proc, nil
+			token.Kind = KindBool
+			token.Value = token
+			return proc, nil
 
 		case float64:
-			return &Token{
-				Kind:  KindFloat64,
-				Value: token,
-			}, proc, nil
+			token.Kind = KindFloat64
+			token.Value = token
+			return proc, nil
 
 		case json.Number:
-			return &Token{
-				Kind:  KindLiteral,
-				Value: string(token),
-			}, proc, nil
+			token.Kind = KindLiteral
+			token.Value = string(jsonToken)
+			return proc, nil
 
 		case string:
-			return &Token{
-				Kind:  KindString,
-				Value: token,
-			}, proc, nil
+			token.Kind = KindString
+			token.Value = token
+			return proc, nil
 
 		case nil:
-			return &Token{
-				Kind: KindNil,
-			}, proc, nil
+			token.Kind = KindNil
+			return proc, nil
 
 		}
 
-		return nil, nil, fmt.Errorf("bad token type: %T", token)
+		return nil, fmt.Errorf("bad token type: %T", token)
 	}
+
 	return &proc
 }

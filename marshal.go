@@ -39,64 +39,96 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		ctx.Marshal = MarshalValue
 	}
 
-	marshal := func() (*Token, Proc, error) {
+	marshal := func(token *Token) (Proc, error) {
 
 		if value.IsValid() {
 
 			switch v := value.Interface().(type) {
 
 			case int:
-				return &Token{Kind: KindInt, Value: v}, cont, nil
+				token.Kind = KindInt
+				token.Value = v
+				return cont, nil
 
 			case string:
-				return &Token{Kind: KindString, Value: v}, cont, nil
+				token.Kind = KindString
+				token.Value = v
+				return cont, nil
 
 			case bool:
-				return &Token{Kind: KindBool, Value: v}, cont, nil
+				token.Kind = KindBool
+				token.Value = v
+				return cont, nil
 
 			case uint32:
-				return &Token{Kind: KindUint32, Value: v}, cont, nil
+				token.Kind = KindUint32
+				token.Value = v
+				return cont, nil
 
 			case int64:
-				return &Token{Kind: KindInt64, Value: v}, cont, nil
+				token.Kind = KindInt64
+				token.Value = v
+				return cont, nil
 
 			case uint64:
-				return &Token{Kind: KindUint64, Value: v}, cont, nil
+				token.Kind = KindUint64
+				token.Value = v
+				return cont, nil
 
 			case uintptr:
-				return &Token{Kind: KindPointer, Value: v}, cont, nil
+				token.Kind = KindPointer
+				token.Value = v
+				return cont, nil
 
 			case uint16:
-				return &Token{Kind: KindUint16, Value: v}, cont, nil
+				token.Kind = KindUint16
+				token.Value = v
+				return cont, nil
 
 			case uint8:
-				return &Token{Kind: KindUint8, Value: v}, cont, nil
+				token.Kind = KindUint8
+				token.Value = v
+				return cont, nil
 
 			case int32:
-				return &Token{Kind: KindInt32, Value: v}, cont, nil
+				token.Kind = KindInt32
+				token.Value = v
+				return cont, nil
 
 			case uint:
-				return &Token{Kind: KindUint, Value: v}, cont, nil
+				token.Kind = KindUint
+				token.Value = v
+				return cont, nil
 
 			case float64:
 				if v != v {
-					return NaN, cont, nil
+					*token = NaN
+					return cont, nil
 				} else {
-					return &Token{Kind: KindFloat64, Value: v}, cont, nil
+					token.Kind = KindFloat64
+					token.Value = v
+					return cont, nil
 				}
 
 			case int8:
-				return &Token{Kind: KindInt8, Value: v}, cont, nil
+				token.Kind = KindInt8
+				token.Value = v
+				return cont, nil
 
 			case float32:
 				if v != v {
-					return NaN, cont, nil
+					*token = NaN
+					return cont, nil
 				} else {
-					return &Token{Kind: KindFloat32, Value: v}, cont, nil
+					token.Kind = KindFloat32
+					token.Value = v
+					return cont, nil
 				}
 
 			case int16:
-				return &Token{Kind: KindInt16, Value: v}, cont, nil
+				token.Kind = KindInt16
+				token.Value = v
+				return cont, nil
 
 			case SBMarshaler:
 				if value.Kind() == reflect.Ptr && value.IsNil() {
@@ -105,24 +137,25 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 						// SBMarshaler is method defined on non-pointer type
 						// calling SBMarshaler will deref the nil pointer
 						// do not try to
-						return Nil, cont, nil
+						*token = Nil
+						return cont, nil
 					}
 				}
-				return nil, v.MarshalSB(ctx, cont), nil
+				return v.MarshalSB(ctx, cont), nil
 
 			case encoding.BinaryMarshaler:
 				bs, err := v.MarshalBinary()
 				if err != nil {
-					return nil, nil, we.With(e5.With(MarshalError), WithPath(ctx))(err)
+					return nil, we.With(e5.With(MarshalError), WithPath(ctx))(err)
 				}
-				return nil, ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
+				return ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
 
 			case encoding.TextMarshaler:
 				bs, err := v.MarshalText()
 				if err != nil {
-					return nil, nil, we.With(e5.With(MarshalError), WithPath(ctx))(err)
+					return nil, we.With(e5.With(MarshalError), WithPath(ctx))(err)
 				}
-				return nil, ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
+				return ctx.Marshal(ctx, reflect.ValueOf(string(bs)), cont), nil
 
 			}
 		}
@@ -130,11 +163,13 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 		switch value.Kind() {
 
 		case reflect.Invalid:
-			return Nil, cont, nil
+			*token = Nil
+			return cont, nil
 
 		case reflect.Ptr, reflect.Interface:
 			if value.IsNil() {
-				return Nil, cont, nil
+				*token = Nil
+				return cont, nil
 			} else {
 				ctx.pointerDepth++
 				if ctx.pointerDepth == 1000 {
@@ -144,136 +179,123 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 					ptr := value.Pointer()
 					for _, p := range ctx.visitedPointers {
 						if p == ptr {
-							return nil, nil, we.With(WithPath(ctx), e5.With(CyclicPointer))(MarshalError)
+							return nil, we.With(WithPath(ctx), e5.With(CyclicPointer))(MarshalError)
 						}
 					}
 					ctx.visitedPointers = append(ctx.visitedPointers, ptr)
 				}
-				return nil, ctx.Marshal(ctx, value.Elem(), cont), nil
+				return ctx.Marshal(ctx, value.Elem(), cont), nil
 			}
 
 		case reflect.Bool:
-			return &Token{
-				Kind:  KindBool,
-				Value: bool(value.Bool()),
-			}, cont, nil
+			token.Kind = KindBool
+			token.Value = bool(value.Bool())
+			return cont, nil
 
 		case reflect.Int:
-			return &Token{
-				Kind:  KindInt,
-				Value: int(value.Int()),
-			}, cont, nil
+			token.Kind = KindInt
+			token.Value = int(value.Int())
+			return cont, nil
 
 		case reflect.Int8:
-			return &Token{
-				Kind:  KindInt8,
-				Value: int8(value.Int()),
-			}, cont, nil
+			token.Kind = KindInt8
+			token.Value = int8(value.Int())
+			return cont, nil
 
 		case reflect.Int16:
-			return &Token{
-				Kind:  KindInt16,
-				Value: int16(value.Int()),
-			}, cont, nil
+			token.Kind = KindInt16
+			token.Value = int16(value.Int())
+			return cont, nil
 
 		case reflect.Int32:
-			return &Token{
-				Kind:  KindInt32,
-				Value: int32(value.Int()),
-			}, cont, nil
+			token.Kind = KindInt32
+			token.Value = int32(value.Int())
+			return cont, nil
 
 		case reflect.Int64:
-			return &Token{
-				Kind:  KindInt64,
-				Value: int64(value.Int()),
-			}, cont, nil
+			token.Kind = KindInt64
+			token.Value = int64(value.Int())
+			return cont, nil
 
 		case reflect.Uint:
-			return &Token{
-				Kind:  KindUint,
-				Value: uint(value.Uint()),
-			}, cont, nil
+			token.Kind = KindUint
+			token.Value = uint(value.Uint())
+			return cont, nil
 
 		case reflect.Uint8:
-			return &Token{
-				Kind:  KindUint8,
-				Value: uint8(value.Uint()),
-			}, cont, nil
+			token.Kind = KindUint8
+			token.Value = uint8(value.Uint())
+			return cont, nil
 
 		case reflect.Uint16:
-			return &Token{
-				Kind:  KindUint16,
-				Value: uint16(value.Uint()),
-			}, cont, nil
+			token.Kind = KindUint16
+			token.Value = uint16(value.Uint())
+			return cont, nil
 
 		case reflect.Uint32:
-			return &Token{
-				Kind:  KindUint32,
-				Value: uint32(value.Uint()),
-			}, cont, nil
+			token.Kind = KindUint32
+			token.Value = uint32(value.Uint())
+			return cont, nil
 
 		case reflect.Uint64:
-			return &Token{
-				Kind:  KindUint64,
-				Value: uint64(value.Uint()),
-			}, cont, nil
+			token.Kind = KindUint64
+			token.Value = uint64(value.Uint())
+			return cont, nil
 
 		case reflect.Uintptr:
-			return &Token{
-				Kind:  KindPointer,
-				Value: uintptr(value.Uint()),
-			}, cont, nil
+			token.Kind = KindPointer
+			token.Value = uintptr(value.Uint())
+			return cont, nil
 
 		case reflect.Float32:
 			f := value.Float()
 			if f != f {
-				return NaN, cont, nil
+				*token = NaN
+				return cont, nil
 			} else {
-				return &Token{
-					Kind:  KindFloat32,
-					Value: float32(f),
-				}, cont, nil
+				token.Kind = KindFloat32
+				token.Value = float32(f)
+				return cont, nil
 			}
 
 		case reflect.Float64:
 			f := value.Float()
 			if f != f {
-				return NaN, cont, nil
+				*token = NaN
+				return cont, nil
 			} else {
-				return &Token{
-					Kind:  KindFloat64,
-					Value: f,
-				}, cont, nil
+				token.Kind = KindFloat64
+				token.Value = f
+				return cont, nil
 			}
 
 		case reflect.Array, reflect.Slice:
 			if isBytes(value.Type()) {
-				return &Token{
-					Kind:  KindBytes,
-					Value: toBytes(value),
-				}, cont, nil
+				token.Kind = KindBytes
+				token.Value = toBytes(value)
+				return cont, nil
 			} else {
-				return nil, MarshalArray(ctx, value, 0, cont), nil
+				return MarshalArray(ctx, value, 0, cont), nil
 			}
 
 		case reflect.String:
-			return &Token{
-				Kind:  KindString,
-				Value: value.String(),
-			}, cont, nil
+			token.Kind = KindString
+			token.Value = value.String()
+			return cont, nil
 
 		case reflect.Struct:
-			return nil, MarshalStruct(ctx, value, cont), nil
+			return MarshalStruct(ctx, value, cont), nil
 
 		case reflect.Map:
-			return nil, MarshalMap(ctx, value, cont), nil
+			return MarshalMap(ctx, value, cont), nil
 
 		case reflect.Func:
 			if ctx.IgnoreFuncs {
-				return Nil, cont, nil
+				*token = Nil
+				return cont, nil
 			}
 			if value.Type().NumIn() != 0 {
-				return nil, nil, we.With(
+				return nil, we.With(
 					WithPath(ctx),
 					e5.With(BadTupleType),
 					e5.Info("bad tuple type: %v", value.Type()),
@@ -285,25 +307,24 @@ func MarshalValue(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			if !value.IsNil() {
 				items = value.Call([]reflect.Value{})
 			}
-			return nil, MarshalTuple(
+			return MarshalTuple(
 				ctx,
 				items,
 				cont,
 			), nil
 
 		default:
-			return nil, cont, nil
+			return cont, nil
 
 		}
 	}
 
 	if value.IsValid() {
 		if name, ok := registeredTypeToName.Load(value.Type()); ok {
-			return func() (*Token, Proc, error) {
-				return &Token{
-					Kind:  KindTypeName,
-					Value: name.(string),
-				}, marshal, nil
+			return func(token *Token) (Proc, error) {
+				token.Kind = KindTypeName
+				token.Value = name.(string)
+				return marshal, nil
 			}
 		}
 	}
@@ -315,15 +336,15 @@ var arrayEndToken = reflect.ValueOf(&Token{
 	Kind: KindArrayEnd,
 })
 
-var arrayToken = &Token{
+var arrayToken = Token{
 	Kind: KindArray,
 }
 
 func MarshalArray(ctx Ctx, value reflect.Value, index int, cont Proc) Proc {
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
+	proc = func(token *Token) (Proc, error) {
 		if index >= value.Len() {
-			return nil, ctx.Marshal(
+			return ctx.Marshal(
 				ctx,
 				arrayEndToken,
 				cont,
@@ -331,14 +352,15 @@ func MarshalArray(ctx Ctx, value reflect.Value, index int, cont Proc) Proc {
 		}
 		v := value.Index(index)
 		index++
-		return nil, ctx.Marshal(
+		return ctx.Marshal(
 			ctx.WithPath(index-1),
 			v,
 			proc,
 		), nil
 	}
-	return func() (*Token, Proc, error) {
-		return arrayToken, proc, nil
+	return func(token *Token) (Proc, error) {
+		*token = arrayToken
+		return proc, nil
 	}
 }
 
@@ -346,13 +368,14 @@ var objectEndToken = reflect.ValueOf(&Token{
 	Kind: KindObjectEnd,
 })
 
-var objectToken = &Token{
+var objectToken = Token{
 	Kind: KindObject,
 }
 
 func MarshalStruct(ctx Ctx, value reflect.Value, cont Proc) Proc {
-	return func() (*Token, Proc, error) {
-		return objectToken, MarshalStructFields(ctx, value, cont), nil
+	return func(token *Token) (Proc, error) {
+		*token = objectToken
+		return MarshalStructFields(ctx, value, cont), nil
 	}
 }
 
@@ -361,9 +384,9 @@ func MarshalStructFields(ctx Ctx, value reflect.Value, cont Proc) Proc {
 	numField := valueType.NumField()
 	fieldIdx := 0
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
+	proc = func(token *Token) (Proc, error) {
 		if fieldIdx == numField {
-			return nil, ctx.Marshal(
+			return ctx.Marshal(
 				ctx,
 				objectEndToken,
 				cont,
@@ -375,25 +398,25 @@ func MarshalStructFields(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			fieldValue := value.Field(fieldIdx)
 			if fieldValue.IsZero() {
 				fieldIdx++
-				return nil, proc, nil
+				return proc, nil
 			}
 			if field.Type.Kind() == reflect.Slice && fieldValue.Len() == 0 {
 				fieldIdx++
-				return nil, proc, nil
+				return proc, nil
 			}
 		}
 		if field.PkgPath != "" {
 			// unexported field
 			fieldIdx++
-			return nil, proc, nil
+			return proc, nil
 		}
 
 		fieldIdx++
-		return nil, ctx.Marshal(
+		return ctx.Marshal(
 			ctx.WithPath(field.Name),
 			reflect.ValueOf(field.Name),
-			func() (*Token, Proc, error) {
-				return nil, ctx.Marshal(
+			func(token *Token) (Proc, error) {
+				return ctx.Marshal(
 					ctx.WithPath(field.Name),
 					value.FieldByIndex(field.Index),
 					proc,
@@ -424,13 +447,13 @@ var mapEndToken = reflect.ValueOf(&Token{
 	Kind: KindMapEnd,
 })
 
-var mapToken = &Token{
+var mapToken = Token{
 	Kind: KindMap,
 }
 
 func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples []*MapTuple, cont Proc) Proc {
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
+	proc = func(token *Token) (Proc, error) {
 		if !iter.Next() {
 			// done
 			slices.SortFunc(tuples, func(a, b *MapTuple) bool {
@@ -439,7 +462,7 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 					b.KeyTokens.Iter(),
 				) < 0
 			})
-			return nil, MarshalMapTuples(ctx, tuples, cont), nil
+			return MarshalMapTuples(ctx, tuples, cont), nil
 		}
 		var tokens Tokens
 		keyMarshalProc := MarshalValue(Ctx{}, iter.Key(), nil)
@@ -448,29 +471,30 @@ func MarshalMapIter(ctx Ctx, value reflect.Value, iter *reflect.MapIter, tuples 
 			&keyMarshalProc,
 			CollectTokens(&tokens),
 		); err != nil {
-			return nil, nil, we.With(e5.With(MarshalError), WithPath(ctx))(err)
+			return nil, we.With(e5.With(MarshalError), WithPath(ctx))(err)
 		}
 		if len(tokens) == 0 ||
 			(len(tokens) == 1 && tokens[0].Kind == KindNaN) {
-			return nil, nil, we.With(WithPath(ctx), e5.With(BadMapKey))(MarshalError)
+			return nil, we.With(WithPath(ctx), e5.With(BadMapKey))(MarshalError)
 		}
 		tuples = append(tuples, &MapTuple{
 			KeyTokens: tokens,
 			Key:       iter.Key(),
 			Value:     iter.Value(),
 		})
-		return nil, proc, nil
+		return proc, nil
 	}
-	return func() (*Token, Proc, error) {
-		return mapToken, proc, nil
+	return func(token *Token) (Proc, error) {
+		*token = mapToken
+		return proc, nil
 	}
 }
 
 func MarshalMapTuples(ctx Ctx, tuples []*MapTuple, cont Proc) Proc {
 	var proc Proc
-	proc = func() (*Token, Proc, error) {
+	proc = func(token *Token) (Proc, error) {
 		if len(tuples) == 0 {
-			return nil, ctx.Marshal(
+			return ctx.Marshal(
 				ctx,
 				mapEndToken,
 				cont,
@@ -479,12 +503,12 @@ func MarshalMapTuples(ctx Ctx, tuples []*MapTuple, cont Proc) Proc {
 		tuple := tuples[0]
 		tuples = tuples[1:]
 		path := tuple.Key.Interface()
-		return nil, ctx.Marshal(
+		return ctx.Marshal(
 			ctx.WithPath(path),
 			tuple.Key,
 			// must wrap in closure to delay value marshaling
-			func() (*Token, Proc, error) {
-				return nil, ctx.Marshal(
+			func(token *Token) (Proc, error) {
+				return ctx.Marshal(
 					ctx.WithPath(path),
 					tuple.Value,
 					proc,
@@ -499,16 +523,16 @@ var tupleEndToken = reflect.ValueOf(&Token{
 	Kind: KindTupleEnd,
 })
 
-var tupleToken = &Token{
+var tupleToken = Token{
 	Kind: KindTuple,
 }
 
 func MarshalTuple(ctx Ctx, items []reflect.Value, cont Proc) Proc {
 	var proc Proc
 	var n int
-	proc = func() (*Token, Proc, error) {
+	proc = func(token *Token) (Proc, error) {
 		if len(items) == 0 {
-			return nil, ctx.Marshal(
+			return ctx.Marshal(
 				ctx,
 				tupleEndToken,
 				cont,
@@ -517,14 +541,15 @@ func MarshalTuple(ctx Ctx, items []reflect.Value, cont Proc) Proc {
 			v := items[0]
 			items = items[1:]
 			n++
-			return nil, ctx.Marshal(
+			return ctx.Marshal(
 				ctx.WithPath(n-1),
 				v,
 				proc,
 			), nil
 		}
 	}
-	return func() (*Token, Proc, error) {
-		return tupleToken, proc, nil
+	return func(token *Token) (Proc, error) {
+		*token = tupleToken
+		return proc, nil
 	}
 }
