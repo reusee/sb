@@ -4,6 +4,6 @@ go 1.18
 
 require (
 	github.com/reusee/e5 v0.0.0-20230128094953-f2ff5c9c135a
-	github.com/reusee/pr2 v0.0.0-20230510022941-5568524a2a05
+	github.com/reusee/pr2 v0.0.0-20230513023417-8fa983cd748f
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 )
