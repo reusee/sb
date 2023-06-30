@@ -1,15 +1,13 @@
 package sb
 
-import "github.com/reusee/pr2"
+import "github.com/reusee/pr3"
 
 // 8 * 1024 = 8K
-var bytesPool8 = pr2.NewPool(1024, func() *[]byte {
-	bs := make([]byte, 8)
-	return &bs
-}).WithReset(pr2.ResetSlice[byte](8, -1))
+var bytesPool8 = pr3.NewPool(1024, func() []byte {
+	return make([]byte, 8)
+})
 
 // 32K * 32 = 1M
-var bytesPool32K = pr2.NewPool(32, func() *[]byte {
-	bs := make([]byte, 32*1024)
-	return &bs
-}).WithReset(pr2.ResetSlice[byte](32*1024, -1))
+var bytesPool32K = pr3.NewPool(32, func() []byte {
+	return make([]byte, 32*1024)
+})
