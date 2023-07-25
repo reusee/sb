@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/reusee/e5"
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 type SBMarshaler interface {
@@ -455,11 +455,11 @@ func MarshalMapIter(ctx Ctx, iter *reflect.MapIter, tuples []*MapTuple, cont Pro
 	proc = func(_ *Token) (Proc, error) {
 		if !iter.Next() {
 			// done
-			slices.SortFunc(tuples, func(a, b *MapTuple) bool {
+			slices.SortFunc(tuples, func(a, b *MapTuple) int {
 				return MustCompare(
 					a.KeyTokens.Iter(),
 					b.KeyTokens.Iter(),
-				) < 0
+				)
 			})
 			return MarshalMapTuples(ctx, tuples, cont), nil
 		}
