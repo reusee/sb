@@ -1193,9 +1193,20 @@ func TestIgnoreFuncs(t *testing.T) {
 	var data struct {
 		I int
 	}
+	var peek Sink
+	peek = func(token *Token) (Sink, error) {
+		if !token.Valid() {
+			return nil, nil
+		}
+		if token.Value == "F" {
+			t.Fatal()
+		}
+		return peek, nil
+	}
 	if err := Copy(
 		&proc,
 		Unmarshal(&data),
+		peek,
 	); err != nil {
 		t.Fatal(err)
 	}

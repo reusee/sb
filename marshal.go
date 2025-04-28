@@ -411,6 +411,11 @@ func MarshalStructFields(ctx Ctx, value reflect.Value, cont Proc) Proc {
 			return proc, nil
 		}
 
+		if ctx.IgnoreFuncs && field.Type.Kind() == reflect.Func {
+			fieldIdx++
+			return proc, nil
+		}
+
 		fieldIdx++
 		return ctx.Marshal(
 			ctx.WithPath(field.Name),
